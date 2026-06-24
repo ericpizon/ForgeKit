@@ -1,0 +1,178 @@
+---
+id: review-implementation
+type: command
+name: /review-implementation
+description: Multi-role review of a milestone's implementation — Lead Developer, Security, SRE, QE perspectives in one pass; produces IMPL-REVIEW artifact
+status: active
+version: 1
+primary_role: lead-developer
+reviewing_roles:
+  - security
+  - sre
+  - quality-engineer
+output_artifact_type: impl-review
+---
+
+# /review-implementation
+
+## Purpose
+
+Review the implementation of one milestone from four perspectives: Lead Developer, Security, SRE, and QE. Each perspective adopts the corresponding role's mental model and quality bar. Produces or appends to `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`. Blocking findings must be addressed before `/approve-implementation` can proceed.
+
+## Usage
+
+```
+/review-implementation PLAN-NNNN M1
+```
+
+## Required Inputs
+
+- **PLAN-NNNN** — read milestone MN's task list and AC coverage
+- **TEST-NNNN** — read the AC coverage map for MN's ACs; QE review checks test implementation against this contract
+- **SEC-NNNN** — filter findings applicable to MN's tasks
+- **OBS-NNNN** — filter observability tasks for MN
+- **DESIGN-NNNN** — read API shapes, data model, module layout, and Key Decisions for MN
+- **ARCH.md** — read for coding conventions, module layout patterns, auth model, and testing rules
+- **Source code** — read all files created or modified for MN. Derive the file list from MN's task descriptions in PLAN-NNNN.
+- **`sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`** — read if it exists (re-review context)
+
+## On Re-Review
+
+If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
+
+1. Identify the current round number (latest `## Round N` section + 1).
+2. Read the latest `### Address Summary — Round N` to understand which findings were addressed and which were deferred with documented reasons.
+3. Scope this round's review to changed files only. Examine unchanged files only if a change in one file has plausible cascade impact on another. Do not re-review the entire milestone.
+4. Append a new `## Round N` section — do not modify prior round content.
+
+## Review Output File
+
+**File:** `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`
+
+**If the file does not exist:** create it (frontmatter + Round 1 section).
+**If the file already exists:** follow On Re-Review steps above, then append the new round section.
+
+```markdown
+---
+id: IMPL-REVIEW-NNNN-MN
+type: impl-review
+plan: PLAN-NNNN
+milestone: MN
+---
+
+# Implementation Review — PLAN-NNNN MN
+
+## Round 1 — [date]
+
+### Lead Developer Findings
+[findings or "None."]
+
+### Security Findings
+[findings or "None."]
+
+### SRE Findings
+[findings or "None."]
+
+### QE Findings
+[findings or "None."]
+
+### Summary
+N blocking, M non-blocking findings.
+
+### Next Step
+[/address-implementation-review PLAN-NNNN MN | /approve-implementation PLAN-NNNN MN]
+```
+
+Each finding:
+```
+**[ROLE-N] blocking | non-blocking — [title]**
+[description of the issue]
+[resolution recommendation]
+```
+
+---
+
+## Lead Developer Perspective
+
+Adopt the Lead Developer role (`.claude/roles/lead-developer.md`). Read ARCH.md before reviewing code — all code quality judgments must be grounded in the project's established conventions, not generic best practices.
+
+**Before reading individual files**, run `git status` to list every new and modified file in the working tree. Cross-reference this list against MN's task descriptions in PLAN-NNNN — each task names the file(s) it creates or modifies. Any file that appears in `git status` but is not attributable to a task in MN is an out-of-scope change and must be flagged as blocking.
+
+**If PLAN-NNNN has `linked_bug` set:** read `sdlc/bugs/BUG-NNNN.md` `## Triage` section before reading any source files. Note the confirmed root cause and proposed fix. After reviewing the diff, confirm:
+- The diff targets the documented root cause — not a workaround that masks the symptom
+- If the fix diverged from what was described in triage, the reason must be documented in PLAN-NNNN or BUG-NNNN
+
+If the diff addresses a different issue than what was triaged, flag as **blocking**.
+
+Then read every source file in MN's task list. Check:
+
+- All MN tasks are implemented and match DESIGN-NNNN specs (API shapes, function signatures, data model, module layout)
+- Type safety: no unsafe type casts or `any`-equivalent escapes in typed languages
+- Input validation: all external input validated at the boundary before being passed to internal functions (read ARCH.md for the project's validation approach)
+- Module layout matches DESIGN-NNNN and ARCH.md conventions (files in correct paths; no logic that belongs in shared modules leaked into handler/controller files)
+- Auth guard pattern is correct per ARCH.md: auth is checked before any database access in external-facing handlers
+- No implementation decisions were made silently — any task that required a judgment call should have surfaced as a blocker during `/implement-plan`; surface anything that slipped through
+
+---
+
+## Security Perspective
+
+Adopt the Security role (`.claude/roles/security.md`). Read SEC-NNNN's findings applicable to MN before reviewing code. Apply only checks relevant to MN's tasks.
+
+For each SEC finding scoped to MN:
+- Verify the specific mitigation is implemented — not a general similar pattern, the exact mechanism specified
+- Confirm the mitigation is in the right location (the file and function named in the finding)
+
+Project-agnostic security checks applicable to every milestone:
+- Auth is checked **before** any data access — no data lookup precedes auth verification in any external-facing handler
+- Sensitive values (credentials, tokens, API keys) are never logged — only non-sensitive identifiers (prefixes, hashed values, user IDs) may appear in log statements
+- Error responses for security-sensitive paths do not leak internal state, stack traces, or distinction between "not found" and "unauthorized" when enumeration prevention is required
+- External input is validated before use
+
+Read ARCH.md for the project's auth model and credential handling conventions. Findings must cite specific files and lines, not generic concerns.
+
+---
+
+## SRE Perspective
+
+Adopt the SRE role (`.claude/roles/sre.md`). Check:
+
+- **Error handling:** Critical paths (database calls, external service calls) have appropriate error handling. Failure modes match what was specified in DESIGN-NNNN — fail-closed vs fail-open decisions from ADRs are implemented as documented.
+- **OBS tasks implemented:** for MN's observability tasks from OBS-NNNN, verify metric names, label dimensions, and instrumentation points match OBS-NNNN exactly. A misnamed metric or missing label will silently drop data.
+- **Log format:** structured logging per ARCH.md conventions; no string concatenation; no sensitive values in any field.
+- **Error response format:** error responses consistently return the expected content type; no framework default error pages leak into API responses.
+
+---
+
+## QE Perspective
+
+Adopt the Quality Engineer role (`.claude/roles/quality-engineer.md`). Read TEST-NNNN's AC coverage map for MN's ACs. For each test case listed, locate the corresponding test file and verify:
+
+- **AC coverage:** every AC in MN's `AC Coverage` field has at least one test case in the code — cross-reference TEST-NNNN's coverage map against the actual test files.
+- **Unit vs. integration boundary per ARCH.md:** unit tests have no database access, no network calls, no framework dependencies. Integration tests use a real database — no mocks per ARCH.md testing rules.
+- **Data isolation:** tests set up and tear down their own data. No shared fixtures that persist across tests. Use unique identifiers to prevent collision between concurrent or sequential test runs.
+- **P0 test cases present and automated:** none of the P0 test cases from TEST-NNNN were downgraded to manual without a documented reason. Any such demotion is a blocking finding.
+- **Test implementations match TEST-NNNN specifications:** correct assertion values, correct expected status codes, correct response body shapes. A test that passes while asserting the wrong thing is worse than no test.
+- **Security test cases use separate scenarios for distinct failure paths** — multiple failure conditions must not be merged into a single test with OR logic.
+
+---
+
+## Cross-Perspective Check
+
+After completing all perspectives:
+
+- **Contradictions:** Does a finding from one perspective conflict with another? Flag contradictions — the developer must arbitrate before addressing.
+- **Cascade:** Did one perspective's finding change scope in a way another perspective should know about? Add a note under the affected perspective's findings.
+
+## Summary Line
+
+```
+**Summary:** N blocking, M non-blocking findings.
+```
+
+## Next Step
+
+- If blocking > 0: `/address-implementation-review PLAN-NNNN MN`
+- If blocking == 0: `/approve-implementation PLAN-NNNN MN`
+
+State the next step explicitly at the end of the round section.

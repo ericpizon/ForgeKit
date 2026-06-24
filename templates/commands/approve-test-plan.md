@@ -1,0 +1,92 @@
+---
+id: approve-test-plan
+type: command
+name: /approve-test-plan
+description: Quality Engineer command to close the test plan review loop — confirm all findings resolved, mark TEST-PLAN approved, trigger implementation
+status: active
+version: 1
+primary_role: quality-engineer
+output_artifact_type: test-plan (approved)
+links:
+  - relation: relates_to
+    target: create-test-plan
+  - relation: relates_to
+    target: review-test-plan
+  - relation: relates_to
+    target: address-test-plan-review
+---
+
+# /approve-test-plan
+
+## Purpose
+
+Close the test plan review loop. Confirm the latest review section shows zero blocking findings. Mark TEST-NNNN `approved` and trigger Developer implementation. TEST-NNNN approval is the gate before a single line of implementation code is written — the AC coverage map is the Developer's test contract.
+
+## When to Invoke
+
+- Latest `## Test Plan Review — Round N` in TEST-NNNN shows zero blocking findings
+- Do not invoke if any blocking finding remains unresolved
+
+Pass the TEST-PLAN ID: `/approve-test-plan TEST-0001`.
+
+## Required Inputs
+
+- **TEST-NNNN** — latest Test Plan Review section must show zero blocking findings; all Address Summaries present
+- **SEC-NNNN** — (if triggered) determines whether Security perspective findings are required to be resolved
+
+## Steps
+
+Adopt the Quality Engineer role. Apply the perspective and stack knowledge from [`.claude/roles/quality-engineer.md`](.claude/roles/quality-engineer.md) throughout these steps.
+
+1. **Final readiness gate.** Read the latest `## Test Plan Review — Round N` section. Confirm:
+   - Zero blocking findings
+   - Every non-blocking finding is either addressed in the Address Summary or documented as accepted risk with rationale
+   - Every AC from SPEC-NNNN has at least one P0 automated test case covering the happy path
+   - Execution Results Summary placeholder is present (`status: pending`)
+
+   If any blocking finding remains: **do not proceed**. Return to `/address-test-plan-review`.
+
+2. **Update TEST-NNNN status to `approved`.** In TEST frontmatter:
+   - Set `status: approved`
+   - Set `approved_date` to today's date
+   - Set `approved_by: quality-engineer`
+   - Add changelog entry: `vN — approved after [N] review rounds`
+
+3. **Update the registry.** In `sdlc/registry/index.md`, update the TEST-NNNN row: set `status: approved`, `approved_date` to today's date.
+
+## Quality Gate
+
+Before committing:
+- [ ] Latest Test Plan Review section shows zero blocking findings
+- [ ] All non-blocking findings addressed or explicitly accepted as risk with documented rationale
+- [ ] Every AC has at least one P0 automated test case covering the happy path
+- [ ] No P0 test case is manual-only without a `Procedure` block and a `Reason` line
+- [ ] All security test cases for Critical/High SEC findings are P0
+- [ ] AC Coverage Map is organized by milestone matching the PLAN structure
+- [ ] Execution Results Summary placeholder present with `status: pending`
+- [ ] TEST frontmatter: `status: approved`, `approved_date`, `approved_by` set
+- [ ] Registry updated for TEST-NNNN
+
+## Handoff
+
+Show the user the approved TEST-PLAN. This is the single commit for the entire test planning phase.
+
+**Pause for human review:**
+> "Ready to commit the entire test planning phase — TEST-NNNN with all review rounds, address summaries, and approval. Please review. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+**Commit (after user confirms):**
+```
+git add sdlc/test-plans/TEST-NNNN-slug.md sdlc/registry/index.md
+git commit -m "TEST-NNNN: test planning phase approved — [N] review rounds"
+```
+
+**Push (only if user confirms team context):**
+```
+git push origin thread/NNNN-slug
+```
+
+**Notify:**
+- **Developer** → `/implement-plan PLAN-NNNN` — TEST-NNNN is the test contract; the AC coverage map defines what test cases to write alongside each milestone task
+
+**After implementation and CI (separate commit, not part of this phase):**
+The QE records test execution results directly in TEST-NNNN — updating the Execution Results Summary section and setting `execution_date` and `execution_summary` in frontmatter. A `failed` or unexplained `partial` result blocks RELEASE-PLAN approval.

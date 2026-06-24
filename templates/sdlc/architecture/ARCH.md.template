@@ -1,0 +1,131 @@
+---
+type: architecture
+project: "{{project.name}}"
+status: draft
+version: 1
+approved_by: pending
+initialized_at: {{today}}
+---
+
+# {{project.name}} — System Architecture
+
+{{project.description}}
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Language | {{stack.language}} |
+| Framework | {{stack.framework}} |
+| Database | {{stack.database}} |
+| Migrations | {{stack.migration_tool}} |
+| Lint | {{stack.lint}} |
+| Unit tests | {{stack.test.unit}} |
+| E2E tests | {{stack.test.e2e}} |
+| Deploy | {{stack.deploy.command}} |
+| CI/CD | {{stack.ci}} |
+| Observability | {{stack.observability}} |
+| Auth | {{stack.auth}} |
+
+---
+
+## Module layout
+
+*(Fill in: top-level directory structure and what each module is responsible for.)*
+
+```
+{{project.name}}/
+├── ...
+```
+
+---
+
+## Data layer
+
+- **Database:** {{stack.database}}
+- **Migration tool:** {{stack.migration_tool}}
+- **Migration command (production):** `{{stack.deploy.migration_command}}`
+- **Connection model:** *(fill in: connection pooling, ORM, raw SQL patterns)*
+- **Schema summary:** *(fill in: key tables/models and their purpose)*
+
+---
+
+## Authentication model
+
+- **Auth approach:** {{stack.auth}}
+- **Session handling:** *(fill in)*
+- **Protected route pattern:** *(fill in: how auth is enforced — middleware, route guards, etc.)*
+- **Auth boundaries:** *(fill in: what requires auth, what is public)*
+
+---
+
+## Testing strategy
+
+- **Unit tests:** {{stack.test.unit}} — *(fill in: what is unit-tested, naming conventions)*
+- **Integration tests:** *(fill in: real database vs mocked, what is integration-tested)*
+- **E2E tests:** {{stack.test.e2e}} — *(fill in: what flows are covered)*
+- **Test data:** *(fill in: how test data is created and cleaned up)*
+- **No-mock rule:** *(fill in if applicable: e.g., "never mock the database in integration tests")*
+
+---
+
+## Deployment
+
+- **Deploy target:** *(fill in: Vercel, AWS, GCP, self-hosted, etc.)*
+- **Deploy command:** `{{stack.deploy.command}}`
+- **Environment variables:** *(fill in: how env vars are managed, pull command)*
+  - Pull command: `{{stack.deploy.env_pull}}`
+- **CI pipeline:** {{stack.ci}} — *(fill in: what the pipeline runs and when it deploys)*
+
+---
+
+## Observability
+
+- **Stack:** {{stack.observability}}
+- **Instrumented:** *(fill in: what is traced/metered/logged)*
+- **Never log:** *(fill in: PII, secrets, API keys, tokens — anything that must not appear in logs)*
+- **Key signals:** *(fill in: the signals that matter most for alerting and debugging)*
+
+---
+
+## Security conventions
+
+- **Auth enforcement:** *(fill in: where and how auth is checked — e.g., every route handler, middleware, edge config)*
+- **Secrets handling:** *(fill in: where secrets live, naming convention, how they're accessed)*
+- **API key pattern:** *(fill in if applicable)*
+- **Known-unsafe patterns to avoid:** *(fill in: e.g., "no direct SQL string construction," "no eval")*
+
+---
+
+## Architectural decisions and constraints
+
+*(Fill in: non-obvious decisions baked into the codebase. E.g., "this service is intentionally read-only," "we use eventual consistency in the notification queue," "the legacy payments module is off-limits.")*
+
+---
+
+## Known tech debt
+
+*(Fill in: things the pipeline should be aware of that affect implementation decisions.)*
+
+---
+
+## External dependencies
+
+*(Fill in: upstream services, third-party APIs, shared databases, external queues.)*
+
+---
+
+## Team conventions
+
+*(Fill in: conventions not enforced by linting or tests — naming patterns, PR process, code review expectations.)*
+
+---
+
+## Pre-existing Security Findings
+
+*Populated during brownfield discovery (Phase 4B of `/forge-init`) with findings from the automated security scan. Leave this section empty for greenfield projects.*
+
+| Severity | Finding | Status |
+|---|---|---|

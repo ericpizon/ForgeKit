@@ -1,0 +1,47 @@
+<!-- ForgeKit Pipeline — managed by /forge-init, update with /update-stack -->
+@.claude/project.yml
+
+## Pipeline: {{project.name}}
+
+**Project type:** {{project.type}}
+**Artifact mode:** {{artifact_mode}}
+**Team size:** {{team.size}}
+
+<!-- IF hybrid -->
+### Artifact mode: hybrid
+
+**SPEC, BUG, and INC** are managed in **{{external_tool.name}}** as the source of truth for business and operational artifacts:
+- SPEC → {{artifact_map.spec}}
+- BUG → {{artifact_map.bug}}
+- INC → {{artifact_map.incident}}
+
+**When reading SPEC, BUG, or INC content** (for any pipeline command): prompt the user to paste the current content from {{external_tool.name}} into the conversation — do not rely on the `.md` stub for content decisions.
+
+**When producing a SPEC, BUG, or INC**: output the full artifact content in a clearly labeled block for the user to copy into {{external_tool.name}}. Also write a minimal tracking stub to the corresponding `sdlc/` directory containing only frontmatter (id, title, status, external_url, and key dates) — this preserves pipeline linking, branch naming, and registry scanning without duplicating content.
+
+**Postmortems (PM-NNNN)** are detailed technical retrospectives — they are generated as `.md` files in `sdlc/postmortems/` and written directly. No paste-in or copy-out needed.
+
+**All other artifacts** (DESIGN, PLAN, TEST-PLAN, SEC, OBS, IMPL-REVIEW, RELEASE-PLAN, RELEASE-NOTES, PM) are generated as `.md` files in `sdlc/` and read/written directly. No paste-in or copy-out is needed for these.
+<!-- END IF -->
+
+<!-- IF copy-paste -->
+### Artifact mode: copy-paste
+
+**All artifacts** for this project originate in **{{external_tool.name}}** — no `.md` files are written for any artifact.
+
+**When reading any artifact** (SPEC, BUG, DESIGN, PLAN, or any other): prompt the user to paste the content from {{external_tool.name}} into the conversation. Do not attempt to read a `.md` file.
+
+**When producing any artifact**: output the full content in a clearly labeled block and instruct the user to copy it into {{external_tool.name}}. Do not write a `.md` file.
+
+Known artifact type mappings for {{external_tool.name}}:
+- SPEC → {{artifact_map.spec}}
+- BUG → {{artifact_map.bug}}
+- INC → {{artifact_map.incident}}
+
+For artifact types without an explicit mapping (DESIGN, PLAN, TEST-PLAN, etc.), prompt the user to confirm where to store the output in {{external_tool.name}} before copying.
+<!-- END IF -->
+
+<!-- IF AGENTS.md exists -->
+@AGENTS.md
+<!-- END IF -->
+<!-- End ForgeKit Pipeline -->

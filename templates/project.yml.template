@@ -1,0 +1,47 @@
+project:
+  name: "{{project.name}}"
+  description: "{{project.description}}"
+  type: {{project.type}}           # greenfield | brownfield
+  team_size: {{team.size}}         # solo | small | enterprise
+  initialized_at: {{today}}
+  forgekit_version: "1.0"
+
+# How SDLC artifacts are stored and provided to pipeline commands.
+# markdown    — all artifacts are .md files in this repo; commands read/write directly
+# hybrid      — SPEC, BUG, and INC live in an external tool (paste in / copy out);
+#               all technical artifacts (DESIGN, PLAN, TEST-PLAN, etc.) remain as .md files
+# copy-paste  — all artifacts live in an external tool; commands prompt to paste in
+#               and output content to copy back for every artifact type
+artifact_mode: {{artifact_mode}}
+
+# [INCLUDE ONLY IF artifact_mode: copy-paste OR hybrid]
+external_tool:
+  name: "{{external_tool.name}}"
+  artifact_map:
+    spec: "{{artifact_map.spec}}"
+    bug: "{{artifact_map.bug}}"
+    incident: "{{artifact_map.incident}}"
+# [END INCLUDE]
+
+stack:
+  language: {{stack.language}}
+  framework: {{stack.framework}}
+  database: {{stack.database}}
+  migration_tool: {{stack.migration_tool}}
+  lint: "{{stack.lint}}"           # lint + type check command, or "none"
+  test:
+    unit: "{{stack.test.unit}}"
+    e2e: "{{stack.test.e2e}}"      # or "none" if no e2e runner
+  deploy:
+    command: "{{stack.deploy.command}}"
+    env_pull: "{{stack.deploy.env_pull}}"
+    migration_command: "{{stack.deploy.migration_command}}"
+  ci: {{stack.ci}}
+  observability: {{stack.observability}}
+  auth: {{stack.auth}}
+
+pipeline:
+  security_review: conditional   # conditional = triggered on auth/secrets changes; always | never also valid
+  observability: true
+  postmortem: SEV-2              # severity threshold: postmortem required for incidents at this level or higher
+                                 # SEV-1 | SEV-2 | SEV-3 | SEV-4 | always | never
