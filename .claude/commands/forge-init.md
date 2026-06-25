@@ -344,7 +344,7 @@ Use these when the user selects Custom (option I) or wants to override a preset 
 - *Custom:* custom JWT, custom session tokens, API key only
 - *None:* internal tool with no auth requirement
 
-If the user selects a session-based library (Auth.js, Lucia, Passport, etc.), ask one follow-up question before moving on:
+If the user selects any session-based auth approach (any library or framework that maintains server-side sessions — e.g., Auth.js, Lucia, Passport for JavaScript; Flask-Login, Django auth for Python; Spring Security sessions for Java; Devise for Ruby), ask one follow-up question before moving on:
 > **Session strategy: JWT sessions or database sessions?**
 > - JWT — stateless; no DB lookup per request; tokens cannot be revoked without expiry
 > - Database sessions — session stored in DB; revocable instantly; recommended for most apps
@@ -394,7 +394,7 @@ Read the target project directory. Do not modify any files during this phase. Sc
 
 **Directory structure:**
 - Top-level directory layout → module organization
-- `src/` / `lib/` / `app/` structure → module boundaries
+- `src/` / `lib/` / `app/` structure → module boundaries, scanned recursively — list all route files, handlers, and nested sub-routes (e.g., `api/flags/[id]/route.ts` is a distinct endpoint from `api/flags/route.ts` and must appear separately in the module layout)
 - `tests/` / `__tests__/` / `spec/` → test organization
 
 **Test framework:**
@@ -411,6 +411,7 @@ Read the target project directory. Do not modify any files during this phase. Sc
 - `drizzle.config.*` / `alembic.ini` / `flyway.conf` → migration tool
 - `migrations/` / `db/migrate/` / `alembic/versions/` → migration history and patterns
 - ORM config files → database type and connection model
+- Read all schema definition files (`schema.ts`, `schema.py`, `models.py`, `models/`, `entities/`, `*.entity.ts`, migration files, etc.) and list **every table or model defined** — do not filter, summarize, or omit any. Include application tables, framework adapter tables, audit tables, junction tables, and system tables alike. For each table, list **all columns** — do not summarize to just the notable ones. A missing table or column means ARCH.md will have an incomplete data layer, causing gaps in downstream security reviews and design decisions.
 
 **Authentication:**
 - Auth middleware files, auth config, session handling → auth approach and boundaries
@@ -459,7 +460,7 @@ Correct? (yes / corrections: ...)
 
 ### Database and migrations
 Detected: [migration tool if any], [N migrations found]
-Schema summary: [key tables/models identified]
+Schema: [every table/model with every column — no omissions]
 Correct? (yes / corrections: ...)
 
 ### Observability
@@ -479,6 +480,12 @@ These will be carried into the pipeline as pre-existing findings for the Securit
 
 After the user confirms the automated findings, ask the following questions that automation cannot answer:
 
+> **If a session-based auth library or framework was detected: what is the session strategy?**
+> - JWT — stateless; sessions cannot be revoked without token expiry
+> - Database sessions — session stored in DB; revocable instantly
+>
+> *(If no session tables were found in the schema scan, JWT is the likely default — confirm before proceeding. Do not leave session strategy as implicit.)*
+>
 > **Are there architectural decisions in this codebase that aren't obvious from the code?**
 > (e.g., "we use eventual consistency here intentionally," "this service is read-only by design")
 >
@@ -528,12 +535,13 @@ For greenfield projects, generate `sdlc/architecture/ARCH.md` from the confirmed
 - **Tech stack** — all confirmed values from Phase 4A, including a `Deploy` row (`{{stack.deploy.command}}`)
 - **Module layout** — proposed structure based on framework conventions
 - **Data layer** — database, migration approach, connection model
-- **Authentication model** — confirmed auth approach and boundaries; if using a session-based auth library (Auth.js, Lucia, NextAuth, Passport, etc.) ask the user to decide now: **JWT sessions or database sessions?** Do not leave this as TBD — it is an architectural decision with security and scalability consequences. Recommendation: database sessions for auditability and revocability unless there is a specific stateless requirement
+- **Authentication model** — confirmed auth approach and boundaries; if using any session-based auth approach (any library or framework that stores session state server-side), ask the user to decide now: **JWT sessions or database sessions?** Do not leave this as TBD — it is an architectural decision with security and scalability consequences. Recommendation: database sessions for auditability and revocability unless there is a specific stateless requirement
 - **Testing strategy** — unit/integration/e2e split, when each type is written, no-mock-DB rule if applicable
 - **Deployment** — deploy target, environment variable management approach
 - **Observability** — stack, what should be instrumented, what must never be logged
 - **Security conventions** — auth enforcement pattern, secrets handling, API key patterns if applicable
 - **Architectural decisions** — any framework-specific patterns decided at generation time; for Next.js App Router projects, include: App Router only (no Pages Router), Server Components by default, Server Actions as the preferred mutation pattern (not just for forms — for all data writes unless a JSON API endpoint is explicitly needed for external consumers)
+  <!-- FUTURE: Add equivalent framework-specific architectural guidance for other stacks (Django, Rails, Spring Boot, FastAPI, etc.). Currently only Next.js App Router gets a framework-specific callout. -->
 
 **Frontmatter on generation:** set `status: draft` and `approved_by: pending` — do NOT set `status: approved` until the user explicitly approves.
 
@@ -599,7 +607,7 @@ pipeline:
 **If CLAUDE.md does not exist** in the target project root: create it with the ForgeKit block only.
 
 **If CLAUDE.md exists**: read it fully. Check for an existing ForgeKit block (a line containing `<!-- ForgeKit Pipeline`).
-- If no block exists: append the ForgeKit block at the end of the existing file
+- If no block exists: check whether the existing content is trivial (only framework directives like `@AGENTS.md`, blank lines, or a single comment). If trivial: **replace** the file with the ForgeKit block — the block will include `@AGENTS.md` via the conditional, so no content is lost. If non-trivial (real custom instructions): **append** the ForgeKit block at the end of the existing file.
 - If a block exists: this is a re-run — update the block in place, preserve all content outside the block
 
 Generate the ForgeKit block by reading `templates/CLAUDE.md.template` and applying these substitutions and conditionals:
@@ -607,7 +615,7 @@ Generate the ForgeKit block by reading `templates/CLAUDE.md.template` and applyi
 1. Substitute `{{project.name}}`, `{{project.type}}`, `{{artifact_mode}}`, `{{team.size}}` with the confirmed values
 2. Process `<!-- IF hybrid -->...<!-- END IF -->` block: if `artifact_mode` is `hybrid`, include the block content (substituting `{{external_tool.name}}`, `{{artifact_map.spec}}`, `{{artifact_map.bug}}`, `{{artifact_map.incident}}`); otherwise remove the block and its markers entirely
 3. Process `<!-- IF copy-paste -->...<!-- END IF -->` block: if `artifact_mode` is `copy-paste`, include the block content (substituting `{{external_tool.name}}`, `{{artifact_map.spec}}`, `{{artifact_map.bug}}`, `{{artifact_map.incident}}`); otherwise remove the block and its markers entirely
-4. Process `<!-- IF AGENTS.md exists -->...<!-- END IF -->` block: if `AGENTS.md` exists in the target project root, include `@AGENTS.md`; otherwise remove the block and its comment markers entirely
+4. Process `<!-- IF AGENTS.md exists -->...<!-- END IF -->` block: if `AGENTS.md` exists in the target project root, include `@AGENTS.md`; otherwise remove the block and its comment markers entirely. **Exception:** if appending to an existing file that already contains `@AGENTS.md`, omit it from the ForgeKit block to avoid duplication.
 
 Show the user a before/after diff of CLAUDE.md and confirm before writing.
 
