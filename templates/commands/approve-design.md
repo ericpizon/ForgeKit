@@ -41,11 +41,12 @@ git pull origin thread/NNNN-slug
 ## Steps
 
 1. **Final review gate.** Read the latest `## Design Review — Round N` section in DESIGN-NNNN. Confirm:
-   - Status shows zero blocking findings
-   - Every non-blocking finding is either addressed or has documented accepted-risk rationale
+   - Blocking finding count is zero
    - DESIGN version is current
-   
-   If any blocking finding remains: **do not proceed**.
+
+   If any blocking finding remains: **do not proceed**. Direct the user to run `/address-design-review DESIGN-NNNN` to resolve them first.
+
+   Non-blocking findings do not block approval. Accept them as developer notes — do **not** address them inline here. If the user wants to address non-blocking findings, they run `/address-design-review DESIGN-NNNN` separately, before or after approval.
 
 2. **Update DESIGN status to `approved`.** In DESIGN frontmatter:
    - Set `status: approved`
@@ -65,7 +66,7 @@ git pull origin thread/NNNN-slug
 
 Before committing:
 - [ ] Latest Design Review section shows zero blocking findings
-- [ ] All non-blocking findings either addressed or explicitly accepted as risk with documented rationale
+- [ ] Non-blocking findings accepted as-is (no inline resolution required)
 - [ ] DESIGN frontmatter: `status: approved`, `approved_date`, `approved_by` set
 - [ ] ARCH updated to reflect this DESIGN's cross-cutting contributions
 - [ ] ARCH version incremented, changelog entry added
