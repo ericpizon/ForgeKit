@@ -44,7 +44,7 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
 
 3. **Triage.** Separate into three buckets:
    - **Must resolve now:** blocking findings from any perspective
-   - **Address if straightforward:** non-blocking findings with a simple, contained fix
+   - **Accept by default:** non-blocking findings are accepted as-is unless the user has explicitly requested addressing specific ones
    - **Accept or defer:** findings the Lead Developer accepts as risk (document rationale) or explicitly defers
 
 4. **Address blocking findings in order.** For each blocking finding:
@@ -54,7 +54,9 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
    - If the fix requires a new task (e.g., a missing security mitigation task), add it in the correct phase position
    - If a fix requires a design decision not yet in DESIGN-NNNN: stop — see Blocker Protocol
 
-5. **Address straightforward non-blocking findings.** If the fix is a single, contained clarification or addition — make it. If it requires a design decision or scope change, document it as accepted risk with rationale instead.
+5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
+
+   If a blocking finding required adding or splitting a task, update only the affected rows in the Happy Path Trace — do not regenerate the full trace. Existing rows for unchanged tasks are stable.
 
 6. **Update the Milestones section if task revisions affected milestone membership.** If any task was split, added, moved, or removed during Steps 4–5, update the affected milestone's `Tasks:` list to reflect the new set. Verify that every task still belongs to exactly one milestone and that every milestone still maps to at least one AC. Update `milestone_count` in frontmatter if the number of milestones changed.
 

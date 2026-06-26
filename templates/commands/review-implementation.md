@@ -29,8 +29,8 @@ Review the implementation of one milestone from four perspectives: Lead Develope
 
 - **PLAN-NNNN** — read milestone MN's task list and AC coverage
 - **TEST-NNNN** — read the AC coverage map for MN's ACs; QE review checks test implementation against this contract
-- **SEC-NNNN** — filter findings applicable to MN's tasks
-- **OBS-NNNN** — filter observability tasks for MN
+- **SEC-NNNN** — filter findings applicable to MN's tasks *(skip if PLAN frontmatter shows `includes_security_tasks: false`)*
+- **OBS-NNNN** — filter observability tasks for MN *(skip if PLAN frontmatter shows `includes_observability_tasks: false` and MN has no OBS tasks listed)*
 - **DESIGN-NNNN** — read API shapes, data model, module layout, and Key Decisions for MN
 - **ARCH.md** — read for coding conventions, module layout patterns, auth model, and testing rules
 - **Source code** — read all files created or modified for MN. Derive the file list from MN's task descriptions in PLAN-NNNN.
@@ -42,8 +42,9 @@ If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
 
 1. Identify the current round number (latest `## Round N` section + 1).
 2. Read the latest `### Address Summary — Round N` to understand which findings were addressed and which were deferred with documented reasons.
-3. Scope this round's review to changed files only. Examine unchanged files only if a change in one file has plausible cascade impact on another. Do not re-review the entire milestone.
-4. Append a new `## Round N` section — do not modify prior round content.
+3. Load artifacts lazily — read the address summary first, then load only the source files, PLAN tasks, DESIGN sections, and TEST cases referenced by addressed findings. Do not reload ARCH, DESIGN, or TEST in full if their domain was unaffected by the address pass.
+4. Scope this round's review to changed files only. Examine unchanged files only if a change in one file has plausible cascade impact on another. Do not re-review the entire milestone.
+5. Append a new `## Round N` section — do not modify prior round content.
 
 ## Review Output File
 
@@ -51,6 +52,8 @@ If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
 
 **If the file does not exist:** create it (frontmatter + Round 1 section).
 **If the file already exists:** follow On Re-Review steps above, then append the new round section.
+
+**Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or "None." List clean perspectives in a single `**Clean perspectives:** [list]` line before `### Summary`.
 
 ```markdown
 ---
@@ -64,17 +67,19 @@ milestone: MN
 
 ## Round 1 — [date]
 
-### Lead Developer Findings
-[findings or "None."]
+### Lead Developer Findings  *(omit section if none)*
+[findings]
 
-### Security Findings
-[findings or "None."]
+### Security Findings  *(omit section if none)*
+[findings]
 
-### SRE Findings
-[findings or "None."]
+### SRE Findings  *(omit section if none)*
+[findings]
 
-### QE Findings
-[findings or "None."]
+### QE Findings  *(omit section if none)*
+[findings]
+
+**Clean perspectives:** [list any perspectives with no findings]
 
 ### Summary
 N blocking, M non-blocking findings.

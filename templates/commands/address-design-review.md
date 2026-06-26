@@ -44,7 +44,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
 
 3. **Triage.** Separate into three buckets:
    - **Must resolve now:** blocking findings from any perspective
-   - **Address if straightforward:** non-blocking findings with a simple, contained fix
+   - **Accept by default:** non-blocking findings are accepted as-is unless the user has explicitly requested addressing specific ones
    - **Accept or defer:** findings the Architect accepts as risk (document rationale) or defers to a future DESIGN
 
 4. **Address blocking findings in order.** For each blocking finding:
@@ -53,7 +53,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
    - If a revision creates a contradiction in another section, resolve both before moving on
    - If a fix requires a new ADR, author it now
 
-5. **Address straightforward non-blocking findings.** If the fix is a single, contained clarification or addition — make it. If it requires a design decision or scope change, document it as accepted risk with rationale instead.
+5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
 
 6. **Append an address summary to the DESIGN artifact.** After all revisions, append an `## Address Summary — Round N` section (matching the round number of the review just addressed):
 

@@ -58,8 +58,9 @@ If a `## Test Plan Review — Round N` section already exists in TEST-NNNN:
 
 1. Identify the current round number (prior round + 1).
 2. Read the latest `## Address Summary — Round N` section in TEST-NNNN to see which findings were addressed and which were accepted or deferred.
-3. For each perspective: verify that previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked "Not Addressed" with documented accepted-risk rationale. Check whether the revision introduced new issues.
-4. Append a new `## Test Plan Review — Round N` section. Do not modify prior round sections.
+3. Load only the TEST-NNNN sections cited in the address summary — do not re-read the full test plan. Sections not referenced by any addressed finding are unchanged.
+4. For each perspective: verify that previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked "Not Addressed" with documented accepted-risk rationale. **If a perspective's domain was unaffected by the address pass, emit `[Perspective]: no new findings — domain unaffected by Round N address.` and skip the full perspective analysis.**
+5. Append a new `## Test Plan Review — Round N` section. Do not modify prior round sections.
 
 ## Steps
 
@@ -123,7 +124,9 @@ After completing all applicable perspectives:
 
 ## Output
 
-Append a `## Test Plan Review — Round N` section to TEST-NNNN:
+Append a `## Test Plan Review — Round N` section to TEST-NNNN.
+
+**Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 
 ```
 ## Test Plan Review — Round N
@@ -131,15 +134,17 @@ Append a `## Test Plan Review — Round N` section to TEST-NNNN:
 **Date:** YYYY-MM-DD
 **Status:** Changes requested — N blocking, N non-blocking | Approved — no blocking findings
 
-### Security Findings  *(omit if SEC-NNNN does not exist)*
+### Security Findings  *(omit if SEC-NNNN does not exist or no findings)*
 - [SEC-1] **blocking** — [finding]
 
-### SRE Findings
+### SRE Findings  *(omit section if none)*
 - [SRE-1] **non-blocking** — [finding]
 
-### Lead Developer Findings
+### Lead Developer Findings  *(omit section if none)*
 - [LD-1] **blocking** — [finding]
 - [LD-2] **non-blocking** — [finding]
+
+**Clean perspectives:** [list any perspectives with no findings]
 
 ### Contradictions Requiring Arbitration
 - [or "None."]

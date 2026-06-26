@@ -28,8 +28,10 @@ If a `## Plan Review — Round N` section already exists in PLAN-NNNN:
 
 1. Identify the current round number (prior round + 1).
 2. Read the latest `## Address Summary — Round N` section to see which findings were addressed, accepted, or deferred.
-3. For each perspective: verify previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked with accepted-risk rationale.
-4. Append a new `## Plan Review — Round N` section. Do not modify prior round sections.
+3. Load only the PLAN tasks cited in the address summary — do not re-read the full task list. Tasks not referenced by any addressed finding are unchanged.
+4. For each perspective: verify previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked with accepted-risk rationale. **If a perspective's domain was unaffected by the address pass, emit `[Perspective]: no new findings — domain unaffected by Round N address.` and skip the full perspective analysis.**
+5. **Happy Path Trace:** if the trace was complete in the prior round (no gaps), skip re-validation. Only re-check rows for tasks that were added or modified during the address pass.
+6. Append a new `## Plan Review — Round N` section. Do not modify prior round sections.
 
 ## Before Running Perspectives
 
@@ -113,7 +115,9 @@ Adopt the Architect role. Review PLAN-NNNN for fidelity to DESIGN-NNNN. Assess:
 
 ## Output
 
-Append a `## Plan Review — Round N` section to PLAN-NNNN:
+Append a `## Plan Review — Round N` section to PLAN-NNNN.
+
+**Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List all clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 
 ```
 ## Plan Review — Round N
@@ -121,20 +125,22 @@ Append a `## Plan Review — Round N` section to PLAN-NNNN:
 **Date:** YYYY-MM-DD
 **Status:** Changes requested — N blocking, N non-blocking | Approved — no blocking findings
 
-### SRE Findings
+### SRE Findings  *(omit section if none)*
 - [SRE-1] **blocking** — [finding]
 
-### Developer Findings
+### Developer Findings  *(omit section if none)*
 - [DEV-1] **non-blocking** — [finding]
 
-### QE Findings
+### QE Findings  *(omit section if none)*
 - [QE-1] **blocking** — [finding]
 
-### Security Findings  *(omit if SEC-NNNN does not exist)*
+### Security Findings  *(omit if SEC-NNNN does not exist or no findings)*
 - [SEC-1] **blocking** — [finding]
 
-### Architect Findings
+### Architect Findings  *(omit section if none)*
 - [ARCH-1] **non-blocking** — [finding]
+
+**Clean perspectives:** [list any perspectives with no findings]
 
 ### Contradictions Requiring Arbitration
 - [or "None"]

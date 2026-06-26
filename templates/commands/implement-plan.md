@@ -73,8 +73,8 @@ Branch naming is always `feature/PLAN-NNNN-MN` (example: `feature/PLAN-0001-M2`)
 - **PLAN-NNNN** — approved; provides task list, AC coverage, and implementation notes for MN
 - **DESIGN-NNNN** — read Key Decisions, data model, API shapes, and module layout for exact implementation specs
 - **TEST-NNNN** — approved; filter test cases for MN's ACs — these define the test files to write alongside production code
-- **SEC-NNNN** — filter findings applicable to MN's tasks; implement mitigations in the tasks that own them
-- **OBS-NNNN** — filter observability tasks for MN; these must be built in, not added after
+- **SEC-NNNN** — filter findings applicable to MN's tasks; implement mitigations in the tasks that own them *(skip if PLAN frontmatter shows `includes_security_tasks: false`)*
+- **OBS-NNNN** — filter observability tasks for MN; these must be built in, not added after *(skip if PLAN frontmatter shows `includes_observability_tasks: false` and MN has no OBS tasks listed)*
 - **ARCH.md** — read for framework conventions, tech stack specifics, and patterns to follow
 
 ## Update Milestone Status
