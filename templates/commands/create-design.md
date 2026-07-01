@@ -169,6 +169,7 @@ Each ADR-NNNN must contain: Context, Decision, Consequences, Status Rationale, R
 - [ ] Trade-offs accepted are named explicitly
 
 **End of Phase 3 (before showing full spec to user):**
+- [ ] DESIGN frontmatter initialized: `current_review_round: 0` (updated by `/review-design` after each round)
 - [ ] Every ANALYSIS ambiguity is explicitly resolved
 - [ ] External API surfaces have version prefixes
 - [ ] All failure modes for the hot path are enumerated

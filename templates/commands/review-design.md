@@ -26,7 +26,7 @@ Pass SPEC and DESIGN IDs: `/review-design SPEC-NNNN DESIGN-NNNN`.
 
 If a `## Design Review — Round N` section already exists in DESIGN-NNNN:
 
-1. Identify the current round number (prior round + 1).
+1. Read `current_review_round` from DESIGN-NNNN frontmatter. The new round number is `current_review_round + 1`.
 2. Read the `## Address Summary — Round N` section. Note which findings were addressed, accepted risk, deferred, or escalated.
 3. Load only the DESIGN sections cited in the address summary — do not re-read the full DESIGN. Sections not referenced by any addressed finding are unchanged by definition.
 4. For each perspective: confirm previously-blocking findings are resolved. Do not re-raise findings marked accepted risk or deferred. **If a perspective's domain was not touched by any addressed finding, emit a single line — `[Perspective]: no new findings — domain unaffected by Round N address.` — and skip the full perspective analysis.**
@@ -104,7 +104,7 @@ After completing all four perspectives:
 
 ## Output
 
-Append a `## Design Review — Round N` section to DESIGN-NNNN.
+Append a `## Design Review — Round N` section to DESIGN-NNNN. Then update `current_review_round` in DESIGN-NNNN frontmatter to the round number just appended.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. Instead, list all clean perspectives in a single `**Clean perspectives:** [list]` line placed before `### Contradictions Requiring Arbitration`. A fully clean review needs only Date, Status, the clean-perspectives line, and `Contradictions: None.`
 

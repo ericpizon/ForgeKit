@@ -26,7 +26,7 @@ Pass the PLAN, SPEC, DESIGN, and (if applicable) SEC IDs: `/review-plan PLAN-NNN
 
 If a `## Plan Review — Round N` section already exists in PLAN-NNNN:
 
-1. Identify the current round number (prior round + 1).
+1. Read `current_review_round` from PLAN-NNNN frontmatter. The new round number is `current_review_round + 1`.
 2. Read the latest `## Address Summary — Round N` section to see which findings were addressed, accepted, or deferred.
 3. Load only the PLAN tasks cited in the address summary — do not re-read the full task list. Tasks not referenced by any addressed finding are unchanged.
 4. For each perspective: verify previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked with accepted-risk rationale. **If a perspective's domain was unaffected by the address pass, emit `[Perspective]: no new findings — domain unaffected by Round N address.` and skip the full perspective analysis.**
@@ -115,7 +115,7 @@ Adopt the Architect role. Review PLAN-NNNN for fidelity to DESIGN-NNNN. Assess:
 
 ## Output
 
-Append a `## Plan Review — Round N` section to PLAN-NNNN.
+Append a `## Plan Review — Round N` section to PLAN-NNNN. Then update `current_review_round` in PLAN-NNNN frontmatter to the round number just appended.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List all clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 

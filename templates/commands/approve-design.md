@@ -40,7 +40,7 @@ git pull origin thread/NNNN-slug
 
 ## Steps
 
-1. **Final review gate.** Read the latest `## Design Review — Round N` section in DESIGN-NNNN. Confirm:
+1. **Final review gate.** Read `current_review_round` from DESIGN-NNNN frontmatter. Navigate directly to `## Design Review — Round {current_review_round}` — do not scan for it. Confirm:
    - Blocking finding count is zero
    - DESIGN version is current
 

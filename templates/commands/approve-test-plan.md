@@ -38,7 +38,7 @@ Pass the TEST-PLAN ID: `/approve-test-plan TEST-0001`.
 
 Adopt the Quality Engineer role. Apply the perspective and stack knowledge from [`.claude/roles/quality-engineer.md`](.claude/roles/quality-engineer.md) throughout these steps.
 
-1. **Final readiness gate.** Read the latest `## Test Plan Review — Round N` section. Confirm:
+1. **Final readiness gate.** Read `current_review_round` from TEST-NNNN frontmatter. Navigate directly to `## Test Plan Review — Round {current_review_round}` — do not scan for it. Confirm:
    - Zero blocking findings
    - Every non-blocking finding is either addressed in the Address Summary or documented as accepted risk with rationale
    - Every AC from SPEC-NNNN has at least one P0 automated test case covering the happy path

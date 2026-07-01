@@ -38,9 +38,9 @@ Pass the TEST-PLAN ID: `/address-test-plan-review TEST-0001`.
 
 Adopt the Quality Engineer role. Apply the perspective and stack knowledge from [`.claude/roles/quality-engineer.md`](.claude/roles/quality-engineer.md) throughout these steps — particularly the test case format conventions and the quality bar for security and observability coverage.
 
-1. **Read the latest `## Test Plan Review — Round N` section.** If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-test-plan TEST-NNNN`. Do not modify anything.
+1. **Read `current_review_round` from TEST-NNNN frontmatter.** Navigate directly to `## Test Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-test-plan TEST-NNNN`. Do not modify anything.
 
-   If no review section exists yet — run `/review-test-plan` first.
+   If `current_review_round` is 0 or no review section exists yet — run `/review-test-plan` first.
 
 2. **List every finding by perspective** (Security if applicable, SRE, Lead Developer) and blocking status before making any changes.
 

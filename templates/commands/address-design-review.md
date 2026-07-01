@@ -36,9 +36,9 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
 
 ## Steps
 
-1. **Read the latest `## Design Review — Round N` section.** If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-design DESIGN-NNNN`. Do not commit anything.
+1. **Read `current_review_round` from DESIGN-NNNN frontmatter.** Navigate directly to `## Design Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-design DESIGN-NNNN`. Do not commit anything.
 
-   If no review section exists yet — the review has not been run. Run `/review-design SPEC-NNNN DESIGN-NNNN` first.
+   If `current_review_round` is 0 or no review section exists yet — the review has not been run. Run `/review-design SPEC-NNNN DESIGN-NNNN` first.
 
 2. **List every finding by perspective** (DBA, Security, SRE, Lead Developer) and blocking status before making any changes.
 

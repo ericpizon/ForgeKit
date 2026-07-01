@@ -56,7 +56,7 @@ Test case format: every test case must have an ID, type (`unit`/`integration`/`e
 
 If a `## Test Plan Review — Round N` section already exists in TEST-NNNN:
 
-1. Identify the current round number (prior round + 1).
+1. Read `current_review_round` from TEST-NNNN frontmatter. The new round number is `current_review_round + 1`.
 2. Read the latest `## Address Summary — Round N` section in TEST-NNNN to see which findings were addressed and which were accepted or deferred.
 3. Load only the TEST-NNNN sections cited in the address summary — do not re-read the full test plan. Sections not referenced by any addressed finding are unchanged.
 4. For each perspective: verify that previously-blocking findings marked "Addressed" are actually resolved. Do not re-raise findings marked "Not Addressed" with documented accepted-risk rationale. **If a perspective's domain was unaffected by the address pass, emit `[Perspective]: no new findings — domain unaffected by Round N address.` and skip the full perspective analysis.**
@@ -125,7 +125,7 @@ After completing all applicable perspectives:
 
 ## Output
 
-Append a `## Test Plan Review — Round N` section to TEST-NNNN.
+Append a `## Test Plan Review — Round N` section to TEST-NNNN. Then update `current_review_round` in TEST-NNNN frontmatter to the round number just appended.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 

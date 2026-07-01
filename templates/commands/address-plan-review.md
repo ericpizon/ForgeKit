@@ -36,9 +36,9 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
 
 ## Steps
 
-1. **Read the latest `## Plan Review — Round N` section.** If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-plan PLAN-NNNN`. Do not commit anything.
+1. **Read `current_review_round` from PLAN-NNNN frontmatter.** Navigate directly to `## Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-plan PLAN-NNNN`. Do not commit anything.
 
-   If no review section exists yet — the review has not been run. Run `/review-plan PLAN-NNNN SPEC-NNNN DESIGN-NNNN SEC-NNNN` first.
+   If `current_review_round` is 0 or no review section exists yet — the review has not been run. Run `/review-plan PLAN-NNNN SPEC-NNNN DESIGN-NNNN SEC-NNNN` first.
 
 2. **List every finding by perspective** (SRE, Developer, QE, Security, Architect) and blocking status before making any changes. Do not start revising until the full picture is in view.
 

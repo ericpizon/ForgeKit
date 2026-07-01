@@ -48,6 +48,7 @@ Create the TEST-PLAN file with:
 - `target_plan_version`: version of PLAN-NNNN being tested against
 - `execution_date: null`
 - `execution_summary: null`
+- `current_review_round: 0` (updated by `/review-test-plan` after each round)
 
 Create the initial document structure with section headings for each required section, including an Execution Results Summary section with `status: pending`.
 

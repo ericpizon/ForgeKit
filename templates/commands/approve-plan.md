@@ -26,7 +26,7 @@ Pass the PLAN ID: `/approve-plan PLAN-NNNN`.
 
 ## Steps
 
-1. **Final readiness gate.** Read the latest `## Plan Review — Round N` section. Confirm:
+1. **Final readiness gate.** Read `current_review_round` from PLAN-NNNN frontmatter. Navigate directly to `## Plan Review — Round {current_review_round}` — do not scan for it. Confirm:
    - Zero blocking findings
    - Every non-blocking finding is either addressed or documented as accepted risk with rationale
    - PLAN version is current
