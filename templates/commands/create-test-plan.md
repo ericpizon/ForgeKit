@@ -76,7 +76,9 @@ Guidelines:
 
 ### Step 4 — Align test cases with the happy path trace
 
-Read the **Happy Path Trace** section from PLAN-NNNN. For each User Story trace, walk each flow step and identify which test case from Step 3 exercises it. Produce a **Happy Path Coverage** table in TEST-NNNN:
+Read the **Happy Path Trace** section from PLAN-NNNN. For each User Story trace, walk each flow step and identify which test case from Step 3 exercises it. Produce a **Happy Path Coverage** table in TEST-NNNN.
+
+Copy each flow step description **verbatim** from PLAN-NNNN's Happy Path Trace — do not paraphrase, shorten, or reword. PLAN is the single source for flow step text. Any deviation makes it impossible to verify that TEST coverage aligns with what was planned.
 
 ```markdown
 ## Happy Path Coverage

@@ -108,6 +108,7 @@ Review TEST-NNNN for implementability — can the test cases as written actually
 4. **Happy path trace alignment.** Read the **Happy Path Coverage** section in TEST-NNNN. For each User Story trace:
    - Is every flow step mapped to a test case? An unmapped step is a **blocking** gap — a step with no test case means that part of the user journey is unverified even if all ACs pass.
    - Does the referenced test case actually exercise the flow step it claims to cover? A test case cited for "user submits form" that only validates client-side schema without touching the server endpoint is false coverage — **blocking**.
+   - Do the flow step descriptions match PLAN-NNNN's Happy Path Trace exactly? Any reworded or paraphrased step is a **non-blocking** finding — PLAN is the single source for flow step text and divergence signals drift.
    - If the Happy Path Coverage section is absent, that is a **non-blocking** finding — surface it as missing and note the specific flow steps at risk.
 
 5. **Deferral criteria compliance.** Review all test cases marked `deferred-to-release`. For each one:
