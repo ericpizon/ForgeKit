@@ -61,7 +61,7 @@ Adopt the SRE role. Review PLAN-NNNN for operational safety. Assess:
 2. **Rollback feasibility.** Can each individual PR be reverted without leaving the system in an inconsistent state? A milestone that removes or restructures something introduced by a previous milestone requires a documented rollback procedure.
 3. **Ops gaps.** Are there tasks that require manual production steps (env var changes, one-time migration scripts) not represented as explicit PLAN tasks? Any implicit manual step must be made explicit.
 4. **Deployment sequence consistency.** Does the deployment sequence ensure critical infrastructure is in place before dependent features go live? Flag any sequence that creates a window of inconsistency.
-5. **OBS-NNNN task coverage.** Are instrumentation tasks from OBS-NNNN present in the PLAN? A missing OBS task is a non-blocking finding.
+5. **OBS-NNNN task coverage.** Are all OBS-NNNN instrumentation tasks referenced in the PLAN by source ID (e.g., `OBS-NNNN IT-1`)? A missing OBS task reference is a non-blocking finding. Do not flag an OBS task as missing just because its description was not copied — ID reference is the correct and expected format.
 
 ### 2. Developer Perspective
 

@@ -53,9 +53,21 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
 
 2. **Derive functional tasks from DESIGN.** For each component or section of the DESIGN (data model, infrastructure, data access layer, API layer, UI layer), identify the concrete implementation tasks. A task is concrete if a Developer can implement it without making a design decision. Assign IDs starting at T1. Read ARCH.md for the canonical phase ordering for this project's stack. If a component involves technical uncertainty, add a spike task immediately before the first implementation task it blocks.
 
-3. **Derive observability tasks from OBS** *(if OBS-NNNN was produced)* — Copy the Instrumentation Tasks table from OBS-NNNN into the plan as `observability`-tagged tasks. Continue ID sequence from Step 2. Set `includes_observability_tasks: true` in frontmatter.
+3. **Derive observability tasks from OBS** *(if OBS-NNNN was produced)* — Add one entry per OBS instrumentation task as an `observability`-tagged task. Continue ID sequence from Step 2. Set `includes_observability_tasks: true` in frontmatter. **Do not copy the task description from OBS-NNNN** — reference the OBS task ID instead. Implementation spec lives in OBS-NNNN; copying it creates a second source that drifts when OBS is revised. Format:
 
-4. **Derive security tasks from SEC** *(if SEC-NNNN was produced)* — Copy the Implementation Tasks table from SEC-NNNN (open findings requiring code changes) as `security`-tagged tasks. Continue ID sequence. Set `includes_security_tasks: true` in frontmatter.
+   ```
+   **TN** | observability | [target file from OBS task]
+   **Source:** OBS-NNNN IT-N — see OBS-NNNN for full implementation spec.
+   **Milestone:** MN
+   ```
+
+4. **Derive security tasks from SEC** *(if SEC-NNNN was produced)* — Add one entry per open SEC finding that requires a code change as a `security`-tagged task. Continue ID sequence. Set `includes_security_tasks: true` in frontmatter. **Do not copy the finding or mitigation description from SEC-NNNN** — reference the SEC finding ID instead. Format:
+
+   ```
+   **TN** | security | [target file from SEC finding]
+   **Source:** SEC-NNNN F-N — see SEC-NNNN for full mitigation spec.
+   **Milestone:** MN
+   ```
 
 5. **Order tasks by dependency and document as Sequencing & Dependencies.** The correct phase order depends on the project's stack (read ARCH.md), but generally: (1) database schema + migrations, (2) infrastructure setup (db client, auth config), (3) data access layer, (4) API/service layer, (5) UI layer, (6) observability instrumentation, (7) security mitigations, (8) tests. Tasks that skip this order create implementation blockers. Write this ordering as the **Sequencing & Dependencies** section in the PLAN.
 
@@ -107,7 +119,7 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
 
 ## Output Contract
 
-PLAN-NNNN must contain: Task Breakdown (ordered, each with source tag, AC reference, and concrete description); Milestones (named, each listing tasks, AC coverage, dependencies, rollback note); Sequencing & Dependencies (phase overview); Happy Path Trace (one table per primary User Story); Out of Scope for This Plan; Definition of Done (AC coverage map).
+PLAN-NNNN must contain: Task Breakdown (ordered; functional tasks have source tag, AC reference, and concrete description; observability and security tasks have source tag, target file, and source artifact ID reference — no description copied from OBS/SEC); Milestones (named, each listing tasks, AC coverage, dependencies, rollback note); Sequencing & Dependencies (phase overview); Happy Path Trace (one table per primary User Story); Out of Scope for This Plan; Definition of Done (AC coverage map).
 
 ## Quality Gate
 
