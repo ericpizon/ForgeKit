@@ -101,6 +101,8 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
 
 9. **Define Definition of Done.** State explicitly which SPEC acceptance criteria are fully covered by the milestone set, and identify any ACs not yet covered (with a note on why they're deferred or covered by testing).
 
+   Format as a table: `| AC | Description | Covered by | Status |`. Copy each AC description **verbatim** from SPEC-NNNN — do not paraphrase, summarize, or shorten. SPEC is the single source of truth for AC text; the PLAN DoD table is a reference copy only. Any divergence between the PLAN description and SPEC text signals a stale PLAN that was not updated after a SPEC revision.
+
 10. **Identify out-of-scope deferrals.** Explicitly list items considered but deferred to future slices, with the Non-Goal or constraint that justifies deferral.
 
 ## Output Contract

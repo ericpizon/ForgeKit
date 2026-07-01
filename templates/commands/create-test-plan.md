@@ -67,6 +67,8 @@ For each AC in SPEC-NNNN, write one or more concrete test cases. Use Gherkin for
 
 Organize test cases by milestone — group the AC Coverage Map under each milestone heading matching the PLAN structure. This maps test cases to PRs.
 
+   **AC descriptions are not included in the Coverage Map.** Reference AC IDs only (e.g., `AC1`, not `AC1 — expires_at nullable TIMESTAMPTZ`). AC text lives in SPEC-NNNN; commands that need it read SPEC directly. Repeating descriptions here creates a second copy that drifts when SPEC is revised.
+
 Guidelines:
 - Every AC must have at least one P0 automated test covering the happy path.
 - Negative paths (invalid input, unauthorized access, not found) are P1 at minimum for authentication-adjacent ACs; P2 for others. Write a separate Gherkin scenario for each distinct outcome.
@@ -126,7 +128,7 @@ For each deferred test case, add a `Deferral Reason` line citing the production-
 
 ## Output Contract
 
-TEST-NNNN must contain: Test Strategy; AC Coverage Map organized by milestone (milestone → AC → test cases, each with ID, type, execution mode, priority); Happy Path Coverage (one table per primary User Story); Observability Verification; Security Test Cases; Test Data Strategy; Execution Results Summary (placeholder). All `deferred-to-release` test cases must have a `Deferral Reason`. Frontmatter: `version`; `target_plan_version`; `execution_date: null`; `execution_summary: null`.
+TEST-NNNN must contain: Test Strategy; AC Coverage Map organized by milestone (milestone → AC ID → test cases, each with ID, type, execution mode, priority — AC descriptions are not re-stated here, IDs only); Happy Path Coverage (one table per primary User Story); Observability Verification; Security Test Cases; Test Data Strategy; Execution Results Summary (placeholder). All `deferred-to-release` test cases must have a `Deferral Reason`. Frontmatter: `version`; `target_plan_version`; `execution_date: null`; `execution_summary: null`.
 
 ## Quality Gate
 
