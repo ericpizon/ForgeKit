@@ -27,8 +27,8 @@ Each milestone is implemented independently. Milestones with `depends_on_milesto
 
 Before generating any code, verify all of the following. Surface a blocker and stop if any fail.
 
-1. **TEST-NNNN is `approved`** — the test contract must exist before code is written
-2. **PLAN-NNNN is `approved`**
+1. **TEST-NNNN is `approved`** — the test contract must exist before code is written. If `revision_requested`: "TEST-NNNN is under revision due to a plan back-cycle. Wait until the test plan revision cycle completes before implementing."
+2. **PLAN-NNNN is `approved`**. If `revision_requested`: "PLAN-NNNN is under revision due to a back-cycle. Wait until the plan revision cycle completes before implementing."
 3. **Milestone `implementation_status` is `pending`** — read PLAN-NNNN milestone MN's `**Implementation status:**` field. Stop with a specific message for each non-pending state:
    - `in_progress` → "MN is already in progress. Check the current implementation or run `/review-implementation PLAN-NNNN MN`."
    - `approved` → "MN implementation is approved. Run `/execute-tests PLAN-NNNN MN TEST-NNNN` to begin the testing phase."

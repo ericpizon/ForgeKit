@@ -22,6 +22,7 @@ Produce a TEST-PLAN (TEST-NNNN) that maps every acceptance criterion to a concre
 ## When to Invoke
 
 - PLAN-NNNN `approved`
+  If PLAN-NNNN is `revision_requested`: **do not proceed.** "A plan back-cycle is in progress. Wait until PLAN-NNNN returns to `approved` after the review and approve-plan cycle completes."
 - SEC-NNNN `completed` (if triggered)
 - OBS-NNNN `draft` or `approved`
 - **Before `/implement-plan` begins** — TEST-NNNN must be approved before the Developer writes a single line of code

@@ -22,6 +22,7 @@ Produce an ordered, traceable implementation task breakdown (PLAN-NNNN) from the
 ## When to Invoke
 
 - DESIGN-NNNN `approved`
+  If DESIGN-NNNN is `revision_requested`: **do not proceed.** "A design back-cycle is in progress. Wait until DESIGN-NNNN returns to `approved` after the review and approve-design cycle completes."
 - OBS-NNNN `draft` or `approved` (instrumentation tasks available)
 - SEC-NNNN `completed` (if triggered) — open findings resolved or accepted
 
