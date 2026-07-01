@@ -77,6 +77,8 @@ Before handing off to `/review-spec`:
 - [ ] `security_review_required` self-assessment is present and reasoned
 - [ ] No open question is so fundamental it could change a Goal or Non-Goal if answered differently
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **Create branch:**

@@ -50,10 +50,22 @@ Before committing:
 - [ ] PLAN frontmatter: `status: approved`, `approved_date`, `approved_by` set
 - [ ] Registry updated for PLAN-NNNN
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **Pause for human review:**
-> "Ready to commit the entire plan phase — PLAN-NNNN with all review rounds, address summaries, and approval. Please review. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+Ask:
+
+> **Before we commit — three questions:**
+> 1. If the delivery timeline compressed by 30%, which milestone would you cut or defer? Does this reveal anything about whether the milestone structure is right?
+> 2. Walk the Happy Path Trace for the primary User Story. Is every step covered by a named task, or is there a step with no task assigned?
+> 3. Is there an AC in the Definition of Done that doesn't feel fully covered by the task set?
+>
+> If any answer reveals a gap: return to `/address-plan-review PLAN-NNNN`.
+>
+> If all three check out: "Ready to commit the entire plan phase — PLAN-NNNN with all review rounds, address summaries, and approval. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
 ```

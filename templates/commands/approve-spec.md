@@ -58,10 +58,22 @@ Before committing:
 - [ ] Registry updated for both artifacts
 - [ ] No open question remains unresolved without documented rationale
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **Before committing — pause for human review:**
-> Show the user the approved SPEC and ANALYSIS. Ask: "Ready to commit and move to design. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+Show the user the approved SPEC and ANALYSIS. Then ask:
+
+> **Before we commit — three questions:**
+> 1. State the problem this SPEC solves in one sentence, without using any implementation terms. Does that sentence accurately describe the user need?
+> 2. Is there a user scenario or edge case not covered by any AC that a developer might reasonably assume is in scope?
+> 3. Read the Non-Goals. Is anything listed as out of scope that would make the feature incomplete or unusable without it?
+>
+> If any answer reveals a gap: return to `/revise-spec SPEC-NNNN ANALYSIS-NNNN`.
+>
+> If all three check out: "Ready to commit and move to design. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
 ```

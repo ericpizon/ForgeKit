@@ -176,6 +176,8 @@ Each ADR-NNNN must contain: Context, Decision, Consequences, Status Rationale, R
 - [ ] Every Key Decision that constrains future work has an ADR
 - [ ] Cross-cutting patterns this DESIGN introduces to ARCH are noted
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 ### After options confirmation

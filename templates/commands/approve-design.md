@@ -79,10 +79,22 @@ Before committing:
 - [ ] Superseded patterns moved to `## Superseded Patterns` section and marked `(superseded by ..., YYYY-MM-DD)`
 - [ ] ARCH version incremented, changelog entry added
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **Before committing — pause for human review:**
-> Show the user the approved DESIGN and the ARCH diff. Ask: "Ready to mark DESIGN approved and trigger Stage 4. Please review. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+Show the user the approved DESIGN and the ARCH diff. Then ask:
+
+> **Before we commit — three questions:**
+> 1. Name one trade-off accepted by not choosing the alternative design option. Is that trade-off still the right call given current constraints?
+> 2. What happens when the primary external dependency (database, auth provider, or primary external service) is unavailable? Is the fail mode explicitly documented?
+> 3. Is there any Key Decision that would require a developer to make an architectural judgment call to implement? If yes, the decision needs more specificity.
+>
+> If any answer reveals a gap: return to `/address-design-review DESIGN-NNNN`.
+>
+> If all three check out: "Ready to mark DESIGN approved and trigger Stage 4. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
 ```

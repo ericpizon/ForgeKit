@@ -91,6 +91,8 @@ Before showing the user the results:
 - [ ] DESIGN version incremented, `updated` date current
 - [ ] `## Address Summary — Round N` section appended — every finding accounted for
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **Self-check before showing the user:**

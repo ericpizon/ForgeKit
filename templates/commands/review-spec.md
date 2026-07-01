@@ -113,6 +113,8 @@ Before capturing review output:
 - [ ] `security_review_required` verdict has a rationale
 - [ ] Readiness verdict accounts for LD, QE, and any NFR/observability findings
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **If `needs_revision`:**

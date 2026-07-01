@@ -85,6 +85,8 @@ Before showing the diff to the user:
 - [ ] TEST-NNNN `version` incremented, `updated` date current
 - [ ] `## Address Summary — Round N` appended with every finding listed in Addressed or Not Addressed
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 Show the user the TEST-NNNN diff and the Address Summary. Do not commit.

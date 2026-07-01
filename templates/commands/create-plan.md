@@ -150,6 +150,8 @@ Before requesting review:
 - [ ] M1 contains all foundational tasks
 - [ ] Happy Path Trace section present; no gaps left unresolved
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 Show the user the PLAN file. Do not commit.

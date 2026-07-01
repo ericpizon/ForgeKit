@@ -145,6 +145,8 @@ Before capturing the review output:
 - [ ] Cross-perspective check completed — contradictions identified or confirmed absent
 - [ ] Round number is correct
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 **If blocking findings exist:**

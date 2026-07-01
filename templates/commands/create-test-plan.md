@@ -150,6 +150,8 @@ Before requesting review:
 - [ ] All `deferred-to-release` test cases have a valid `Deferral Reason`; no P0 deferred
 - [ ] Execution Results Summary placeholder present
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 Show the user the TEST-PLAN file. Do not commit.

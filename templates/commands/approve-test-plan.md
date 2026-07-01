@@ -71,12 +71,24 @@ Before committing:
 - [ ] PLAN-NNNN `pipeline_status.test` updated to `approved`
 - [ ] Registry updated for TEST-NNNN
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 Show the user the approved TEST-PLAN. This is the single commit for the entire test planning phase.
 
 **Pause for human review:**
-> "Ready to commit the entire test planning phase — TEST-NNNN with all review rounds, address summaries, and approval. Please review. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+Ask:
+
+> **Before we commit — three questions:**
+> 1. Pick the P0 test case you are least confident about. Can it run in CI as written, or does it have hidden dependencies or environment assumptions?
+> 2. Is there a failure path — unauthorized access, resource not found, invalid input — that has no corresponding test case in the coverage map?
+> 3. Review any deferred test cases. Is anything deferred for convenience rather than a genuine production-environment constraint?
+>
+> If any answer reveals a gap: return to `/address-test-plan-review TEST-NNNN`.
+>
+> If all three check out: "Ready to commit the entire test planning phase — TEST-NNNN with all review rounds, address summaries, and approval. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
 ```

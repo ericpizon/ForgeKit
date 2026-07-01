@@ -160,6 +160,8 @@ Before appending the review section:
 - [ ] Cross-perspective check completed
 - [ ] Round number is correct
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 Append the `## Test Plan Review — Round N` section to TEST-NNNN. Do not commit.

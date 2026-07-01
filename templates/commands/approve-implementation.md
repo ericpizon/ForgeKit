@@ -107,7 +107,7 @@ If MN introduces nothing new, skip this step.
 
 ### 7. Pause for user review
 
-Show the user the full diff (all files changed since the `in_progress` commit). Ask:
+Show the user the full diff (all files changed since the `in_progress` commit). Then ask:
 
 > **MN — [milestone name] is ready to commit.**
 >
@@ -115,9 +115,15 @@ Show the user the full diff (all files changed since the `in_progress` commit). 
 > [If SEC updated:] SEC-NNNN: N finding(s) marked `mitigated`.
 > [If OBS updated:] OBS-NNNN: N instrumentation task(s) logged as implemented.
 > [If setup docs updated:] Setup documentation: N new environment variable(s) documented.
+
+> **Before you confirm — three questions:**
+> 1. Which part of this implementation is most complex? Is that part adequately tested by the milestone's test cases?
+> 2. Is there anything in this diff you would be uncomfortable defending at 3am during an incident? If yes, say so now.
+> 3. Does every changed file match what DESIGN-NNNN specified, or were implementation-time judgment calls made that DESIGN did not address?
 >
-> Please review the diff above.
-> Confirm: (1) proceed with commit? (2) solo project (commit only, no push) or team project (push too)?
+> If any answer reveals a gap: resolve it before confirming.
+>
+> If all three check out: "Confirm: (1) proceed with commit? (2) solo project (commit only, no push) or team project (push too)?"
 
 Wait for confirmation before committing.
 

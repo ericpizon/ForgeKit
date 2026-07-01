@@ -155,6 +155,8 @@ Append a `## Plan Review — Round N` section to PLAN-NNNN. Then update `current
 - [ ] Each finding labeled blocking or non-blocking with a reason
 - [ ] Cross-perspective check completed
 
+**Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
+
 ## Handoff
 
 - If blocking findings exist → "Run `/address-plan-review PLAN-NNNN` to address findings."
