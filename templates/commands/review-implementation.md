@@ -40,7 +40,7 @@ Review the implementation of one milestone from four perspectives: Lead Develope
 
 If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
 
-1. Identify the current round number (latest `## Round N` section + 1).
+1. Read `current_review_round` from IMPL-REVIEW-NNNN-MN.md frontmatter. The new round number is `current_review_round + 1`. After appending the new round section, update `current_review_round` in frontmatter to the new round number.
 2. Read the latest `### Address Summary — Round N` to understand which findings were addressed and which were deferred with documented reasons.
 3. Load artifacts lazily — read the address summary first, then load only the source files, PLAN tasks, DESIGN sections, and TEST cases referenced by addressed findings. Do not reload ARCH, DESIGN, or TEST in full if their domain was unaffected by the address pass.
 4. Scope this round's review to changed files only. Examine unchanged files only if a change in one file has plausible cascade impact on another. Do not re-review the entire milestone.
@@ -61,6 +61,7 @@ id: IMPL-REVIEW-NNNN-MN
 type: impl-review
 plan: PLAN-NNNN
 milestone: MN
+current_review_round: 1
 ---
 
 # Implementation Review — PLAN-NNNN MN

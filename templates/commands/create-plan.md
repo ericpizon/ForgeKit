@@ -137,7 +137,7 @@ PLAN-NNNN must contain: Task Breakdown (ordered; functional tasks have source ta
 ## Quality Gate
 
 Before requesting review:
-- [ ] Frontmatter complete: `status: draft`, `version: 1`, `target_design_version`, `milestone_count`, `includes_observability_tasks`, `includes_security_tasks` all set
+- [ ] Frontmatter complete: `status: draft`, `version: 1`, `target_design_version`, `milestone_count`, `includes_observability_tasks`, `includes_security_tasks`, `current_review_round: 0`, and `pipeline_status` block all set
 - [ ] Every task has an ID; spike tasks use T[N]-spike format
 - [ ] Every task can be implemented without making a design decision
 - [ ] Schema tasks precede all tasks that depend on the schema

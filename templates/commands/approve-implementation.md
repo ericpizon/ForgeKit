@@ -22,7 +22,7 @@ Close the implementation phase for a milestone. This is the first and only git c
 
 ## Gate — Zero Blocking Findings Required
 
-Read `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`. Find the **latest round** section. Check its `**Summary:**` line.
+Read `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`. Read `current_review_round` from frontmatter and navigate directly to `## Round {current_review_round}`. Check its `**Summary:**` line.
 
 If blocking > 0:
 > "Approval blocked: N blocking finding(s) remain in Round X. Run `/address-implementation-review PLAN-NNNN MN` to resolve them."

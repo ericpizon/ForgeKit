@@ -38,7 +38,7 @@ Both the plan ID and the milestone are required — the milestone identifies whi
 
 ### Step 1 — Read findings
 
-Open `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`. Find the last `## Round N` section. Collect all findings, separated into:
+Open `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`. Read `current_review_round` from frontmatter and navigate directly to `## Round {current_review_round}` — do not scan for it. Collect all findings, separated into:
 - **Blocking** — must be fixed before approval
 - **Non-blocking** — fix or explicitly defer with a documented reason
 

@@ -46,7 +46,7 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
 
 3. **Triage.** Separate into three buckets:
    - **Must resolve now:** blocking findings from any perspective
-   - **Address if straightforward:** non-blocking findings with a simple, contained fix
+   - **Accept by default:** non-blocking findings are accepted as-is unless the user has explicitly requested addressing specific ones
    - **Accept or defer:** findings the QE accepts as risk (document rationale) or explicitly defers
 
 4. **Address blocking findings.** For each blocking finding:
@@ -55,7 +55,7 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
    - If a test case needs to be added, add it in the appropriate section
    - If fixing the finding requires a scope change beyond the SPEC or SEC, surface to the appropriate role (a missing AC goes back to TPO; a missing SEC finding goes back to Security), document the escalation in the Address Summary, and continue addressing the remaining findings. Do not block the address cycle on upstream resolution.
 
-5. **Address straightforward non-blocking findings.** If the fix is a single, contained clarification or addition — make it. If it requires a scope change, document it as accepted risk with rationale instead.
+5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
 
 6. **Increment TEST-NNNN version in frontmatter.** Increment `version` by 1 and update `updated` to today's date.
 

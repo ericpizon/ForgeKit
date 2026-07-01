@@ -32,6 +32,7 @@ Pass the TEST-PLAN ID: `/approve-test-plan TEST-0001`.
 ## Required Inputs
 
 - **TEST-NNNN** — latest Test Plan Review section must show zero blocking findings; all Address Summaries present
+- **PLAN-NNNN** — `pipeline_status.test` will be updated to `approved` in Step 3
 - **SEC-NNNN** — (if triggered) determines whether Security perspective findings are required to be resolved
 
 ## Steps

@@ -64,7 +64,7 @@ git pull origin thread/NNNN-slug
 
    **Date-stamp new entries.** Every new pattern added to ARCH must include `(added: YYYY-MM-DD, DESIGN-NNNN)` so future readers know when it was introduced and which design decision drove it.
 
-   **Handle superseded patterns.** If this DESIGN replaces or significantly revises an existing ARCH pattern: mark the old entry `(superseded by [new pattern name], YYYY-MM-DD)` and move it to a `## Superseded Patterns` section at the bottom of ARCH.md — do not delete it (audit trail) but remove it from the active sections so it does not mislead future readers.
+   **Handle superseded patterns.** If this DESIGN replaces or significantly revises an existing ARCH pattern: mark the old entry `(superseded by [new pattern name], YYYY-MM-DD)` and move it to a `## Superseded Patterns` section at the bottom of ARCH.md (create the section if it does not exist) — do not delete it (audit trail) but remove it from the active sections so it does not mislead future readers.
 
    If a foundational section of ARCH changed — trigger ARCH review before proceeding. If only a new section or entry was appended, no ARCH review needed.
 
