@@ -50,8 +50,8 @@ If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
 
 **File:** `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`
 
-**If the file does not exist:** create it (frontmatter + Round 1 section).
-**If the file already exists:** follow On Re-Review steps above, then append the new round section.
+**If the file does not exist:** create it (frontmatter + Task Reference table + Round 1 section).
+**If the file already exists:** follow On Re-Review steps above, then append the new round section. Do not regenerate the Task Reference table.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or "None." List clean perspectives in a single `**Clean perspectives:** [list]` line before `### Summary`.
 
@@ -64,6 +64,15 @@ milestone: MN
 ---
 
 # Implementation Review — PLAN-NNNN MN
+
+## Task Reference — MN
+
+*Derived from PLAN-NNNN at review creation time. Reviewers use this to verify coverage without loading the full PLAN.*
+
+| Task | File(s) | Description |
+|---|---|---|
+| T1 | src/path/to/file.ts | [task description from PLAN-NNNN] |
+| T2 | src/path/to/other.ts | [task description from PLAN-NNNN] |
 
 ## Round 1 — [date]
 
@@ -100,6 +109,8 @@ Each finding:
 ## Lead Developer Perspective
 
 Adopt the Lead Developer role (`.claude/roles/lead-developer.md`). Read ARCH.md before reviewing code — all code quality judgments must be grounded in the project's established conventions, not generic best practices.
+
+**If creating IMPL-REVIEW-NNNN-MN.md for the first time:** populate the `## Task Reference — MN` table from MN's task list in PLAN-NNNN before writing any findings. Include every task in MN: task ID, the file(s) it creates or modifies, and its description. OBS and SEC tasks: use the source ID (e.g., `OBS-NNNN IT-N`) as the description. This table is written once and never modified.
 
 **Before reading individual files**, run `git status` to list every new and modified file in the working tree. Cross-reference this list against MN's task descriptions in PLAN-NNNN — each task names the file(s) it creates or modifies. Any file that appears in `git status` but is not attributable to a task in MN is an out-of-scope change and must be flagged as blocking.
 

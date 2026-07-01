@@ -52,7 +52,9 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
    - Set `approved_by: quality-engineer`
    - Add changelog entry: `vN — approved after [N] review rounds`
 
-3. **Update the registry.** In `sdlc/registry/index.md`, update the TEST-NNNN row: set `status: approved`, `approved_date` to today's date.
+3. **Update PLAN-NNNN pipeline_status.** In PLAN-NNNN frontmatter, set `pipeline_status.test: approved`.
+
+4. **Update the registry.** In `sdlc/registry/index.md`, update the TEST-NNNN row: set `status: approved`, `approved_date` to today's date.
 
 ## Quality Gate
 
@@ -65,6 +67,7 @@ Before committing:
 - [ ] AC Coverage Map is organized by milestone matching the PLAN structure
 - [ ] Execution Results Summary placeholder present with `status: pending`
 - [ ] TEST frontmatter: `status: approved`, `approved_date`, `approved_by` set
+- [ ] PLAN-NNNN `pipeline_status.test` updated to `approved`
 - [ ] Registry updated for TEST-NNNN
 
 ## Handoff

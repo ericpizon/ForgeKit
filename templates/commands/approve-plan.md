@@ -38,6 +38,7 @@ Pass the PLAN ID: `/approve-plan PLAN-NNNN`.
    - Set `approved_date` to today's date
    - Set `approved_by: lead-developer`
    - Add changelog entry: `vN — approved after [N] review rounds`
+   - Set `pipeline_status.plan: approved`
 
 3. **Update the registry.** In `sdlc/registry/index.md`, update the PLAN-NNNN row: `status: approved`, `approved_date`, and `milestone_count`.
 

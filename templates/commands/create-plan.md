@@ -51,6 +51,18 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
    - `includes_security_tasks: false` (update to `true` in Step 4 if SEC-NNNN exists)
    - `milestone_count: TBD` (update in Step 7 after milestones are defined)
    - `current_review_round: 0` (updated by `/review-plan` after each round)
+   - `pipeline_status`: snapshot of all upstream artifact statuses at plan creation time — updated by downstream approval commands:
+
+   ```yaml
+   pipeline_status:
+     spec: SPEC-NNNN approved
+     analysis: ANALYSIS-NNNN completed
+     design: DESIGN-NNNN approved
+     obs: OBS-NNNN approved          # 'not produced' if OBS-NNNN does not exist
+     sec: SEC-NNNN completed         # 'not triggered' if SEC-NNNN was not run
+     plan: draft
+     test: pending
+   ```
 
 2. **Derive functional tasks from DESIGN.** For each component or section of the DESIGN (data model, infrastructure, data access layer, API layer, UI layer), identify the concrete implementation tasks. A task is concrete if a Developer can implement it without making a design decision. Assign IDs starting at T1. Read ARCH.md for the canonical phase ordering for this project's stack. If a component involves technical uncertainty, add a spike task immediately before the first implementation task it blocks.
 

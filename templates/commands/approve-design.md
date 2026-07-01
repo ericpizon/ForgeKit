@@ -59,8 +59,14 @@ git pull origin thread/NNNN-slug
    - New API conventions (new route patterns, new response shapes)
    - New auth patterns (new trust boundary decisions)
    - New module layout conventions
-   
-   In ARCH: increment version, add changelog entry referencing this DESIGN, update the relevant section. If a foundational section of ARCH changed — trigger ARCH review before proceeding. If only a new section was appended, no ARCH review needed.
+
+   In ARCH: increment version, add changelog entry referencing this DESIGN, update the relevant section.
+
+   **Date-stamp new entries.** Every new pattern added to ARCH must include `(added: YYYY-MM-DD, DESIGN-NNNN)` so future readers know when it was introduced and which design decision drove it.
+
+   **Handle superseded patterns.** If this DESIGN replaces or significantly revises an existing ARCH pattern: mark the old entry `(superseded by [new pattern name], YYYY-MM-DD)` and move it to a `## Superseded Patterns` section at the bottom of ARCH.md — do not delete it (audit trail) but remove it from the active sections so it does not mislead future readers.
+
+   If a foundational section of ARCH changed — trigger ARCH review before proceeding. If only a new section or entry was appended, no ARCH review needed.
 
 ## Quality Gate
 
@@ -69,6 +75,8 @@ Before committing:
 - [ ] Non-blocking findings accepted as-is (no inline resolution required)
 - [ ] DESIGN frontmatter: `status: approved`, `approved_date`, `approved_by` set
 - [ ] ARCH updated to reflect this DESIGN's cross-cutting contributions
+- [ ] New ARCH entries date-stamped with `(added: YYYY-MM-DD, DESIGN-NNNN)`
+- [ ] Superseded patterns moved to `## Superseded Patterns` section and marked `(superseded by ..., YYYY-MM-DD)`
 - [ ] ARCH version incremented, changelog entry added
 
 ## Handoff

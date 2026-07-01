@@ -139,7 +139,7 @@ Does this design make future work harder than necessary? If so, either adjust or
 
 ### Step 12 — Identify ARCH updates
 
-Note any cross-cutting patterns introduced by this DESIGN that must be reflected in ARCH upon approval.
+Note any cross-cutting patterns introduced by this DESIGN that must be reflected in ARCH upon approval. For each pattern, state: (a) does it extend an existing ARCH pattern, replace one, or introduce something entirely new? (b) If it replaces an existing pattern, name the specific ARCH section that will be superseded — this is required for the ARCH update in `/approve-design`.
 
 ---
 
