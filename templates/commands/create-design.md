@@ -23,6 +23,10 @@ The options analysis runs before the full spec is written — the user confirms 
 ## When to Invoke
 
 - SPEC-NNNN is `approved` and ANALYSIS-NNNN is `completed` with `readiness_verdict: ready`
+- SPEC-NNNN `product_validated: true`
+
+If `product_validated` is `false` or missing: **do not proceed.** "Product validation not complete. Run `/validate-spec SPEC-NNNN` first."
+If `product_validated: pending`: warn the user — "Validation is recorded but sign-off is still pending from [name]. Confirm explicitly that you want to proceed before starting design." Do not proceed without explicit confirmation.
 
 ## Required Inputs
 

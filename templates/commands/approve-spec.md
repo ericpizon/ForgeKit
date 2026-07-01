@@ -29,17 +29,21 @@ Pass SPEC and ANALYSIS IDs: `/approve-spec SPEC-NNNN ANALYSIS-NNNN`.
 
 ## Steps
 
-1. **Final readiness gate.** Read ANALYSIS-NNNN. Confirm:
+1. **Final readiness gate.** Read ANALYSIS-NNNN and SPEC-NNNN frontmatter. Confirm:
    - `readiness_verdict: ready`
    - All open questions in SPEC-NNNN are resolved or explicitly deferred with documented rationale
    - SPEC version is current
+   - `product_validated: true` in SPEC-NNNN frontmatter
 
    If `readiness_verdict: needs_revision`: **do not proceed.** Return to `/revise-spec SPEC-NNNN ANALYSIS-NNNN`.
+   If `product_validated: false` or missing: **do not proceed.** "Product validation not complete. Run `/validate-spec SPEC-NNNN` first."
+   If `product_validated: pending`: **do not proceed.** "Validation is pending sign-off. Update SPEC frontmatter to `product_validated: true` once confirmed, then re-run `/approve-spec`."
 
 2. **Mark SPEC approved.** In SPEC-NNNN frontmatter:
    - Set `status: approved`
    - Set `approved_date` to today's date
    - Add changelog entry: `vN — approved after [N] review rounds`
+   - Do not modify `product_validated`, `validated_by`, or `validated_date` — these were set by `/validate-spec` and are not overwritten here.
 
 3. **Mark ANALYSIS completed.** In ANALYSIS-NNNN frontmatter:
    - Set `status: completed`
@@ -56,6 +60,7 @@ Before committing:
 - [ ] SPEC `status: approved`, `approved_date` set
 - [ ] ANALYSIS `status: completed`
 - [ ] Registry updated for both artifacts
+- [ ] `product_validated: true` confirmed in SPEC frontmatter — not overwritten
 - [ ] No open question remains unresolved without documented rationale
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.

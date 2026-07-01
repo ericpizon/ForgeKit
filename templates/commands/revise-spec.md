@@ -39,7 +39,7 @@ Pass both artifact IDs: `/revise-spec SPEC-0001 ANALYSIS-0001`.
 2. **Address each item** — revise the specific section. Do not rewrite sections the ANALYSIS did not flag.
 3. **Check bidirectional traceability** after each AC change — every Goal maps to at least one AC; every AC maps to at least one Goal.
 4. **Verify Non-Goals** are still specific enough to use as a decision rule. A Non-Goal that says "we won't build X" must still say "X" precisely enough that a developer can apply it mid-implementation.
-5. **Increment `version`** in frontmatter and update `updated` date.
+5. **Increment `version`** in frontmatter and update `updated` date. If `product_validated` is set in frontmatter: rename `validated_by` → `prior_validated_by` and `validated_date` → `prior_validated_date`, then set `product_validated: false`. The AC translations in `## Product Validation` are now stale — add a note at the top of that section: `*Validation invalidated by revision — re-run /validate-spec.*` Do not delete the section (audit trail).
 6. **Self-check** — re-read the ANALYSIS flagged items against the revised SPEC. Every item must be either resolved or explicitly noted as a remaining open question with a rationale for deferral.
 7. **Append a revision summary to SPEC-NNNN.** After all revisions, append a `## Revision Summary — Round N` section (matching the round number of the ANALYSIS just addressed):
 
@@ -71,6 +71,7 @@ Before handing off:
 - [ ] If NFRs were added or modified: each is specific enough to constrain DESIGN or names the stage where the threshold will be resolved
 - [ ] If Observability Considerations were added or modified: all three concerns present (metrics, traces, logs) including what must never be logged
 - [ ] `version` incremented, `updated` date current
+- [ ] If `product_validated` was set: reset to `false`, prior `validated_by`/`validated_date` preserved as `prior_*` fields, `## Product Validation` section annotated as invalidated
 - [ ] `## Revision Summary — Round N` appended to SPEC-NNNN — every flagged item accounted for
 
 ## Handoff
