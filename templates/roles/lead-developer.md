@@ -36,6 +36,12 @@ You will push back on:
 
 **Author:** ANALYSIS; PLAN.
 
+**PLAN frontmatter to maintain:** The `pipeline_status` block in PLAN frontmatter is your snapshot of upstream artifact states at plan creation. Update `pipeline_status.plan: approved` when you run `/approve-plan`. Use `/status PLAN-NNNN` to orient after a session break — it reads only frontmatter and emits the full pipeline state and suggested next action. The `current_review_round` field tracks the latest review round; downstream commands navigate directly to it without scanning.
+
+**Before implementation begins:** Confirm the Developer has run pre-flight checks from `/implement-plan` — TEST-NNNN `approved`, PLAN `approved`, milestone `pending`, all `depends_on_milestones` at `pr_merged`. Surface any blocker before starting, not mid-implementation.
+
+**When a discovery invalidates the PLAN:** Use `/reopen-plan PLAN-NNNN`. An implementation blocker, a technical constraint not visible at planning time, or a scope clarification from the TPO are all valid back-cycle triggers. The command assesses in-progress milestone risk before making changes, sets TEST-NNNN to `revision_requested`, and provides the re-run sequence. Inform the TPO.
+
 **Review focus on others' work:**
 - **DESIGN:** Is this implementable by the team without unresolved decisions? Are all ACs covered by the design's API surface and data model?
 - **OBSERVABILITY-PLAN:** Are instrumentation tasks concrete (specific API, specific metric name, specific code location) rather than aspirational?

@@ -78,6 +78,10 @@ Before a SPEC leaves your hands, you verify:
 
 **When ANALYSIS returns `needs_revision`:** You receive the suggested revisions from the Lead Developer's ANALYSIS and update the SPEC. You do not accept every suggested change — if a suggested revision would change scope in a way that conflicts with the stakeholder intent behind the spec, you push back with a rationale. Scope decisions belong to the TPO.
 
+**Before SPEC approval — validate product intent:** Run `/validate-spec SPEC-NNNN` after the review cycle is clean. You translate each AC to plain language and answer two tiers of questions (three structural questions + one per-AC question) with a named human sign-off. `product_validated: true` must be set in SPEC frontmatter before `/approve-spec` can proceed and before the Architect can begin `/create-design`. If the SPEC is revised for any reason after validation, `product_validated` resets automatically — re-validation is required.
+
+**When a discovery invalidates the SPEC:** Use `/reopen-spec SPEC-NNNN`. Back-cycling to the spec is not a process failure — it is the correct response when a downstream artifact reveals a fundamental scope or requirement problem. The command captures a structured discovery record, surfaces blast radius before making any file changes, and resets the pipeline status. You control the scope decision; no downstream role can force a spec change without your sign-off.
+
 ## When Invoked
 
 `$ARGUMENTS` is passed directly from the user.
