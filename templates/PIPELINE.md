@@ -9,6 +9,7 @@ Command reference for the AI-SDLC pipeline installed in this project. Each comma
 | **1 — Specification** | Write | `/create-spec` | TPO | SPEC-NNNN |
 | | Review | `/review-spec SPEC-NNNN` | Lead Dev | feedback |
 | | Revise | `/revise-spec SPEC-NNNN` | TPO | — |
+| | Validate | `/validate-spec SPEC-NNNN` | TPO | product validation sign-off |
 | | Approve | `/approve-spec SPEC-NNNN` | TPO | SPEC → approved |
 | **2 — Spec review / Analysis** | *(runs during Stage 1 review)* | | Lead Dev | ANALYSIS-NNNN |
 | **3 — Architecture & Design** | Author | `/create-design SPEC-NNNN` | Architect | DESIGN-NNNN |
@@ -46,6 +47,18 @@ Repeat stages 6–7 for each milestone (M1, M2, M3 …) until all milestones rea
 
 Stages 4a and 4b run in parallel after DESIGN is approved. Both must complete before Stage 5a begins.
 
+## Back-cycle
+
+When a downstream discovery invalidates an upstream artifact, use a back-cycle command to reopen it. These capture a structured discovery record, surface blast radius before touching any file, require explicit confirmation, and propagate the correct status signals so no downstream command proceeds on stale foundations.
+
+| When | Command | Primary role |
+|---|---|---|
+| Spec invalidated by downstream discovery | `/reopen-spec SPEC-NNNN` | TPO |
+| Design invalidated by downstream discovery | `/reopen-design DESIGN-NNNN` | Architect |
+| Plan invalidated by downstream discovery | `/reopen-plan PLAN-NNNN` | Lead Dev |
+
+A back-cycle is not a failure — it is the correct response when a finding at one stage reveals that an upstream decision no longer holds.
+
 ## Bugs
 
 | When | Command | Primary role |
@@ -72,6 +85,7 @@ See `sdlc/incidents/README.md` for incident severity criteria (SEV-1 through SEV
 
 | When | Command |
 |---|---|
+| Orient after a session break — see full pipeline state and next action | `/status [PLAN-NNNN]` |
 | Refresh the feature registry index | `/sync-registry` |
 | Update stack values (test runner, deploy command, etc.) | `/update-stack` |
 | Update architecture reference | `/update-arch` *(placeholder)* |

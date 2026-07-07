@@ -119,6 +119,7 @@ Append to PLAN-NNNN:
 
 **Discovered by:** [name] — [role]
 **Stage triggered:** plan
+**Generated with:** [your current model identifier]
 
 **What was discovered:**
 [Lead Developer's answer from Step 3]

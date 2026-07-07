@@ -115,6 +115,7 @@ Append to SPEC-NNNN:
 
 **Discovered by:** [name] — [role]
 **Stage triggered:** spec
+**Generated with:** [your current model identifier]
 
 **What was discovered:**
 [TPO's answer from Step 2]

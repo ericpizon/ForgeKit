@@ -86,6 +86,10 @@ fix_milestone: null
 rejection_reason: null
 resolved_at: null
 verified_at: null
+generation:
+  command: /create-bug
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # BUG-NNNN — [title]

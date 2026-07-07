@@ -117,6 +117,14 @@ ForgeKit is role-driven, not tool-driven. Each command declares a primary role. 
 4. For brownfield projects: review the automated codebase scan and approve `ARCH.md` before the pipeline unlocks
 5. Read `PIPELINE.md` installed in your project root — full command reference and role guide
 
+For a deeper guide covering solo vs. team adoption, the first-week sequence, and common stumbling blocks, see [`GETTING-STARTED.md`](GETTING-STARTED.md).
+
+---
+
+## Example artifacts
+
+Not sure what "good" looks like? `templates/examples/` contains a complete fictional feature thread — a personal API token spec, implementation plan, and a two-round implementation review — written to the quality bar the pipeline enforces. Read the examples before your first real spec.
+
 ---
 
 ## What `/forge-init` installs
@@ -184,6 +192,7 @@ ForgeKit/
     commands/                   ← all pipeline command templates
     roles/                      ← role persona templates
     sdlc/                       ← artifact templates and per-directory READMEs
+    examples/                   ← example SPEC, PLAN, IMPL-REVIEW showing quality bar
   placeholder-commands/         ← utility stubs (update-stack, update-arch, upgrade-pipeline)
 ```
 

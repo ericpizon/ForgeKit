@@ -119,6 +119,10 @@ date: [today]
 status: complete
 authors:
   - sre
+generation:
+  command: /create-postmortem
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # PM-NNNN — [title]

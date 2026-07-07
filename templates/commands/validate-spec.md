@@ -119,6 +119,7 @@ validated_date: YYYY-MM-DD     # or: null (if pending)
 
 **Validated by:** [name] — [role]
 **Date:** YYYY-MM-DD
+**Model:** [your current model identifier]
 **Status:** validated | pending sign-off from [name]
 
 ### Acceptance Criteria — Plain Language Review

@@ -103,6 +103,7 @@ Append to DESIGN-NNNN:
 
 **Discovered by:** [name] — [role]
 **Stage triggered:** design
+**Generated with:** [your current model identifier]
 
 **What was discovered:**
 [Architect's answer from Step 2]

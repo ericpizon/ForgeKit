@@ -58,6 +58,10 @@ links:
     target: RELEASE-PLAN-vX.Y.Z
   - relation: delivers
     target: SPEC-NNNN
+generation:
+  command: /generate-release-notes
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 ```
 

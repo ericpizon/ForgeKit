@@ -73,6 +73,10 @@ declared_by: sre
 responders: []
 linked_bug: ~
 linked_postmortem: ~
+generation:
+  command: /create-incident
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # INC-NNNN — [title]

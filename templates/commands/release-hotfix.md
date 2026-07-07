@@ -57,6 +57,10 @@ status: approved
 linked_bug: BUG-NNNN
 version: 1
 created: [date]
+generation:
+  command: /release-hotfix
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # PLAN-NNNN — Hotfix: [BUG-NNNN title]
@@ -97,6 +101,10 @@ status: approved
 linked_plan: PLAN-NNNN
 linked_bug: BUG-NNNN
 version: 1
+generation:
+  command: /release-hotfix
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # TEST-NNNN — Hotfix test: [BUG-NNNN title]

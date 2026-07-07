@@ -62,6 +62,10 @@ type: impl-review
 plan: PLAN-NNNN
 milestone: MN
 current_review_round: 1
+generation:
+  command: /review-implementation
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # Implementation Review — PLAN-NNNN MN

@@ -111,6 +111,10 @@ target_date: [target date or "as soon as ready"]
 scope:
   - SPEC-NNNN
   - PLAN-NNNN
+generation:
+  command: /create-release-plan
+  model: "[self-identify from system context]"
+  generated_at: "[today's date]"
 ---
 
 # RELEASE-PLAN — vX.Y.Z

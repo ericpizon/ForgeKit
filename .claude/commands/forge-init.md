@@ -658,6 +658,7 @@ Do not overwrite `.claude/commands/forge-init.md` if it already exists in the ta
 Create the following directories in the target project, copying the README.md from each `templates/sdlc/` counterpart:
 
 - `sdlc/architecture/` — ARCH.md and architecture documentation
+- `sdlc/specs/` — SPEC artifacts
 - `sdlc/analysis/` — ANALYSIS artifacts
 - `sdlc/design/` — DESIGN artifacts
 - `sdlc/adr/` — Architectural Decision Records
@@ -713,7 +714,7 @@ Show the user a full summary of what was created:
 - [ ] ARCH.md approved by user — not just generated, explicitly approved
 - [ ] All role files copied
 - [ ] All command files generated with stack values substituted (no unreplaced `{{placeholders}}` remaining)
-- [ ] All 16 `sdlc/` directories created with READMEs
+- [ ] All 17 `sdlc/` directories created with READMEs
 - [ ] Security findings (brownfield) recorded in ARCH.md
 - [ ] No existing files overwritten without user confirmation
 

@@ -45,7 +45,7 @@ Pass the DESIGN artifact ID as argument: `/design-observability DESIGN-NNNN`.
 
 ## Output Contract
 
-OBS-NNNN must contain all Required Sections per the OBSERVABILITY-PLAN template: Key Signals (each with instrumentation point and failure mode rationale), SLOs/Thresholds (or SLO definition process if pre-baseline), Dashboards, Alerts (with runbook summary), Instrumentation Tasks (tagged for PLAN). Frontmatter: `validation_status: not_yet_validated`; `target_design_version`.
+OBS-NNNN must contain all Required Sections per the OBSERVABILITY-PLAN template: Key Signals (each with instrumentation point and failure mode rationale), SLOs/Thresholds (or SLO definition process if pre-baseline), Dashboards, Alerts (with runbook summary), Instrumentation Tasks (tagged for PLAN). Frontmatter: `validation_status: not_yet_validated`; `target_design_version`; `generation` block (`command: /design-observability`, `model` [self-identify from system context], `generated_at: [today's date]`).
 
 ## Lead Developer Approval Gate
 
@@ -74,6 +74,7 @@ Before committing OBS-NNNN:
 - [ ] Every alert has a likely cause and runbook summary
 - [ ] Instrumentation tasks are specific enough to implement without clarification
 - [ ] Validation checklist is present and testable
+- [ ] `generation` block present: command, model self-identified, generated_at set
 
 ## Handoff
 

@@ -52,6 +52,7 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
    - `includes_security_tasks: false` (update to `true` in Step 4 if SEC-NNNN exists)
    - `milestone_count: TBD` (update in Step 7 after milestones are defined)
    - `current_review_round: 0` (updated by `/review-plan` after each round)
+   - `generation` block: `command: /create-plan`, `model` [self-identify from system context], `generated_at: [today's date]`
    - `pipeline_status`: snapshot of all upstream artifact statuses at plan creation time — updated by downstream approval commands:
 
    ```yaml
@@ -138,7 +139,7 @@ PLAN-NNNN must contain: Task Breakdown (ordered; functional tasks have source ta
 ## Quality Gate
 
 Before requesting review:
-- [ ] Frontmatter complete: `status: draft`, `version: 1`, `target_design_version`, `milestone_count`, `includes_observability_tasks`, `includes_security_tasks`, `current_review_round: 0`, and `pipeline_status` block all set
+- [ ] Frontmatter complete: `status: draft`, `version: 1`, `target_design_version`, `milestone_count`, `includes_observability_tasks`, `includes_security_tasks`, `current_review_round: 0`, `generation` block, and `pipeline_status` block all set
 - [ ] Every task has an ID; spike tasks use T[N]-spike format
 - [ ] Every task can be implemented without making a design decision
 - [ ] Schema tasks precede all tasks that depend on the schema
