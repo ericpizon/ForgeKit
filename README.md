@@ -193,7 +193,7 @@ ForgeKit/
     roles/                      ← role persona templates
     sdlc/                       ← artifact templates and per-directory READMEs
     examples/                   ← example SPEC, PLAN, IMPL-REVIEW showing quality bar
-  placeholder-commands/         ← utility stubs (update-stack, update-arch, upgrade-pipeline)
+  placeholder-commands/         ← utility stubs (update-arch)
 ```
 
 ## Requirements

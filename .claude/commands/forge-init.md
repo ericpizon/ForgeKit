@@ -4,7 +4,7 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: 1
+version: "1.0"
 primary_role: lead-developer
 created: 2026-06-21
 updated: 2026-06-22
@@ -646,7 +646,7 @@ For each file in `templates/commands/`:
 
 ### 5b. Copy placeholder commands
 
-Copy all files from `placeholder-commands/` → `.claude/commands/` in the target project. These are ForgeKit utility commands (like `/update-stack`) provided as documented stubs rather than generated from templates.
+Copy all files from `placeholder-commands/` → `.claude/commands/` in the target project. These are ForgeKit utility commands (like `/update-arch`) that are stubs pending full implementation, copied directly rather than generated from templates.
 
 Do not overwrite `.claude/commands/forge-init.md` if it already exists in the target — `/forge-init` is a ForgeKit command, not a pipeline command.
 
@@ -687,7 +687,7 @@ Show the user a full summary of what was created:
 > - `CLAUDE.md` — pipeline context injected [or: ForgeKit block appended to existing CLAUDE.md]
 > - `PIPELINE.md` — command reference and role guide
 > - `.claude/roles/` — N role files
-> - `.claude/commands/` — N pipeline commands + N placeholder commands
+> - `.claude/commands/` — N pipeline commands + 1 placeholder command (`/update-arch`)
 > - `sdlc/architecture/ARCH.md` — [approved by user]
 > - `sdlc/` — directory structure with READMEs
 >

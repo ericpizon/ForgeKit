@@ -86,7 +86,7 @@ git pull origin thread/NNNN-slug
 Before committing:
 - [ ] Latest Design Review section shows zero blocking findings
 - [ ] Non-blocking findings accepted as-is (no inline resolution required)
-- [ ] DESIGN frontmatter: `status: approved`; `approval:` block set (`approved_by: architect`, `approved_role`, `approved_at`, `decision_summary` populated)
+- [ ] DESIGN frontmatter: `status: approved`; `approval:` block set (`approved_by`, `approved_role: architect`, `approved_at`, `decision_summary` populated)
 - [ ] ARCH updated to reflect this DESIGN's cross-cutting contributions
 - [ ] New ARCH entries date-stamped with `(added: YYYY-MM-DD, DESIGN-NNNN)`
 - [ ] Superseded patterns moved to `## Superseded Patterns` section and marked `(superseded by ..., YYYY-MM-DD)`

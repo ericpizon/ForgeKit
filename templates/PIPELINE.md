@@ -27,7 +27,7 @@ Command reference for the AI-SDLC pipeline installed in this project. Each comma
 | | Address test plan feedback | `/address-test-plan-review TEST-NNNN` | Quality Engineer | — |
 | | Approve test plan | `/approve-test-plan TEST-NNNN` | Quality Engineer | TEST → approved |
 | **6–7 — Implementation** | Implement milestone | `/implement-plan PLAN-NNNN M1` | Developer | code |
-| | Run tests | `/execute-tests PLAN-NNNN M1 TEST-NNNN` | Developer | test output |
+| | Run tests | `/execute-tests PLAN-NNNN M1 TEST-NNNN` | Quality Engineer | test output |
 | | Fix failures | `/address-test-failures PLAN-NNNN M1` | Developer | — |
 | | Review code | `/review-implementation PLAN-NNNN M1` | Lead Dev | IMPL-REVIEW |
 | | Address review | `/address-implementation-review PLAN-NNNN M1` | Developer | — |
@@ -88,6 +88,7 @@ See `sdlc/incidents/README.md` for incident severity criteria (SEV-1 through SEV
 | Orient after a session break — see full pipeline state and next action | `/status [PLAN-NNNN]` |
 | Refresh the feature registry index | `/sync-registry` |
 | Update stack values (test runner, deploy command, etc.) | `/update-stack` |
+| Refresh command and role templates (new ForgeKit version) | `/upgrade-pipeline /path/to/ForgeKit` |
 | Update architecture reference | `/update-arch` *(placeholder)* |
 | Re-configure or refresh pipeline templates | `/forge-init` |
 
