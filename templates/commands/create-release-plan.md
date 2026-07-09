@@ -104,6 +104,7 @@ Write `sdlc/release-plans/RELEASE-PLAN-vX.Y.Z.md`:
 ---
 id: RELEASE-PLAN-vX.Y.Z
 type: release-plan
+schema_version: 1
 version: "X.Y.Z"
 status: draft
 created: [today]
@@ -113,8 +114,10 @@ scope:
   - PLAN-NNNN
 generation:
   command: /create-release-plan
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # RELEASE-PLAN — vX.Y.Z

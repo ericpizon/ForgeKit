@@ -1,8 +1,21 @@
 ---
 id: PLAN-0001
 type: plan
+schema_version: 1
 title: Personal API Token Management
 status: approved
+approval:
+  mode: repo_only
+  approved_by: Raj Mehta
+  approved_role: lead-developer
+  approved_at: 2026-05-10
+  decision_summary: PLAN-0001 approved for test planning phase after one review round
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
 created: 2026-05-10
 updated: 2026-05-14
 version: 1
@@ -14,8 +27,10 @@ includes_observability_tasks: true
 includes_security_tasks: true
 generation:
   command: /create-plan
+  command_version: 1
   model: claude-sonnet-4-6
   generated_at: 2026-05-10
+  session_id: null
 pipeline_status:
   spec: SPEC-0001 approved
   analysis: ANALYSIS-0001 completed

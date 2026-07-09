@@ -59,13 +59,16 @@ If `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` already exists:
 ---
 id: IMPL-REVIEW-NNNN-MN
 type: impl-review
+schema_version: 1
 plan: PLAN-NNNN
 milestone: MN
 current_review_round: 1
 generation:
   command: /review-implementation
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # Implementation Review — PLAN-NNNN MN

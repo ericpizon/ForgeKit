@@ -55,7 +55,7 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 
 SEC-NNNN must contain all Required Sections per the SECURITY-REVIEW template: Scope of Review, Findings (with severity, description, attack scenario, mitigation per finding), Residual Risk Assessment (accepted-risk findings with approver and revisit condition), Compliance Considerations.
 
-Frontmatter must include: `findings_status` (map of finding ID to `open` | `mitigated` | `accepted_risk`); `trigger_source` (ANALYSIS-NNNN ID); `target_design_version`; `generation` block (`command: /security-review`, `model` [self-identify from system context], `generated_at: [today's date]`).
+Frontmatter must include: `findings_status` (map of finding ID to `open` | `mitigated` | `accepted_risk`); `trigger_source` (ANALYSIS-NNNN ID); `target_design_version`; `schema_version: 1`; `generation` block (`command: /security-review`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`).
 
 ## Lead Developer Review
 
@@ -69,7 +69,8 @@ Before SEC-NNNN is marked `completed`:
 - [ ] No finding mitigation says "consider" — all are specific and actionable
 - [ ] Accepted-risk entries have a revisit condition, not just "v2 will fix this"
 - [ ] `findings_status` frontmatter accurately reflects the current status of each finding
-- [ ] `generation` block present: command, model self-identified, generated_at set
+- [ ] `schema_version: 1` present in SEC frontmatter
+- [ ] `generation` block present: command, command_version, model self-identified, generated_at set, session_id: null
 
 ## Handoff
 

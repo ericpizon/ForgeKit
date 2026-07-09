@@ -37,6 +37,18 @@ In `RELEASE-PLAN-vX.Y.Z.md` frontmatter:
 
 ```yaml
 status: approved
+approval:
+  mode: repo_only
+  approved_by: "[SRE name]"
+  approved_role: sre
+  approved_at: "[today's date]"
+  decision_summary: "RELEASE-PLAN-vX.Y.Z approved — production deployment authorized"
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
 ```
 
 ### 2. Pause for confirmation

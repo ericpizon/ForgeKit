@@ -50,7 +50,8 @@ Create the TEST-PLAN file with:
 - `execution_date: null`
 - `execution_summary: null`
 - `current_review_round: 0` (updated by `/review-test-plan` after each round)
-- `generation` block: `command: /create-test-plan`, `model` [self-identify from system context], `generated_at: [today's date]`
+- `schema_version: 1`
+- `generation` block: `command: /create-test-plan`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`
 
 Create the initial document structure with section headings for each required section, including an Execution Results Summary section with `status: pending`.
 
@@ -138,7 +139,7 @@ TEST-NNNN must contain: Test Strategy; AC Coverage Map organized by milestone (m
 ## Quality Gate
 
 Before requesting review:
-- [ ] Frontmatter complete: `status: draft`, `version: 1`, `target_plan_version`, `execution_date: null`, `generation` block
+- [ ] Frontmatter complete: `status: draft`, `schema_version: 1`, `version: 1`, `target_plan_version`, `execution_date: null`, `generation` block (with `command_version` and `session_id: null`)
 - [ ] Every test case has an ID, type, execution mode, and priority
 - [ ] Every AC has at least one P0 automated test covering the happy path
 - [ ] No P0 test case is `manual` without a `Procedure` block and `Reason` line

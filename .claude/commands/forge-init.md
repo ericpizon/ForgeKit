@@ -600,6 +600,7 @@ pipeline:
   security_review: conditional
   observability: true
   postmortem: SEV-2              # SEV-1 | SEV-2 | SEV-3 | SEV-4 | always | never
+  evidence_mode: repo_only       # repo_only | hybrid
 ```
 
 ### 2. Write or inject CLAUDE.md

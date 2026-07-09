@@ -49,13 +49,26 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
 
 2. **Update TEST-NNNN status to `approved`.** In TEST frontmatter:
    - Set `status: approved`
-   - Set `approved_date` to today's date
-   - Set `approved_by: quality-engineer`
+   - Add `approval:` block:
+     ```yaml
+     approval:
+       mode: repo_only
+       approved_by: "[Quality Engineer name]"
+       approved_role: quality-engineer
+       approved_at: "[today's date]"
+       decision_summary: "[one sentence confirming TEST-NNNN approved for implementation phase]"
+       external_event_id: null
+       external_event_uri: null
+     policy_evaluation:
+       evaluated: null
+       policy_pack: null
+       result: null
+     ```
    - Add changelog entry: `vN — approved after [N] review rounds`
 
 3. **Update PLAN-NNNN pipeline_status.** In PLAN-NNNN frontmatter, set `pipeline_status.test: approved`.
 
-4. **Update the registry.** In `sdlc/registry/index.md`, update the TEST-NNNN row: set `status: approved`, `approved_date` to today's date.
+4. **Update the registry.** In `sdlc/registry/index.md`, update the TEST-NNNN row: set `status: approved`.
 
 ## Quality Gate
 
@@ -67,7 +80,7 @@ Before committing:
 - [ ] All security test cases for Critical/High SEC findings are P0
 - [ ] AC Coverage Map is organized by milestone matching the PLAN structure
 - [ ] Execution Results Summary placeholder present with `status: pending`
-- [ ] TEST frontmatter: `status: approved`, `approved_date`, `approved_by` set
+- [ ] TEST frontmatter: `status: approved`; `approval:` block set (`approved_by`, `approved_role: quality-engineer`, `approved_at`, `decision_summary` populated)
 - [ ] PLAN-NNNN `pipeline_status.test` updated to `approved`
 - [ ] Registry updated for TEST-NNNN
 

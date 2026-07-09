@@ -112,6 +112,7 @@ Write `sdlc/postmortems/PM-NNNN-[slug].md`:
 ```markdown
 ---
 id: PM-NNNN
+schema_version: 1
 title: "[title from INC-NNNN]"
 incident: INC-NNNN
 severity: [severity from INC-NNNN]
@@ -121,8 +122,10 @@ authors:
   - sre
 generation:
   command: /create-postmortem
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # PM-NNNN — [title]

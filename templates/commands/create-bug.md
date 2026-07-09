@@ -70,6 +70,7 @@ Create `sdlc/bugs/BUG-NNNN.md`:
 ```markdown
 ---
 id: BUG-NNNN
+schema_version: 1
 status: reported
 severity: [Critical | High | Medium | Low]
 priority: null
@@ -88,8 +89,10 @@ resolved_at: null
 verified_at: null
 generation:
   command: /create-bug
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # BUG-NNNN — [title]
@@ -144,6 +147,8 @@ generation:
 - [ ] Severity estimate is provided with a one-line reason
 - [ ] Reproducibility field is set
 - [ ] All known linked artifacts recorded; unknown fields set to `null`
+- [ ] `schema_version: 1` present in frontmatter
+- [ ] `generation` block present: command, command_version, model self-identified, generated_at set, session_id: null
 
 ## Handoff
 

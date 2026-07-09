@@ -50,8 +50,21 @@ git pull origin thread/NNNN-slug
 
 2. **Update DESIGN status to `approved`.** In DESIGN frontmatter:
    - Set `status: approved`
-   - Set `approved_date` to today's date
-   - Set `approved_by: architect`
+   - Add `approval:` block:
+     ```yaml
+     approval:
+       mode: repo_only
+       approved_by: "[Architect name]"
+       approved_role: architect
+       approved_at: "[today's date]"
+       decision_summary: "[one sentence confirming DESIGN-NNNN approved for Stage 4]"
+       external_event_id: null
+       external_event_uri: null
+     policy_evaluation:
+       evaluated: null
+       policy_pack: null
+       result: null
+     ```
    - Add changelog entry: `vN — approved after [N] review rounds`
 
 3. **Update ARCH.** Apply any cross-cutting patterns introduced by this DESIGN that belong in the system-wide baseline:
@@ -73,7 +86,7 @@ git pull origin thread/NNNN-slug
 Before committing:
 - [ ] Latest Design Review section shows zero blocking findings
 - [ ] Non-blocking findings accepted as-is (no inline resolution required)
-- [ ] DESIGN frontmatter: `status: approved`, `approved_date`, `approved_by` set
+- [ ] DESIGN frontmatter: `status: approved`; `approval:` block set (`approved_by: architect`, `approved_role`, `approved_at`, `decision_summary` populated)
 - [ ] ARCH updated to reflect this DESIGN's cross-cutting contributions
 - [ ] New ARCH entries date-stamped with `(added: YYYY-MM-DD, DESIGN-NNNN)`
 - [ ] Superseded patterns moved to `## Superseded Patterns` section and marked `(superseded by ..., YYYY-MM-DD)`

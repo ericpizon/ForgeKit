@@ -62,7 +62,7 @@ Do not proceed to Step 1 until both answers are provided. If the user says "I'll
 
 The produced SPEC must contain all of the following Required Sections: Problem Statement, Background (if needed), Goals, Non-Goals, User Stories, Acceptance Criteria, Non-Functional Requirements, Constraints & Assumptions, Security Considerations, Observability Considerations, Open Questions.
 
-Frontmatter must include: `id`, `type: spec`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`).
+Frontmatter must include: `id`, `type: spec`, `schema_version: 1`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`, `session_id: null`).
 
 ## Quality Gate
 
@@ -76,7 +76,8 @@ Before handing off to `/review-spec`:
 - [ ] Observability Considerations cover metrics, traces, and logging — including what must never be logged
 - [ ] `security_review_required` self-assessment is present and reasoned
 - [ ] No open question is so fundamental it could change a Goal or Non-Goal if answered differently
-- [ ] `generation` block present: command, model self-identified, generated_at set to today's date
+- [ ] `schema_version: 1` present in frontmatter
+- [ ] `generation` block present: command, command_version, model self-identified, generated_at set to today's date, session_id: null
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
 

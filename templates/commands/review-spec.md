@@ -96,7 +96,7 @@ Adopt the Security role as defined in `.claude/roles/security.md`. Assess the `s
 
 Append an `## Analysis Round N` section to ANALYSIS-NNNN (create the file on Round 1). Each round section contains: Completeness Assessment, Ambiguities & Open Questions, Risk Flags, Security Review Trigger Assessment (with checklist), Readiness Verdict. Optional: Suggested Spec Revisions (if `needs_revision`).
 
-Update ANALYSIS-NNNN frontmatter each round: `readiness_verdict` (`ready` | `needs_revision`); `security_review_required` (`yes` | `no`); `target_spec_version`. On Round 1 creation: also initialize a `generation` block — `command: /review-spec`, `model` [self-identify from system context], `generated_at: [today's date]` — do not update `generation` on re-reviews.
+Update ANALYSIS-NNNN frontmatter each round: `readiness_verdict` (`ready` | `needs_revision`); `security_review_required` (`yes` | `no`); `target_spec_version`. On Round 1 creation: also initialize a `generation` block — `command: /review-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null` — and set `schema_version: 1` in ANALYSIS frontmatter. Do not update `generation` or `schema_version` on re-reviews.
 
 ## Quality Gate
 
@@ -112,7 +112,8 @@ Before capturing review output:
 - [ ] Observability Considerations checked for metrics, traces, and logging coverage
 - [ ] `security_review_required` verdict has a rationale
 - [ ] Readiness verdict accounts for LD, QE, and any NFR/observability findings
-- [ ] ANALYSIS-NNNN `generation` block present (Round 1 only): command, model self-identified, generated_at set
+- [ ] ANALYSIS-NNNN `schema_version: 1` present (Round 1 only)
+- [ ] ANALYSIS-NNNN `generation` block present (Round 1 only): command, command_version, model self-identified, generated_at set, session_id: null
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
 

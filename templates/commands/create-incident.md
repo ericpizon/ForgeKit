@@ -64,6 +64,7 @@ Write `sdlc/incidents/INC-NNNN-[slug].md`:
 ```markdown
 ---
 id: INC-NNNN
+schema_version: 1
 title: "[title]"
 severity: SEV-N
 status: active
@@ -75,8 +76,10 @@ linked_bug: ~
 linked_postmortem: ~
 generation:
   command: /create-incident
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # INC-NNNN — [title]

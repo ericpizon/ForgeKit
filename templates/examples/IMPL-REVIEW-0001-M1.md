@@ -1,13 +1,28 @@
 ---
 id: IMPL-REVIEW-0001-M1
 type: impl-review
+schema_version: 1
 plan: PLAN-0001
 milestone: M1
 current_review_round: 2
+approval:
+  mode: repo_only
+  approved_by: Raj Mehta
+  approved_role: lead-developer
+  approved_at: 2026-05-16
+  decision_summary: IMPL-REVIEW-0001-M1 Round 2 — zero blocking findings, all Round 1 findings resolved; M1 approved for merge
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
 generation:
   command: /review-implementation
+  command_version: 1
   model: claude-sonnet-4-6
   generated_at: 2026-05-14
+  session_id: null
 ---
 
 > **Example artifact.** This file shows the expected output quality for an IMPL-REVIEW in the ForgeKit pipeline. It covers two rounds: Round 1 with blocking and non-blocking findings, an address summary, and Round 2 clearing all findings. The feature and project (Fieldstone) are fictional.

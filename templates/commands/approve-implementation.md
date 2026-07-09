@@ -39,6 +39,23 @@ In PLAN-NNNN, update milestone MN:
 **Implementation status:** approved
 ```
 
+Update `IMPL-REVIEW-NNNN-MN.md` frontmatter to record the approval:
+
+```yaml
+approval:
+  mode: repo_only
+  approved_by: "[Lead Developer name]"
+  approved_role: lead-developer
+  approved_at: "[today's date]"
+  decision_summary: "[one sentence confirming milestone MN approved for merge]"
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
+```
+
 ### 2. Pre-commit checks
 
 Run the project's lint and unit/integration tests as a safety net. Read project.yml for the commands:

@@ -35,19 +35,32 @@ Pass the PLAN ID: `/approve-plan PLAN-NNNN`.
 
 2. **Update PLAN status to `approved`.** In PLAN frontmatter:
    - Set `status: approved`
-   - Set `approved_date` to today's date
-   - Set `approved_by: lead-developer`
+   - Add `approval:` block:
+     ```yaml
+     approval:
+       mode: repo_only
+       approved_by: "[Lead Developer name]"
+       approved_role: lead-developer
+       approved_at: "[today's date]"
+       decision_summary: "[one sentence confirming PLAN-NNNN approved for test planning phase]"
+       external_event_id: null
+       external_event_uri: null
+     policy_evaluation:
+       evaluated: null
+       policy_pack: null
+       result: null
+     ```
    - Add changelog entry: `vN — approved after [N] review rounds`
    - Set `pipeline_status.plan: approved`
 
-3. **Update the registry.** In `sdlc/registry/index.md`, update the PLAN-NNNN row: `status: approved`, `approved_date`, and `milestone_count`.
+3. **Update the registry.** In `sdlc/registry/index.md`, update the PLAN-NNNN row: `status: approved` and `milestone_count`.
 
 ## Quality Gate
 
 Before committing:
 - [ ] Latest Plan Review section shows zero blocking findings
 - [ ] All non-blocking findings addressed or explicitly accepted as risk
-- [ ] PLAN frontmatter: `status: approved`, `approved_date`, `approved_by` set
+- [ ] PLAN frontmatter: `status: approved`; `approval:` block set (`approved_by`, `approved_role: lead-developer`, `approved_at`, `decision_summary` populated)
 - [ ] Registry updated for PLAN-NNNN
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.

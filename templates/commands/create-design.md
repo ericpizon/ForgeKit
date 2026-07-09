@@ -162,7 +162,7 @@ DESIGN-NNNN must contain all Required Sections in this order:
 
 Plus optional sections as warranted: Performance Considerations, Observability Implementation.
 
-DESIGN-NNNN frontmatter must include a `generation` block: `command: /create-design`, `model` [self-identify from system context], `generated_at: [today's date]`.
+DESIGN-NNNN frontmatter must include: `schema_version: 1`, and a `generation` block: `command: /create-design`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`.
 
 Each ADR-NNNN must contain: Context, Decision, Consequences, Status Rationale, Revisit Triggers.
 
@@ -176,7 +176,8 @@ Each ADR-NNNN must contain: Context, Decision, Consequences, Status Rationale, R
 
 **End of Phase 3 (before showing full spec to user):**
 - [ ] DESIGN frontmatter initialized: `current_review_round: 0` (updated by `/review-design` after each round)
-- [ ] `generation` block present in DESIGN frontmatter: command, model self-identified, generated_at set
+- [ ] `schema_version: 1` present in DESIGN frontmatter
+- [ ] `generation` block present in DESIGN frontmatter: command, command_version, model self-identified, generated_at set, session_id: null
 - [ ] Every ANALYSIS ambiguity is explicitly resolved
 - [ ] External API surfaces have version prefixes
 - [ ] All failure modes for the hot path are enumerated

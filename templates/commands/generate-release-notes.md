@@ -48,6 +48,7 @@ Produce `sdlc/releases/RELEASE-NOTES-vX.Y.Z.md`:
 ---
 id: RELEASE-NOTES-vX.Y.Z
 type: release-notes
+schema_version: 1
 title: "[Feature title] — vX.Y.Z"
 released_at: [timestamp from RELEASE-PLAN Deployment Record]
 target_version: vX.Y.Z
@@ -60,8 +61,10 @@ links:
     target: SPEC-NNNN
 generation:
   command: /generate-release-notes
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 ```
 

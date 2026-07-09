@@ -53,14 +53,17 @@ Determine the next PLAN ID from `sdlc/plans/`. Create `sdlc/plans/PLAN-NNNN.md`:
 ---
 id: PLAN-NNNN
 type: hotfix
+schema_version: 1
 status: approved
 linked_bug: BUG-NNNN
 version: 1
 created: [date]
 generation:
   command: /release-hotfix
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # PLAN-NNNN — Hotfix: [BUG-NNNN title]
@@ -97,14 +100,17 @@ Create `sdlc/test-plans/TEST-NNNN.md` with one test case that proves the defect 
 ```markdown
 ---
 id: TEST-NNNN
+schema_version: 1
 status: approved
 linked_plan: PLAN-NNNN
 linked_bug: BUG-NNNN
 version: 1
 generation:
   command: /release-hotfix
+  command_version: "[use version from this command's frontmatter]"
   model: "[self-identify from system context]"
   generated_at: "[today's date]"
+  session_id: null
 ---
 
 # TEST-NNNN — Hotfix test: [BUG-NNNN title]

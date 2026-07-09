@@ -1,8 +1,21 @@
 ---
 id: SPEC-0001
 type: spec
+schema_version: 1
 title: Personal API Token Management
 status: approved
+approval:
+  mode: repo_only
+  approved_by: Jordan Kim
+  approved_role: tpo
+  approved_at: 2026-05-06
+  decision_summary: SPEC-0001 approved for design phase after two review rounds
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
 created: 2026-05-01
 updated: 2026-05-06
 version: 2
@@ -19,8 +32,10 @@ stakeholders:
 links: []
 generation:
   command: /create-spec
+  command_version: 1
   model: claude-sonnet-4-6
   generated_at: 2026-05-01
+  session_id: null
 ---
 
 > **Example artifact.** This file shows the expected output quality for a SPEC in the ForgeKit pipeline. The feature and project (Fieldstone) are fictional.

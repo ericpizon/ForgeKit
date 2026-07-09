@@ -41,7 +41,21 @@ Pass SPEC and ANALYSIS IDs: `/approve-spec SPEC-NNNN ANALYSIS-NNNN`.
 
 2. **Mark SPEC approved.** In SPEC-NNNN frontmatter:
    - Set `status: approved`
-   - Set `approved_date` to today's date
+   - Add `approval:` block:
+     ```yaml
+     approval:
+       mode: repo_only
+       approved_by: "[TPO name]"
+       approved_role: tpo
+       approved_at: "[today's date]"
+       decision_summary: "[one sentence confirming SPEC-NNNN approved for design phase]"
+       external_event_id: null
+       external_event_uri: null
+     policy_evaluation:
+       evaluated: null
+       policy_pack: null
+       result: null
+     ```
    - Add changelog entry: `vN — approved after [N] review rounds`
    - Do not modify `product_validated`, `validated_by`, or `validated_date` — these were set by `/validate-spec` and are not overwritten here.
 
@@ -57,7 +71,7 @@ Pass SPEC and ANALYSIS IDs: `/approve-spec SPEC-NNNN ANALYSIS-NNNN`.
 
 Before committing:
 - [ ] ANALYSIS shows `readiness_verdict: ready`
-- [ ] SPEC `status: approved`, `approved_date` set
+- [ ] SPEC `status: approved`; `approval:` block set (`approved_by`, `approved_role`, `approved_at`, `decision_summary` populated)
 - [ ] ANALYSIS `status: completed`
 - [ ] Registry updated for both artifacts
 - [ ] `product_validated: true` confirmed in SPEC frontmatter — not overwritten
