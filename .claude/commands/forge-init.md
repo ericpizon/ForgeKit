@@ -568,7 +568,7 @@ project:
   initialized_at: {{today}}
   forgekit_version: "1.0"
 
-artifact_mode: {{artifact_mode}}   # markdown or copy-paste
+artifact_mode: {{artifact_mode}}   # markdown | hybrid | copy-paste
 
 # [INCLUDE ONLY IF artifact_mode: copy-paste OR hybrid]
 external_tool:
@@ -642,7 +642,6 @@ For each file in `templates/commands/`:
    - `{{stack.deploy.command}}` → value from project.yml
    - `{{stack.deploy.migration_command}}` → value from project.yml
    - `{{stack.deploy.env_pull}}` → value from project.yml
-   - `{{stack.framework}}` → value from project.yml
 
    Artifact mode is conveyed to commands through the CLAUDE.md ambient context block, not baked into individual command files.
 
