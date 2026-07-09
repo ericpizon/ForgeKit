@@ -185,6 +185,7 @@ ForgeKit/
   README.md
   .claude/commands/
     forge-init.md               ← the ForgeKit init command
+    review-forgekit-pr.md       ← maintainer design-direction review
   templates/
     CLAUDE.md.template
     project.yml.template
