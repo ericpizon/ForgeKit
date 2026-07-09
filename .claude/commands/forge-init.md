@@ -150,9 +150,7 @@ Exit re-run mode without making any changes.
 
 Command and role template refresh is handled by `/upgrade-pipeline`, which diffs the current `.claude/commands/` and `.claude/roles/` files against the ForgeKit templates and lets you selectively apply updates.
 
-> Run: `/upgrade-pipeline`
->
-> Note: `/upgrade-pipeline` is currently a placeholder command — see its documentation for implementation status.
+> Run: `/upgrade-pipeline /path/to/ForgeKit`
 
 Exit re-run mode without making any changes.
 
