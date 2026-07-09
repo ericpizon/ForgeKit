@@ -539,7 +539,6 @@ For greenfield projects, generate `sdlc/architecture/ARCH.md` from the confirmed
 - **Observability** — stack, what should be instrumented, what must never be logged
 - **Security conventions** — auth enforcement pattern, secrets handling, API key patterns if applicable
 - **Architectural decisions** — any framework-specific patterns decided at generation time; for Next.js App Router projects, include: App Router only (no Pages Router), Server Components by default, Server Actions as the preferred mutation pattern (not just for forms — for all data writes unless a JSON API endpoint is explicitly needed for external consumers)
-  <!-- FUTURE: Add equivalent framework-specific architectural guidance for other stacks (Django, Rails, Spring Boot, FastAPI, etc.). Currently only Next.js App Router gets a framework-specific callout. -->
 
 **Frontmatter on generation:** set `status: draft` and `approved_by: pending` — do NOT set `status: approved` until the user explicitly approves.
 
