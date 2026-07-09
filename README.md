@@ -203,4 +203,34 @@ ForgeKit/
 
 ---
 
+## Status and roadmap
+
+ForgeKit is an experimental AI-SDLC protocol — early but serious. The pipeline is fully functional and battle-tested in active use. It is not yet a managed platform or a certified compliance tool.
+
+**What is available now (v1.0):**
+
+| Area | What's included |
+|---|---|
+| Feature pipeline | Full 10-stage pipeline: SPEC → ANALYSIS → DESIGN → OBS + SEC → PLAN → TEST → IMPLEMENT → PR → RELEASE |
+| Back-cycles | `/reopen-spec`, `/reopen-design`, `/reopen-plan` — controlled upstream invalidation with blast radius assessment |
+| Operational track | Bug filing, triage, hotfix path, incident response, postmortem with 5 Whys |
+| Project setup | `/forge-init` — greenfield and brownfield, automated codebase scan, ARCH.md sign-off gate |
+| Pipeline maintenance | `/update-stack`, `/upgrade-pipeline`, `/update-arch` *(stub)* |
+| Governance schema | `schema_version`, structured `approval:` blocks, `evidence_mode`, `policy_evaluation` reservation |
+| Artifact modes | Markdown (repo-only) and hybrid (SPEC/BUG/INC in external tool) |
+
+**What is coming:**
+
+| Area | Description |
+|---|---|
+| `/update-arch` | Targeted ARCH.md re-sync after codebase changes — stub now, full implementation next |
+| Policy packs | SOC 2, ISO 27001, HIPAA evaluation via the `policy_evaluation:` block already in every approval |
+| Evidence exporter | Structured export of the complete approval trail for audit submissions and compliance reviews |
+| Orchestrated approvals | Authenticated workflow events beyond repo-only — connecting approvals to external systems |
+| Jira / Confluence integration | Native API integration for hybrid mode — no copy-paste |
+
+ForgeKit is open protocol. The toolkit is Apache 2.0. The managed platform (evidence exporter, policy packs, orchestrated approvals) is planned as a separate commercial layer that does not affect or gate the open protocol.
+
+---
+
 *Designed for engineering teams who want to move fast with AI without losing the traceability, accountability, and evidence trail that real software delivery requires.*
