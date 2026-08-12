@@ -4,7 +4,7 @@ type: command
 name: /review-plan
 description: Lead Developer command to run all Stage 5 plan perspectives in one pass — SRE, Developer, QE, Security, Architect
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 output_artifact_type: plan (reviewed)
 ---
@@ -86,6 +86,7 @@ Adopt the Quality Engineer role. Adversarially review PLAN-NNNN for testability.
 5. **Testability preconditions.** Does a task depend on environment state not set up by an earlier task? Missing prerequisites make tests fragile.
 6. **Per-milestone testability.** Can each milestone be tested in isolation after deployment?
 7. **Happy path trace validation.** Does PLAN-NNNN contain a Happy Path Trace section? For each User Story trace: are all flow steps accounted for? A **missing Happy Path Trace section** is **non-blocking**. A **gap within an existing trace** is **blocking** — an unimplemented flow step means the user journey is broken.
+8. **Alternate path trace validation.** For any primary User Story whose SPEC ACs describe more than one terminal outcome, does PLAN-NNNN contain an Alternate/Failure Path Trace? A **missing trace where one is clearly needed** is **blocking** — unlike the Happy Path Trace's absence, this is not given the non-blocking pass, because an alternate/failure path is exactly the kind of thing that's easy to silently skip during planning. A **gap within an existing alternate-path trace** is **blocking** for the same reason a happy-path gap is.
 
 ### 4. Security Perspective *(only if SEC-NNNN exists)*
 
@@ -107,6 +108,7 @@ Adopt the Architect role. Review PLAN-NNNN for fidelity to DESIGN-NNNN. Assess:
 4. **Module layout conformance.** Do the tasks imply creating files in the locations defined in ARCH.md? Deviations must be documented.
 5. **ADR traceability.** If any task implements behavior that was the subject of an ADR, the task description should reference that ADR.
 6. **Milestone delivery sequence fidelity.** Does the milestone ordering respect DESIGN's module layering?
+7. **Invariant-preservation check.** For each ADR or DESIGN Key Decision that establishes an explicit invariant or boundary (e.g. "the model must never author X," "every write to this resource must be conditional"), confirm the task(s) implementing that area state the invariant explicitly in the task description — not just a reference to the DESIGN section. A task whose literal wording could be satisfied while violating the invariant is a blocking finding; the invariant must be spelled out where the Developer will actually be working, not left to memory of having read DESIGN once.
 
 ### 6. Cross-Perspective Check
 
@@ -152,6 +154,8 @@ Append a `## Plan Review — Round N` section to PLAN-NNNN. Then update `current
 - [ ] Milestone sizing checked for each milestone
 - [ ] Every spike task checked for question, timebox, and unblock target
 - [ ] Happy Path Trace validated
+- [ ] Alternate/Failure Path Trace validated for any User Story with more than one terminal outcome
+- [ ] Every ADR/Key Decision invariant traced to a task that states it explicitly
 - [ ] Each finding labeled blocking or non-blocking with a reason
 - [ ] Cross-perspective check completed
 

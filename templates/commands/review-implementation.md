@@ -4,7 +4,7 @@ type: command
 name: /review-implementation
 description: Multi-role review of a milestone's implementation — Lead Developer, Security, SRE, QE perspectives in one pass; produces IMPL-REVIEW artifact
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -136,6 +136,7 @@ Then read every source file in MN's task list. Check:
 - Module layout matches DESIGN-NNNN and ARCH.md conventions (files in correct paths; no logic that belongs in shared modules leaked into handler/controller files)
 - Auth guard pattern is correct per ARCH.md: auth is checked before any database access in external-facing handlers
 - No implementation decisions were made silently — any task that required a judgment call should have surfaced as a blocker during `/implement-plan`; surface anything that slipped through
+- **Invariant/boundary enforcement.** For each ADR establishing a deterministic/model-authorship boundary (or any other explicit invariant) relevant to MN's tasks, confirm the actual code enforces it — e.g. if a model response type is destructured or mapped into a downstream computation, confirm no forbidden field crosses that boundary. This is distinct from "matches DESIGN-NNNN specs": a developer can match DESIGN's stated shape while still leaving the invariant unenforced if DESIGN didn't fully anticipate every code path — check against the ADR's stated intent directly, not just the DESIGN section that cites it.
 
 ---
 

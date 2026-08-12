@@ -4,7 +4,7 @@ type: command
 name: /review-spec
 description: Lead Developer command to review a SPEC for scope coherence, completeness, ambiguity, risk, and implementation feasibility; produces ANALYSIS-NNNN
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -78,19 +78,20 @@ Adopt the Quality Engineer role as defined in `.claude/roles/quality-engineer.md
 
 8. **AC testability** — Can each AC be verified with an automated test written before implementation? An AC that cannot produce a failing test is not a testable AC. Flag any AC that describes internal behavior rather than an observable outcome.
 9. **Missing negative and boundary ACs** — For each positive AC, is there a corresponding AC for the failure or boundary case? Missing error-path ACs are findings.
-10. **Compound ACs** — Does any AC bundle multiple independently verifiable outcomes? If so, flag — it should be split so each can fail independently.
-11. **Test preconditions** — Does any AC assume environment state not established by another AC in this SPEC? Unstated prerequisites make tests fragile or impossible to isolate.
-12. **NFR testability** — For each NFR, is there a verification path? An NFR with no verification path produces untestable behavior — flag it.
+10. **State/lifecycle coverage check** — For any entity with a status or lifecycle (e.g. an evaluation, order, or job with multiple states), enumerate the full cross-product of {status} × {operation the spec describes} (view, retry, decide, cancel, etc.) and confirm every cell has a stated, intentional behavior — not just the common-path cells. A missing cell (e.g. "can a decision be recorded against a `HARD_GATE_SKIPPED` entity, not just a `COMPLETED` one?") is a finding distinct from a simple missing negative/boundary AC — it's a systemic gap in state-machine coverage, not a single missing test case.
+12. **Compound ACs** — Does any AC bundle multiple independently verifiable outcomes? If so, flag — it should be split so each can fail independently.
+13. **Test preconditions** — Does any AC assume environment state not established by another AC in this SPEC? Unstated prerequisites make tests fragile or impossible to isolate.
+14. **NFR testability** — For each NFR, is there a verification path? An NFR with no verification path produces untestable behavior — flag it.
 
 ### Security Perspective
 
 Adopt the Security role as defined in `.claude/roles/security.md`. Assess the `security_review_required` flag:
 
-13. **Security Review Trigger Assessment** — Evaluate against the checklist: authentication/authorization, PII/sensitive data, secrets/credential management, third-party integrations, data retention/compliance. Each criterion: `yes` or `no` with one-sentence rationale. Emit `security_review_required: yes` or `no`.
+15. **Security Review Trigger Assessment** — Evaluate against the checklist: authentication/authorization, PII/sensitive data, secrets/credential management, third-party integrations, data retention/compliance. Each criterion: `yes` or `no` with one-sentence rationale. Emit `security_review_required: yes` or `no`.
 
 ### Combined Verdict
 
-14. **Readiness verdict** — `needs_revision` if any LD or QE finding requires adding, removing, or rewording a Goal, Non-Goal, User Story, AC, NFR, or Observability Consideration. `ready` if all remaining gaps are Design-level resolutions that do not require spec changes.
+16. **Readiness verdict** — `needs_revision` if any LD or QE finding requires adding, removing, or rewording a Goal, Non-Goal, User Story, AC, NFR, or Observability Consideration. `ready` if all remaining gaps are Design-level resolutions that do not require spec changes.
 
 ## Output Contract
 
@@ -107,6 +108,7 @@ Before capturing review output:
 - [ ] Every AC is checked for ambiguity; ambiguous ACs are named with both interpretations
 - [ ] Every AC is checked for testability; untestable ACs named with reason
 - [ ] Missing negative/boundary ACs identified or confirmed absent
+- [ ] For any entity with a status/lifecycle, the status × operation cross-product is checked for coverage gaps
 - [ ] NFRs checked for presence, specificity, and design-constraining value
 - [ ] Every NFR checked for a verification path; untestable NFRs flagged
 - [ ] Observability Considerations checked for metrics, traces, and logging coverage

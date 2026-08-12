@@ -4,10 +4,10 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: "1.0"
+version: "1.1"
 primary_role: lead-developer
 created: 2026-06-21
-updated: 2026-06-22
+updated: 2026-08-11
 ---
 
 # /forge-init
@@ -694,6 +694,9 @@ Show the user a full summary of what was created:
 > [If brownfield and security findings were detected:]
 > **Security findings:** N pre-existing findings recorded in ARCH.md under `## Pre-existing Security Findings`. These will surface during the Security Review phase of your first feature thread.
 >
+> [If this run's target project directory differs from the session's current working directory — i.e. this was run bootstrap-style from ForgeKit's own directory with a target-path argument:]
+> **Before you run anything else:** this initialization ran from ForgeKit's own directory, not from inside your project. Open a new Claude Code session rooted in `[target project directory]` before running `/create-spec` or any other pipeline command. Commands read `.claude/commands/*.md` and `CLAUDE.md` gets auto-loaded relative to the session's working directory — staying rooted in ForgeKit means the generated CLAUDE.md context won't load automatically (including after context compaction) and these command files won't resolve as native project slash commands. Nothing breaks silently if you skip this, but you lose ambient project context you'd otherwise get for free.
+>
 > **Next step:**
 > Read `PIPELINE.md` for the complete command reference and role guide.
 > [Greenfield:] Run `/create-spec` to start your first feature thread.
@@ -714,6 +717,7 @@ Show the user a full summary of what was created:
 - [ ] All 17 `sdlc/` directories created with READMEs
 - [ ] Security findings (brownfield) recorded in ARCH.md
 - [ ] No existing files overwritten without user confirmation
+- [ ] If run bootstrap-style (target directory ≠ session's working directory), the directory-switch reminder was shown before the Next step message
 
 **Re-run mode — Option B (artifact mode):**
 - [ ] project.yml `artifact_mode` updated; `external_tool:` block added (hybrid/copy-paste) or removed (markdown) correctly

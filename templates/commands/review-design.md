@@ -4,7 +4,7 @@ type: command
 name: /review-design
 description: Architect command to run all Stage 3 design perspectives in one pass — Options Analysis, DBA, Security, SRE, Lead Developer
 status: active
-version: 1
+version: 2
 primary_role: architect
 output_artifact_type: design (reviewed)
 ---
@@ -53,7 +53,7 @@ Assess:
 
 Adopt the DBA role. Adversarially review DESIGN-NNNN's data model, schema decisions, and query patterns — identify problems before they are locked into a PLAN. Consult ARCH.md for the project's database, ORM, and migration tool. Assess:
 
-1. **Data model completeness.** List every table/collection and every column/field. Note which fields appear in WHERE clauses or JOIN conditions — these are index candidates.
+1. **Data model completeness.** List every table/collection and every column/field — including the full nested field list of any jsonb/document-typed column, enumerated with the same rigor as a relational column (a jsonb/document column is not exempt from completeness review just because it is schemaless at the DB layer). Note which fields appear in WHERE clauses or JOIN conditions — these are index candidates.
 2. **Index coverage on hot paths.** Any field queried on every request must be indexed. List any WHERE-clause field with no corresponding index.
 3. **Migration safety.** For each DDL operation implied: is it safe under concurrent production traffic? Name any operation that could lock tables or require downtime.
 4. **Connection pool implications.** Under concurrent load, does the design stay within the project's database connection limits? Read ARCH.md for the connection model.
@@ -72,6 +72,7 @@ Adopt the Security role. Review DESIGN-NNNN's trust boundary placement, auth sur
 5. **Auth middleware scope.** If the project uses auth middleware, confirm its matcher scope is correct — particularly for public endpoints that must not trigger auth redirects.
 6. **Implicit scope beyond Non-Goals.** If the DESIGN implies authorization logic beyond what SPEC-NNNN's Non-Goals allow, flag it as a scope question.
 7. **`security_review_required` consistency.** Confirm the DESIGN's surface is consistent with the verdict from ANALYSIS-NNNN.
+8. **Data-authorship boundary trace.** If the project establishes a boundary between deterministic code and model-authored output (e.g. an ADR stating "the model must never author the final score/decision"), trace every field the model is allowed to return and confirm none of them indirectly determines the protected outcome — a field used as a weight, multiplier, or other input to the protected computation is functionally authoring it, even if it isn't the final value itself. Flag any model-returned field that feeds a downstream deterministic decision without being independently fixed or validated first.
 
 ### 3. SRE Perspective
 
@@ -83,6 +84,7 @@ Adopt the SRE role. Adversarially stress-test DESIGN-NNNN against production fai
 4. **Operational toil.** Does the DESIGN require manual steps on a recurring basis not acknowledged in the design? Flag unacknowledged toil.
 5. **Infrastructure-specific latency.** Does the DESIGN acknowledge latency characteristics of the underlying infrastructure (serverless cold starts, connection pool warm-up, etc.)? Latency-sensitive behavior added without acknowledging known infrastructure delays is a finding.
 6. **Monitoring surface.** Can an operator determine system health from the signals described in the DESIGN? Is there a signal that goes to zero when a critical endpoint stops working?
+7. **Concurrent-writer safety.** For any resource (DB row, file, cache entry) that can be written by more than one independent code path — e.g. a background/async job's completion write racing a separately-triggered reconciliation or timeout write — confirm the DESIGN states a conditioned write pattern (optimistic locking, conditional UPDATE, compare-and-swap) rather than an unconditional write, and explicitly states what happens when two writers race for the same resource. An unconditional write to a resource with more than one writer path is a blocking finding.
 
 ### 4. Lead Developer Perspective
 
@@ -101,6 +103,7 @@ After completing all four perspectives:
 
 - **Contradictions:** Does any DBA finding contradict a Lead Developer finding? Does any Security finding conflict with the SRE rollback story? Flag contradictions explicitly — the Architect must arbitrate before addressing.
 - **Cascade:** Did DBA findings reveal schema implications with security consequences? Did a Key Decision clarification create new failure modes the SRE should know about? Add to the appropriate perspective's findings.
+- **Structural cross-reference:** For any data structure defined in one section (e.g. an algorithm's stated output shape) and consumed or validated in another section, confirm the consuming section's assumptions about that structure's shape/granularity match the producing section's actual definition — not just its name. A validation check that assumes a coarser or finer granularity than what's actually produced is a contradiction, even if both sections individually read as correct.
 
 ## Output
 

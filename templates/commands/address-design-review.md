@@ -4,7 +4,7 @@ type: command
 name: /address-design-review
 description: Architect command to address findings from DESIGN review sections and prepare the DESIGN for re-review or approval
 status: active
-version: 1
+version: 2
 primary_role: architect
 output_artifact_type: design (revised)
 links:
@@ -52,6 +52,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
    - Revise that specific section — do not rewrite sections the finding does not reference
    - If a revision creates a contradiction in another section, resolve both before moving on
    - If a fix requires a new ADR, author it now
+   - **If the finding is that a name doesn't match what the thing actually measures or represents, resolve it by renaming — including a `/reopen-spec` back-cycle if the name originates in SPEC-NNNN — not by adding a clarifying caveat while keeping the misleading name.** A caveat that documents a semantic mismatch without correcting it is not a resolution: it leaves the wrong name in place for the next reader — including a future reviewer — to be misled by again. If renaming is genuinely infeasible this round, the finding must be marked **accepted risk** in the Address Summary, with rationale and a revisit condition — never marked **Addressed**.
 
 5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
 

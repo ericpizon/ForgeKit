@@ -4,7 +4,7 @@ type: command
 name: /create-test-plan
 description: Quality Engineer command to produce TEST-NNNN — test strategy, AC coverage, happy path trace alignment, observability/security verification, and explicit deferral criteria
 status: active
-version: 1
+version: 2
 primary_role: quality-engineer
 reviewing_roles:
   - security
@@ -35,6 +35,7 @@ Pass artifact IDs as arguments: `/create-test-plan SPEC-NNNN PLAN-NNNN OBS-NNNN 
 - **PLAN-NNNN** — approved; task structure, milestone grouping, and Happy Path Trace inform test organization
 - **OBS-NNNN** — read Validation Checklist section for observability verification steps
 - **SEC-NNNN** — (if triggered) read Findings section for security test cases
+- **ADR-NNNN** (any ADRs linked from DESIGN-NNNN) — read each ADR's Decision and Consequences sections; these are the source for invariant/boundary test cases in Step 3a
 - **ARCH.md** — read for the project's test framework, test patterns, and no-mock rules
 
 ## Steps
@@ -78,9 +79,17 @@ Guidelines:
 - Negative paths (invalid input, unauthorized access, not found) are P1 at minimum for authentication-adjacent ACs; P2 for others. Write a separate Gherkin scenario for each distinct outcome.
 - If an AC genuinely cannot be automated, mark it `manual`, write it in Gherkin with a `Procedure` block and a `Reason` line. A P0 manual test without justification is a quality gate failure.
 
+### Step 3a — Write invariant/boundary test cases from ADRs
+
+For each ADR linked to DESIGN-NNNN, write at least one test case that would fail if the ADR's decision were violated — not a test that the happy-path behavior works, a test that specifically exercises the boundary the ADR establishes (e.g. for an ADR stating "the model must never author the final score directly," a test that feeds a crafted model response attempting to influence the score outside the sanctioned input path, and asserts the score is unaffected or the response is rejected). Use the `TC-ADR-[NNNN]-[seq]` ID format. Assign P1 unless the ADR concerns a security-sensitive or data-integrity boundary, in which case P0.
+
+If an ADR's boundary is not independently testable (e.g. a purely organizational/process decision), state that explicitly with a one-line reason rather than omitting it.
+
 ### Step 4 — Align test cases with the happy path trace
 
 Read the **Happy Path Trace** section from PLAN-NNNN. For each User Story trace, walk each flow step and identify which test case from Step 3 exercises it. Produce a **Happy Path Coverage** table in TEST-NNNN.
+
+Also read any **Alternate/Failure Path Trace** section(s) in PLAN-NNNN, if present, and produce a corresponding **Alternate Path Coverage** table using the same format and the same verbatim-copy rule below.
 
 Copy each flow step description **verbatim** from PLAN-NNNN's Happy Path Trace — do not paraphrase, shorten, or reword. PLAN is the single source for flow step text. Any deviation makes it impossible to verify that TEST coverage aligns with what was planned.
 
@@ -134,7 +143,7 @@ For each deferred test case, add a `Deferral Reason` line citing the production-
 
 ## Output Contract
 
-TEST-NNNN must contain: Test Strategy; AC Coverage Map organized by milestone (milestone → AC ID → test cases, each with ID, type, execution mode, priority — AC descriptions are not re-stated here, IDs only); Happy Path Coverage (one table per primary User Story); Observability Verification; Security Test Cases; Test Data Strategy; Execution Results Summary (placeholder). All `deferred-to-release` test cases must have a `Deferral Reason`. Frontmatter: `version`; `target_plan_version`; `execution_date: null`; `execution_summary: null`.
+TEST-NNNN must contain: Test Strategy; AC Coverage Map organized by milestone (milestone → AC ID → test cases, each with ID, type, execution mode, priority — AC descriptions are not re-stated here, IDs only); ADR/Invariant Test Cases (one per ADR linked to DESIGN-NNNN, or an explicit not-independently-testable note); Happy Path Coverage (one table per primary User Story); Alternate Path Coverage (one table per Alternate/Failure Path Trace in PLAN-NNNN, if any exist); Observability Verification; Security Test Cases; Test Data Strategy; Execution Results Summary (placeholder). All `deferred-to-release` test cases must have a `Deferral Reason`. Frontmatter: `version`; `target_plan_version`; `execution_date: null`; `execution_summary: null`.
 
 ## Quality Gate
 
@@ -145,6 +154,8 @@ Before requesting review:
 - [ ] No P0 test case is `manual` without a `Procedure` block and `Reason` line
 - [ ] Integration tests use a real database (no DB mocks, per ARCH.md rules)
 - [ ] Happy Path Coverage section present; every flow step mapped or documented
+- [ ] Alternate Path Coverage section present for any PLAN-NNNN Alternate/Failure Path Trace
+- [ ] Every ADR linked to DESIGN-NNNN has at least one invariant/boundary test case, or an explicit not-independently-testable note
 - [ ] Observability verification covers each signal in OBS-NNNN
 - [ ] Security test cases cover each finding in SEC-NNNN; Critical/High findings are P0
 - [ ] All security test cases test the failing path

@@ -41,6 +41,8 @@ The TPO and Lead Developer see the same spec differently. The TPO asks "does thi
 4. Run /create-spec with the first feature you want to build.
 ```
 
+**If you ran `/forge-init` from ForgeKit's own directory** (passing your project's path as an argument, rather than opening Claude Code directly inside your project) — stop before step 4 and open a new session rooted in your project directory instead. `CLAUDE.md` auto-loads based on the session's working directory, and it won't find your project's generated context if the session is still rooted in ForgeKit. This also matters across context compaction: a session rooted in your project gets its `CLAUDE.md` reloaded automatically when context resets; a session rooted elsewhere doesn't, and silently loses that ambient context for the rest of the thread.
+
 After `/create-spec` completes, you have a draft spec. Before calling it done, switch hats:
 
 > *Put on the Lead Developer hat.* Read the spec as someone who has to implement it. Find the AC that can be interpreted two ways. Find the non-goal that's too vague to use as a decision rule. That's the revision you need before review.

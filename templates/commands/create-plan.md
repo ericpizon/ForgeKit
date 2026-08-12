@@ -4,7 +4,7 @@ type: command
 name: /create-plan
 description: Lead Developer command to produce PLAN-NNNN — an ordered, traceable implementation task breakdown from DESIGN, SPEC, OBS, and SEC artifacts; includes happy path trace
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 reviewing_roles:
   - sre
@@ -127,6 +127,22 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
 
    If a gap is found, add the missing task to the Task Breakdown before proceeding.
 
+   **Alternate/failure-path trace.** For any primary User Story whose SPEC ACs describe more than one terminal outcome (e.g. a status-bearing entity with failure/alternate states, not just success), trace at least one representative alternate path the same way — from the triggering condition through to the final observable outcome — and identify which task(s) cover each step. This is not exhaustive per-status coverage (the Definition of Done's AC coverage table handles that); it exists to catch the same class of planning gap the Happy Path Trace catches, but for the paths that are easiest to under-plan because they're not the first thing anyone thinks about.
+
+   ```markdown
+   ### US1 — [User Story title] — Alternate Path: [failure/alternate condition]
+
+   | Flow Step | Covered by |
+   |---|---|
+   | [triggering condition] | TN — [task] |
+   | [system responds/transitions] | TN — [task] |
+   | [user-observable outcome] | TN — [task] |
+
+   Gap check: none — all steps covered.
+   ```
+
+   If no primary User Story has more than one terminal outcome, state that explicitly in the PLAN rather than omitting the subsection.
+
 9. **Define Definition of Done.** State explicitly which SPEC acceptance criteria are fully covered by the milestone set, and identify any ACs not yet covered (with a note on why they're deferred or covered by testing).
 
    Format as a table: `| AC | Description | Covered by | Status |`. Copy each AC description **verbatim** from SPEC-NNNN — do not paraphrase, summarize, or shorten. SPEC is the single source of truth for AC text; the PLAN DoD table is a reference copy only. Any divergence between the PLAN description and SPEC text signals a stale PLAN that was not updated after a SPEC revision.
@@ -135,7 +151,7 @@ Spike tasks follow the same convention but are prefixed: `T2-spike`. A spike is 
 
 ## Output Contract
 
-PLAN-NNNN must contain: Task Breakdown (ordered; functional tasks have source tag, AC reference, and concrete description; observability and security tasks have source tag, target file, and source artifact ID reference — no description copied from OBS/SEC); Milestones (named, each listing tasks, AC coverage, dependencies, rollback note); Sequencing & Dependencies (phase overview); Happy Path Trace (one table per primary User Story); Out of Scope for This Plan; Definition of Done (AC coverage map).
+PLAN-NNNN must contain: Task Breakdown (ordered; functional tasks have source tag, AC reference, and concrete description; observability and security tasks have source tag, target file, and source artifact ID reference — no description copied from OBS/SEC); Milestones (named, each listing tasks, AC coverage, dependencies, rollback note); Sequencing & Dependencies (phase overview); Happy Path Trace (one table per primary User Story); Alternate/Failure Path Trace (at least one per primary User Story with more than one terminal outcome, or an explicit statement that none apply); Out of Scope for This Plan; Definition of Done (AC coverage map).
 
 ## Quality Gate
 
@@ -152,6 +168,7 @@ Before requesting review:
 - [ ] Every milestone maps to at least one AC
 - [ ] M1 contains all foundational tasks
 - [ ] Happy Path Trace section present; no gaps left unresolved
+- [ ] Alternate/Failure Path Trace present for any User Story with more than one terminal outcome, or explicitly stated not applicable
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
 

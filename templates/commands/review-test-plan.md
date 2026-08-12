@@ -4,11 +4,12 @@ type: command
 name: /review-test-plan
 description: Quality Engineer command to run all Stage 5b test plan perspectives in one pass — Security, SRE, Lead Developer
 status: active
-version: 2
+version: 3
 primary_role: quality-engineer
 output_artifact_type: test-plan (reviewed)
 changelog:
   - v2 — added Lead Developer perspective (Step 3): validates test case implementability with the stack, happy path trace alignment, and deferral criteria; output format and quality gate updated
+  - v3 — Lead Developer perspective: added ADR/invariant test coverage and alternate path trace alignment checks; required-sections check extended to ADR/Invariant Test Cases and Alternate Path Coverage
 links:
   - relation: relates_to
     target: create-test-plan
@@ -38,7 +39,9 @@ Verify TEST-NNNN contains all required sections before adopting any reviewer per
 Required sections:
 - [ ] Test Strategy (unit/integration/e2e split, when each type is written)
 - [ ] Acceptance Criteria Coverage Map organized by milestone (every AC from SPEC-NNNN mapped to test cases)
+- [ ] ADR/Invariant Test Cases (one per ADR linked to DESIGN-NNNN, or an explicit not-independently-testable note — absence is noted but not a blocker here; gaps are reviewed by Lead Developer)
 - [ ] Happy Path Coverage (one table per User Story from PLAN's Happy Path Trace — absence is noted but not a blocker here; gaps within the table are reviewed by Lead Developer)
+- [ ] Alternate Path Coverage (one table per PLAN's Alternate/Failure Path Trace, if any exist — same treatment as Happy Path Coverage)
 - [ ] Observability Verification (if OBS-NNNN was produced)
 - [ ] Security Test Cases (if SEC-NNNN was triggered)
 - [ ] Test Data Strategy
@@ -116,6 +119,10 @@ Review TEST-NNNN for implementability — can the test cases as written actually
    - Does the reason cite a genuine production-only constraint (OAuth callback, external telemetry endpoint, production infrastructure)? "Hard to automate" or "requires setup" is **not** a valid deferral reason — **blocking** if that is the only justification.
    - Is any deferred test case P0? A deferred P0 is always a **blocking** finding regardless of reason.
 
+6. **ADR/invariant test coverage.** For each ADR linked to DESIGN-NNNN, is there at least one test case (`TC-ADR-*`) that would fail if the ADR's boundary were violated — not just a test that normal behavior works? A missing ADR with no corresponding test case, and no explicit not-independently-testable note, is a **blocking** finding.
+
+7. **Alternate path trace alignment.** If PLAN-NNNN contains an Alternate/Failure Path Trace, is there a corresponding Alternate Path Coverage table in TEST-NNNN with the same rigor as Happy Path Coverage (every step mapped, the referenced test case actually exercises the step, text copied verbatim)? Missing or incomplete alignment is **blocking** for the same reason a happy-path gap is.
+
 ### 4. Cross-Perspective Check *(only if two or more perspectives ran)*
 
 After completing all applicable perspectives:
@@ -155,7 +162,7 @@ Append a `## Test Plan Review — Round N` section to TEST-NNNN. Then update `cu
 
 Before appending the review section:
 - [ ] All three perspectives completed — Security (if SEC-NNNN exists), SRE, Lead Developer
-- [ ] Lead Developer perspective: stack feasibility, Given block completeness, test layer correctness, happy path trace alignment, and deferral criteria all assessed
+- [ ] Lead Developer perspective: stack feasibility, Given block completeness, test layer correctness, happy path trace alignment, alternate path trace alignment, ADR/invariant coverage, and deferral criteria all assessed
 - [ ] Each finding labeled blocking or non-blocking with a reason
 - [ ] Cross-perspective check completed
 - [ ] Round number is correct
