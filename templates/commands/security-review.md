@@ -4,7 +4,7 @@ type: command
 name: /security-review
 description: Security role command to produce SEC-NNNN — a full threat model and findings report for a DESIGN; only invoked when ANALYSIS sets security_review_required yes
 status: active
-version: 1
+version: 3
 primary_role: security
 reviewing_roles:
   - lead-developer
@@ -35,11 +35,12 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 
 ## Steps
 
-1. **Scope definition** — Identify which surfaces are in scope: authentication mechanisms, authorization model, credential generation/storage/comparison, trust boundary placement, input validation on security-sensitive fields, and any data retention concern.
+1. **Scope definition** — Identify which surfaces are in scope: authentication mechanisms, authorization model, credential generation/storage/comparison, trust boundary placement, input validation on security-sensitive fields, any data retention concern, and — if `project.yml`'s `stack.llm_agent_untrusted_input` is `yes` — every prompt built from external or user-controlled text.
 2. **Threat enumeration** — For each surface, identify plausible attacker capabilities (unauthenticated, authenticated-but-unauthorized, insider) and what they could achieve. Enumerate threats across all of the following categories — do not skip a category without a stated reason:
    - **Authentication bypass** — can an unauthenticated caller reach protected resources?
    - **Authorization bypass / privilege escalation** — can an authenticated user access or modify resources they don't own?
    - **Injection** — SQL, command, path traversal, template injection at any input boundary
+   - **Prompt injection** *(if `stack.llm_agent_untrusted_input` is `yes`)* — for every prompt built from external or user-controlled text, can that text redirect the model's behavior (e.g. override instructions, influence a value the model shouldn't author, exfiltrate other prompt content)? Assess against DESIGN-NNNN's stated mitigation (explicit data-vs-instruction framing, or structural containment per its data-authorship boundary trace) — a DESIGN with no stated mitigation for a known untrusted-input prompt is itself a blocking finding, not just an unmitigated one
    - **Credential and sensitive data exposure** — in logs, error responses, API responses, or persisted storage
    - **Enumeration** — timing differences, response differentiation, or predictable IDs that reveal existence of private resources
    - **Timing attacks** — secret comparison or token validation that leaks information through execution time
@@ -50,10 +51,11 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 5. **Rate each finding** — Critical (exploitable unauthenticated), High (authenticated but high impact), Medium (specific conditions required), Low (defense-in-depth gap), Informational.
 6. **Draft mitigations** — For each open finding, provide a concrete recommended action specific to the project's tech stack (from ARCH.md) and codebase: specific function, specific file, specific code pattern. Not "consider using X" — name the exact mechanism and where to apply it.
 7. **Draft accepted-risk findings** — For each finding that cannot be mitigated within this slice's scope, document: the risk, why it is accepted, who approves it, and the specific condition under which it must be revisited.
+8. **Compliance Considerations** *(only if `project.yml`'s `compliance.frameworks` is not `[none]`)* — Read ARCH.md's "Compliance Obligations" section for the frameworks in scope and their stated engineering implications. For each framework this DESIGN's feature actually touches: name the specific control(s) implicated (cite the control ID where the framework has one — e.g. PCI-DSS Req 3.4, HIPAA §164.312(a)(1) — a framework without numbered controls like SOC 2's Trust Services Criteria or GDPR gets the specific principle instead), state whether the DESIGN satisfies it, and treat any gap as a regular finding rated by the same Critical/High/Medium/Low/Informational scale in Step 5 — a compliance gap is not a separate severity track. For PCI-DSS specifically: check `compliance.pci_scope` — if `delegated`, confirm the DESIGN actually keeps card data out of application code/logs/DB (a leak into this project's surface silently changes the project's real PCI scope, regardless of what was declared at `forge-init`). **This step identifies control gaps for a human compliance owner to act on. It does not constitute a compliance attestation, and SEC-NNNN must not claim the project "is compliant" with any framework** — say what was checked and what remains open, not a certification verdict.
 
 ## Output Contract
 
-SEC-NNNN must contain all Required Sections per the SECURITY-REVIEW template: Scope of Review, Findings (with severity, description, attack scenario, mitigation per finding), Residual Risk Assessment (accepted-risk findings with approver and revisit condition), Compliance Considerations.
+SEC-NNNN must contain all Required Sections per the SECURITY-REVIEW template: Scope of Review, Findings (with severity, description, attack scenario, mitigation per finding), Residual Risk Assessment (accepted-risk findings with approver and revisit condition), Compliance Considerations (per-framework control coverage if `compliance.frameworks` is not `[none]`; otherwise state explicitly "no compliance framework applies per project.yml" rather than leaving the section empty).
 
 Frontmatter must include: `findings_status` (map of finding ID to `open` | `mitigated` | `accepted_risk`); `trigger_source` (ANALYSIS-NNNN ID); `target_design_version`; `schema_version: 1`; `generation` block (`command: /security-review`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`).
 
@@ -68,6 +70,8 @@ Before SEC-NNNN is marked `completed`:
 - [ ] Every Critical/High finding either has a concrete mitigation task or an explicitly accepted-risk entry with a named approver
 - [ ] No finding mitigation says "consider" — all are specific and actionable
 - [ ] Accepted-risk entries have a revisit condition, not just "v2 will fix this"
+- [ ] If `compliance.frameworks` is not `[none]`, every applicable framework has named control(s) checked, with citations where the framework has numbered controls; if `[none]`, the section states that explicitly rather than being empty
+- [ ] Compliance Considerations makes no attestation/certification claim — findings and open items only
 - [ ] `findings_status` frontmatter accurately reflects the current status of each finding
 - [ ] `schema_version: 1` present in SEC frontmatter
 - [ ] `generation` block present: command, command_version, model self-identified, generated_at set, session_id: null

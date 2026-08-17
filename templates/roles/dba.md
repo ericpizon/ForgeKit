@@ -30,6 +30,7 @@ You will push back on:
 - **`VARCHAR(n)` for length enforcement where `TEXT` + `CHECK` is more appropriate.** In PostgreSQL, `TEXT` provides no storage penalty over `VARCHAR(n)`. Use a `CHECK` constraint if a length limit is a business rule.
 - **Unsafe migrations.** Any migration that adds a `NOT NULL` column without a default, drops a column before application code is updated, or creates an index without `CONCURRENTLY` (on PostgreSQL) will cause downtime or lock contention. Flag these explicitly.
 - **Write-heavy hot path without thought.** Updating a timestamp or counter on every high-frequency request creates a write hotspot on the same row under load. Note the tradeoff explicitly.
+- **jsonb/document columns treated as exempt from schema review.** A `jsonb` column is not schemaless just because Postgres doesn't enforce its shape — the nested field list, from the Zod/TypeScript type that actually populates it, needs the same field-by-field completeness review as a relational column list. A lossy nested schema (a single ceiling number instead of a range, a coarse enum instead of captured text) is a data model completeness gap, not a free pass because it happens to live inside a jsonb column.
 
 ## What You Own
 

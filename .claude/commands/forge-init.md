@@ -4,7 +4,7 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: "1.1"
+version: "1.3"
 primary_role: lead-developer
 created: 2026-06-21
 updated: 2026-08-11
@@ -311,6 +311,8 @@ After applying the preset (or if Custom was selected, after asking each question
 > | CI/CD | [value] | ARCH.md, quality gate context |
 > | Observability | [value] | ARCH.md, OBS-NNNN instrumentation guidance |
 > | Auth approach | [value] | ARCH.md, security review context |
+> | LLM/Agent framework | [value or "none"] | ARCH.md security conventions, security-review trigger, prompt-injection review scope |
+> | Compliance obligations | [list or "none"] | ARCH.md Compliance Obligations section, security-review trigger and Compliance Considerations scope |
 >
 > **Confirm, or correct any field?**
 
@@ -347,6 +349,40 @@ If the user selects any session-based auth approach (any library or framework th
 > - JWT — stateless; no DB lookup per request; tokens cannot be revoked without expiry
 > - Database sessions — session stored in DB; revocable instantly; recommended for most apps
 > *(Recommendation: database sessions unless you have a specific stateless/edge requirement)*
+
+**LLM/Agent framework:**
+- *Agent SDKs:* OpenAI Agents SDK, Anthropic Claude Agent SDK, LangChain/LangGraph, LlamaIndex
+- *Direct API:* OpenAI API, Anthropic API, other model provider API called directly (no agent framework)
+- *None:* no LLM/agent calls in this project
+
+If any option other than "None" is selected, ask one follow-up question before moving on:
+> **Does any input to an LLM/agent call include user-controlled or third-party text** (e.g., pasted content, uploaded documents, scraped web content, another user's message)?
+> - Yes — some calls process external/user-controlled text
+> - No — all LLM/agent input is developer-controlled (fixed prompts, internal data only)
+>
+> *(If yes: this project has a prompt-injection surface. ARCH.md will carry a standing security convention for it, and SPEC-stage security-review triggers will flag any feature that touches it — see `security-review.md`'s Threat Enumeration.)*
+
+**Compliance obligations:**
+> **Does this project have a regulatory or compliance obligation?** (select any that apply)
+> - PCI-DSS — the application processes, stores, or transmits payment card data
+> - HIPAA / PHI — the application handles protected health information
+> - SOC 2 — enterprise customers require a vendor security attestation
+> - GDPR — the application has EU users / processes EU residents' personal data
+> - CCPA — the application has California users / processes CA residents' personal data
+> - Other — describe (e.g. FedRAMP, ISO 27001, an industry-specific regulation)
+> - None
+>
+> *(Be honest about "none" — this drives what the Security role checks for, not what looks impressive. Most early-stage or internal-tool projects genuinely have none of these yet.)*
+
+If **PCI-DSS** is selected, ask one follow-up before moving on — this is the single question that most changes review scope:
+> **Does the application ever touch raw card data directly, or is card handling fully delegated to a payment processor** (e.g. Stripe Elements/Checkout, where card data never reaches your servers)?
+> - Fully delegated — processor-hosted fields or redirect only (likely minimal scope — SAQ A-shaped)
+> - Partially delegated — card data touches the client but not the application server (e.g. a custom UI over a tokenizing SDK)
+> - Full handling — raw card data reaches application servers (full PCI-DSS scope — strongly recommend delegating to a processor instead of building this)
+>
+> Record the answer as `compliance.pci_scope`. This is not a formal SAQ determination — that's a real compliance activity involving a qualified assessor — it exists so the Security role knows how much of the card-data path is actually this project's problem versus the processor's.
+
+**Note for every framework selected (PCI-DSS, HIPAA, SOC 2, GDPR, CCPA, or Other):** ForgeKit's Security role checks engineering-level controls relevant to the selected framework(s) — encryption, access control, audit logging, data retention/minimization — and flags gaps. It does not generate a compliance attestation, replace a qualified assessor or auditor, or certify the project as compliant. Treat SEC-NNNN's Compliance Considerations section as a punch list for a human compliance owner, not a certificate.
 
 **Observability stack:**
 - *Open standard:* OpenTelemetry (OTel) — works with any backend
@@ -389,6 +425,8 @@ Read the target project directory. Do not modify any files during this phase. Sc
 - `Gemfile` → Ruby stack
 - `*.csproj` / `*.sln` → .NET stack
 - `Cargo.toml` → Rust stack
+- Imports/dependencies matching `openai`, `@anthropic-ai`, `anthropic`, `langchain`, `langgraph`, `llama-index`, or similar model-provider/agent SDKs → LLM/Agent framework in use. List every call site found — the brownfield scan cannot tell whether any given call's input is user-controlled, so every site is a candidate for Step 3's follow-up question.
+- Imports/dependencies matching `stripe`, `braintree`, `adyen`, `square`, or other payment processor SDKs → possible PCI-DSS relevance. Imports/dependencies or schema fields suggesting health data (`hl7`, `fhir`, field names like `diagnosis`, `patient`, `medical_record`) → possible HIPAA relevance. These are weak signals only — code cannot determine actual compliance obligations, which are a business/legal determination — surface them as a prompt for Step 3's targeted question, not a conclusion.
 
 **Directory structure:**
 - Top-level directory layout → module organization
@@ -428,6 +466,7 @@ Read the target project directory. Do not modify any files during this phase. Sc
 - Missing security headers in middleware or server config
 - Sensitive data (PII, keys, tokens) appearing in log statements
 - Dependencies fetched from untrusted or non-standard sources
+- For any detected LLM/agent call site: whether the prompt is built by directly interpolating external or user-controlled text with no framing distinguishing it from instructions (a concrete prompt-injection risk, not just a theoretical one — flag it the same way a raw SQL string is flagged)
 
 ### Step 2 — Present discovery findings
 
@@ -484,6 +523,12 @@ After the user confirms the automated findings, ask the following questions that
 >
 > *(If no session tables were found in the schema scan, JWT is the likely default — confirm before proceeding. Do not leave session strategy as implicit.)*
 >
+> **Does this project have a regulatory or compliance obligation** (PCI-DSS, HIPAA/PHI, SOC 2, GDPR, CCPA, or other)?
+> (If a payment processor or health-data signal was detected during the scan, name it and ask directly rather than assuming. If PCI-DSS applies: does the application ever touch raw card data, or is it fully delegated to the processor? Be honest that "none" is the common and correct answer for most internal tools and early-stage projects — this isn't a checklist to maximize.)
+>
+> **If an LLM/agent SDK or direct model-provider API call was detected: does any call site's input include user-controlled or third-party text** (pasted content, uploaded documents, scraped content, another user's message)?
+> (List the call sites found during the scan and ask per-site if there's more than one meaningfully different input source. This cannot be reliably auto-detected — a prompt that looks like it only uses internal data may still concatenate a user-supplied field.)
+>
 > **Are there architectural decisions in this codebase that aren't obvious from the code?**
 > (e.g., "we use eventual consistency here intentionally," "this service is read-only by design")
 >
@@ -537,7 +582,8 @@ For greenfield projects, generate `sdlc/architecture/ARCH.md` from the confirmed
 - **Testing strategy** — unit/integration/e2e split, when each type is written, no-mock-DB rule if applicable
 - **Deployment** — deploy target, environment variable management approach
 - **Observability** — stack, what should be instrumented, what must never be logged
-- **Security conventions** — auth enforcement pattern, secrets handling, API key patterns if applicable
+- **Security conventions** — auth enforcement pattern, secrets handling, API key patterns if applicable; **if the confirmed LLM/Agent framework is not "none" and the input-source follow-up answered yes**, add a standing convention at the same tier as "no raw SQL" / "no `eval`": any prompt built from external or user-controlled text must explicitly frame that content as data to analyze, not instructions to follow — this is a permanent project convention, not a one-off finding, and downstream commands (`review-spec`, `review-design`, `security-review`, `review-implementation`) check code and designs against it
+- **Compliance Obligations** *(only if any framework other than "none" was selected)* — list each selected framework, its concrete engineering implications for this project (not the full text of the regulation — the specific controls this project's stack and data flows actually implicate: e.g. "PCI-DSS, SAQ A-shaped — card data must never reach application servers; only processor-hosted fields/redirect" or "HIPAA — PHI must be encrypted at rest and in transit; every PHI access must be audit-logged with actor, timestamp, and record accessed"), and an explicit line: **"This section tracks engineering-level controls only. It is not a compliance attestation — obtaining and maintaining [framework] status requires a qualified assessor/auditor and organizational controls outside this repository's scope."** This section is read by the Security role on every `security-review` going forward.
 - **Architectural decisions** — any framework-specific patterns decided at generation time; for Next.js App Router projects, include: App Router only (no Pages Router), Server Components by default, Server Actions as the preferred mutation pattern (not just for forms — for all data writes unless a JSON API endpoint is explicitly needed for external consumers)
 
 **Frontmatter on generation:** set `status: draft` and `approved_by: pending` — do NOT set `status: approved` until the user explicitly approves.
@@ -592,6 +638,13 @@ stack:
   ci: {{stack.ci}}
   observability: {{stack.observability}}
   auth: {{stack.auth}}
+  llm_agent_framework: {{stack.llm_agent_framework}}   # or "none"
+  llm_agent_untrusted_input: {{stack.llm_agent_untrusted_input}}  # yes | no | n/a (n/a if framework is "none")
+
+compliance:
+  frameworks: {{compliance.frameworks}}   # e.g. [pci_dss], [hipaa], [soc2, gdpr], or [none]
+  pci_scope: {{compliance.pci_scope}}     # n/a | delegated | partial | full — only meaningful if pci_dss is in frameworks
+  notes: "{{compliance.notes}}"           # free text — anything not captured by the fixed framework list
 
 pipeline:
   security_review: conditional

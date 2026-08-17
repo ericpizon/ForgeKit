@@ -4,7 +4,7 @@ type: command
 name: /validate-release
 description: SRE + QE command to validate the deployed release in production — derived smoke tests, manual test cases deferred from testing phase, and OBS signal validation
 status: active
-version: 1
+version: 2
 primary_role: sre
 ---
 
@@ -39,8 +39,9 @@ Verify the production URL is live and the critical user paths from SPEC-NNNN wor
 1. Read all User Stories in SPEC-NNNN. Identify the 1–2 primary stories — the ones a user would follow to exercise the feature's core value on first contact.
 2. For each primary User Story, extract the AC-level happy path: what does the user do, and what do they expect to see? Each discrete action + observable outcome becomes one smoke step.
 3. Include one representative negative path per authentication or authorization control — wrong credential, missing token, unauthorized access.
-4. Aim for 5–8 steps total. If more than 8, collapse related sub-steps; smoke tests are sanity checks, not full regression suites.
-5. Each step should be independently confirmable in a browser or via `curl` — no step requires the user to interpret logs or check a database.
+4. **If RELEASE-PLAN-vX.Y.Z's Gating criteria shows "Deployment protection confirmed: pass"** (i.e., this release relies on platform-level access protection or app-level auth to keep the deployment non-public), include a step that verifies it from the outside: an unauthenticated request to the production URL is actually challenged/blocked, not just configured. A gate that was checked off but isn't actually enforced in production is a **critical** validation failure — treat it the same as any other smoke test failure below, and do not let "the RELEASE-PLAN said pass" substitute for observing it.
+5. Aim for 5–8 steps total. If more than 8, collapse related sub-steps; smoke tests are sanity checks, not full regression suites.
+6. Each step should be independently confirmable in a browser or via `curl` — no step requires the user to interpret logs or check a database.
 
 Present the derived steps as a numbered checklist. Confirm each step with the user before proceeding to the next.
 

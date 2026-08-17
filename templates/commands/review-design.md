@@ -4,7 +4,7 @@ type: command
 name: /review-design
 description: Architect command to run all Stage 3 design perspectives in one pass — Options Analysis, DBA, Security, SRE, Lead Developer
 status: active
-version: 2
+version: 3
 primary_role: architect
 output_artifact_type: design (reviewed)
 ---
@@ -73,6 +73,7 @@ Adopt the Security role. Review DESIGN-NNNN's trust boundary placement, auth sur
 6. **Implicit scope beyond Non-Goals.** If the DESIGN implies authorization logic beyond what SPEC-NNNN's Non-Goals allow, flag it as a scope question.
 7. **`security_review_required` consistency.** Confirm the DESIGN's surface is consistent with the verdict from ANALYSIS-NNNN.
 8. **Data-authorship boundary trace.** If the project establishes a boundary between deterministic code and model-authored output (e.g. an ADR stating "the model must never author the final score/decision"), trace every field the model is allowed to return and confirm none of them indirectly determines the protected outcome — a field used as a weight, multiplier, or other input to the protected computation is functionally authoring it, even if it isn't the final value itself. Flag any model-returned field that feeds a downstream deterministic decision without being independently fixed or validated first.
+9. **Prompt-injection framing check.** *(Applicable if `project.yml`'s `stack.llm_agent_untrusted_input` is `yes` and this DESIGN builds a prompt from that input.)* For every prompt built from external or user-controlled text, does the DESIGN state how injection risk is bounded — either explicit prompt framing telling the model the content is data to analyze, not instructions to follow, or structural containment (the content can only reach a code path the model doesn't control, per item 8's boundary trace)? A DESIGN that sends untrusted text into a prompt with no stated mitigation of either kind is a blocking finding — this is the input-side counterpart to item 8's output-side check, and neither substitutes for the other.
 
 ### 3. SRE Perspective
 

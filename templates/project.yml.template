@@ -39,6 +39,13 @@ stack:
   ci: {{stack.ci}}
   observability: {{stack.observability}}
   auth: {{stack.auth}}
+  llm_agent_framework: {{stack.llm_agent_framework}}   # or "none"
+  llm_agent_untrusted_input: {{stack.llm_agent_untrusted_input}}  # yes | no | n/a (n/a if framework is "none")
+
+compliance:
+  frameworks: {{compliance.frameworks}}   # e.g. [pci_dss], [hipaa], [soc2, gdpr], or [none]
+  pci_scope: {{compliance.pci_scope}}     # n/a | delegated | partial | full — only meaningful if pci_dss is in frameworks
+  notes: "{{compliance.notes}}"           # free text — anything not captured by the fixed framework list
 
 pipeline:
   security_review: conditional   # conditional = triggered on auth/secrets changes; always | never also valid

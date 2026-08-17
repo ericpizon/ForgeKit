@@ -4,7 +4,7 @@ type: command
 name: /create-release-plan
 description: SRE command to assess release readiness and author the RELEASE-PLAN — gating criteria, rollback plan, migration steps, and open risk acknowledgment including postmortem action items
 status: active
-version: 1
+version: 2
 primary_role: sre
 links:
   - relation: produces
@@ -63,6 +63,11 @@ Read ARCH.md for the deployment model. Read all referenced PLAN, TEST, SEC, and 
 **Environment:**
 - [ ] Required environment variables for this release are documented and confirmed present in production
 - [ ] Environment pull verified: `{{stack.deploy.env_pull}}`
+
+**Deployment Protection:**
+- [ ] Read ARCH.md's Authentication model. If this release deploys to a publicly reachable environment for the first time, or the deploy target has changed since the last release: platform-level deployment protection (e.g. Vercel preview/production access protection) or application-level authentication is confirmed active. A release that makes previously local-only data reachable from the public internet without this is a **blocking** gate failure, not a note — this is exactly the class of gap that survives every other review because it's a process/deployment fact, not a code change.
+- [ ] If ARCH.md's Authentication model states "no auth required" specifically because the deployment is local-only: confirm this release's actual deploy target is still local-only. If the target has changed to anything publicly reachable, that stated assumption is now stale and must be revisited before proceeding — do not let a stale "no auth needed" carry forward silently into a public release.
+- [ ] If this environment already has deployment protection from a prior release: confirm it is still active (not disabled during debugging and left off) rather than assuming carryover.
 
 ## Step 3 — Rollback plan
 
@@ -136,6 +141,7 @@ generation:
 | OBS instrumentation verified | [pass / deferred] | [deferred signals if any] |
 | Migration tested | [pass / n/a] | |
 | Environment variables confirmed | [pass] | |
+| Deployment protection confirmed | [pass / n/a — still local-only / fail] | [mechanism: platform protection / app auth, or why n/a] |
 
 **Overall gate status:** [ready / not ready — reason]
 

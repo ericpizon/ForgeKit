@@ -4,7 +4,7 @@ type: command
 name: /review-spec
 description: Lead Developer command to review a SPEC for scope coherence, completeness, ambiguity, risk, and implementation feasibility; produces ANALYSIS-NNNN
 status: active
-version: 2
+version: 4
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -87,7 +87,7 @@ Adopt the Quality Engineer role as defined in `.claude/roles/quality-engineer.md
 
 Adopt the Security role as defined in `.claude/roles/security.md`. Assess the `security_review_required` flag:
 
-15. **Security Review Trigger Assessment** — Evaluate against the checklist: authentication/authorization, PII/sensitive data, secrets/credential management, third-party integrations, data retention/compliance. Each criterion: `yes` or `no` with one-sentence rationale. Emit `security_review_required: yes` or `no`.
+15. **Security Review Trigger Assessment** — Evaluate against the checklist: authentication/authorization, PII/sensitive data, secrets/credential management, third-party integrations, data retention/compliance, LLM/agent input from untrusted or third-party text (check `project.yml`'s `stack.llm_agent_untrusted_input` — if `yes` and this SPEC's feature touches that call path, this criterion alone is sufficient to trigger, independent of whether any other criterion also fires), regulatory/compliance framework scope (check `project.yml`'s `compliance.frameworks` — if not `[none]` and this SPEC's feature touches data or flows in scope for any listed framework, this criterion alone is sufficient to trigger). Each criterion: `yes` or `no` with one-sentence rationale. Emit `security_review_required: yes` or `no`.
 
 ### Combined Verdict
 

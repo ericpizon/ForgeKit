@@ -89,6 +89,8 @@ For each action item, collect description, type, and owner. Ask for all items be
 >
 > **Owner?** (role or name — leave blank if unassigned)
 
+<!-- TODO(forgekit): `process` currently conflates two different scopes — a fix to *this project's* runbook/conventions vs. a gap in a *ForgeKit pipeline command or role file itself* (a review checklist that should have caught this class of issue, applicable to every project using ForgeKit, not just this one). If a `process` item's root cause traces back to a command/role definition, ask which command or role file it belongs in and what checklist addition would have caught it, distinct from ordinary project-level `process` items. Not implemented yet — revisit when a real postmortem actually surfaces this case. See ForgeKit session notes 2026-08-11. -->
+
 Repeat until the SRE indicates all action items are captured.
 
 ## Step 5 — Create downstream artifacts for code-fix items

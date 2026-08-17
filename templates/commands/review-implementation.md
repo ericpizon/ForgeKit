@@ -4,7 +4,7 @@ type: command
 name: /review-implementation
 description: Multi-role review of a milestone's implementation — Lead Developer, Security, SRE, QE perspectives in one pass; produces IMPL-REVIEW artifact
 status: active
-version: 2
+version: 3
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -153,6 +153,7 @@ Project-agnostic security checks applicable to every milestone:
 - Sensitive values (credentials, tokens, API keys) are never logged — only non-sensitive identifiers (prefixes, hashed values, user IDs) may appear in log statements
 - Error responses for security-sensitive paths do not leak internal state, stack traces, or distinction between "not found" and "unauthorized" when enumeration prevention is required
 - External input is validated before use
+- **Prompt construction, if `project.yml`'s `stack.llm_agent_untrusted_input` is `yes`.** For any code in MN that builds a prompt from external or user-controlled text — whether or not that code was the subject of a specific SEC finding — confirm the prompt explicitly frames that content as data to analyze, not instructions to follow, per ARCH.md's standing security convention. This is a standing check, not one gated on a SEC finding existing: a new prompt-building path added in MN that was never covered by SEC-NNNN's scope still needs it.
 
 Read ARCH.md for the project's auth model and credential handling conventions. Findings must cite specific files and lines, not generic concerns.
 

@@ -4,7 +4,7 @@ type: command
 name: /review-release-plan
 description: Lead Developer + Security + QE inline review of RELEASE-PLAN — scope accuracy, security resolution, and validation readiness; appends review round directly to RELEASE-PLAN
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -48,6 +48,7 @@ Adopt the Security role (`.claude/roles/security.md`).
 - **All findings resolved:** for every finding in SEC-NNNN, confirm `findings_status` is `mitigated` or `accepted_risk` — any `open` finding blocks release regardless of severity
 - **Accepted risk documentation:** for any `accepted_risk` finding, confirm the RELEASE-PLAN names a specific approver and a revisit condition — undocumented acceptance is a blocking finding
 - **No new security surface in scope:** confirm the scope section does not include capabilities not covered by SEC-NNNN's original assessment; if it does, a new Security Review is required before release
+- **Deployment protection actually assessed, not just checked off:** if the Gating criteria table's "Deployment protection confirmed" row is `pass`, confirm the Notes column names the actual mechanism (which platform-protection setting, or which auth layer) — a `pass` with no named mechanism is a **blocking** finding, treated the same as an unresolved SEC finding. If the row is `n/a — still local-only`, confirm that's consistent with the actual deploy target in this release's scope, not stale from a prior release.
 
 ## Quality Engineer Perspective
 
