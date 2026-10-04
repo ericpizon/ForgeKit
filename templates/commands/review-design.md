@@ -2,18 +2,20 @@
 id: review-design
 type: command
 name: /review-design
-description: Architect command to run all Stage 3 design perspectives in one pass — Options Analysis, DBA, Security, SRE, Lead Developer
+description: Architect command to run all Stage 3 design perspectives in one pass — Options Analysis, DBA, Security, SRE, Lead Developer, plus Cross-Repo Contract Review for coordination-repo threads
 status: active
-version: 3
+version: 4
 primary_role: architect
 output_artifact_type: design (reviewed)
+changelog:
+  - v4 — added the Cross-Repo Contract Review step for coordination-repo threads: checks XDEP verification appropriateness and cross-side symmetry, and deployment-ordering cycles, ahead of Interface Freeze in approve-design.
 ---
 
 # /review-design
 
 ## Purpose
 
-Run all five Stage 3 reviews of DESIGN-NNNN in a single pass: Options Analysis, DBA, Security, SRE, and Lead Developer. The Architect executes this command immediately after drafting DESIGN, and again after each revision pass in `/address-design-review`. Output is a `## Design Review — Round N` section appended to DESIGN-NNNN.
+Run all five Stage 3 reviews of DESIGN-NNNN in a single pass: Options Analysis, DBA, Security, SRE, and Lead Developer — plus a Cross-Repo Contract Review as a sixth, leading pass when DESIGN-NNNN belongs to a `repo_role: coordination` thread. The Architect executes this command immediately after drafting DESIGN, and again after each revision pass in `/address-design-review`. Output is a `## Design Review — Round N` section appended to DESIGN-NNNN.
 
 ## When to Invoke
 
@@ -34,9 +36,20 @@ If a `## Design Review — Round N` section already exists in DESIGN-NNNN:
 
 ## Steps
 
-Run all five steps in sequence. Read ARCH.md before starting — all findings must be grounded in the project's actual patterns, constraints, and tech stack.
+Run all steps in sequence. Read ARCH.md before starting — all findings must be grounded in the project's actual patterns, constraints, and tech stack. For a `repo_role: coordination` thread, re-resolve every entry in DESIGN-NNNN's own `inputs.architecture` list (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) rather than reading a single local ARCH.md — a review grounded in one implicit stack misses whatever the other participants actually expose. If DESIGN-NNNN has a Cross-Repo Contract section, also run Step 0a before the Options Analysis Review.
 
-### 0. Options Analysis Review
+### 0a. Cross-Repo Contract Review (coordination-repo threads only)
+
+Before reviewing the rest of the DESIGN, review the Cross-Repo Contract sub-section (its XDEPs) on its own — this is the sub-section that can be approved ahead of the rest of DESIGN (see `/approve-design`'s Interface Freeze step), so it needs a review pass with its own blocking bar. Read [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md) before assessing. For each XDEP:
+
+1. **Verification appropriateness.** For a `contract`-kind XDEP, is the chosen `verification` layer set actually appropriate for its `interface_kind` (e.g. an `async-event` relying on schema-registry compatibility alone, with no semantic/behavioral check where meaning can drift without a schema change)? An inappropriate or missing verification layer for the interface type is a blocking finding.
+2. **Verification symmetry.** Is the verification rigor comparable on both the provider's and consumer's side, or does one side's own local review quietly carry more weight than the other's? A contract that's rigorously checked by the provider and only loosely checked by the consumer (or vice versa) is a blocking finding — this can't be caught by either participant's own review in isolation, since each only checks its own bar.
+3. **Kind-payload correctness.** Does the XDEP's payload match its declared `dependency_kind` (e.g. a `deployment`-kind XDEP has no dangling `contract` block)? Flag any mismatch.
+4. **Identity discipline.** Does any XDEP's resolution depend on `related_acceptance_criteria` rather than being referenced directly via `satisfies_xdeps` from a PLAN task? ACs are traceability only — a blocking finding if the design implies otherwise.
+5. **Deployment-ordering cycles.** Across all `deployment`-kind (and non-`independent`-`rollout.ordering` `contract`-kind) XDEPs in this thread, confirm no cycle exists. A cycle is blocking — there is no valid deploy order until it's resolved.
+6. **Fan-out correctness.** For a provider with multiple consumers on the same capability, confirm each relationship is its own XDEP sharing the same `contract.id` — not one XDEP listing multiple consumers.
+
+### 0b. Options Analysis Review
 
 Before reviewing the technical spec, validate the options analysis that produced it. This step has a high blocking bar — only challenge the chosen option if you can make a concrete case for a different one.
 
@@ -118,6 +131,9 @@ Append a `## Design Review — Round N` section to DESIGN-NNNN. Then update `cur
 **Date:** YYYY-MM-DD
 **Status:** Changes requested — N blocking, N non-blocking | Approved — no blocking findings
 
+### Cross-Repo Contract Findings  *(omit section if none, or if not a coordination-repo thread)*
+- [XDEP-1] **blocking** — [finding]
+
 ### Options Analysis Findings  *(omit section if none)*
 - [OPT-1] **blocking** — [finding]
 - [OPT-2] **non-blocking** — [finding]
@@ -143,6 +159,7 @@ Append a `## Design Review — Round N` section to DESIGN-NNNN. Then update `cur
 ## Quality Gate
 
 Before capturing the review output:
+- [ ] *(coordination-repo threads only)* Cross-Repo Contract Review completed — all six sub-checks assessed for every XDEP
 - [ ] Options Analysis step completed — all six sub-checks assessed
 - [ ] All four technical perspectives completed (DBA, Security, SRE, Lead Developer) — no perspective skipped
 - [ ] Each finding labeled blocking or non-blocking with a reason
@@ -158,3 +175,6 @@ Before capturing the review output:
 
 **If no blocking findings:**
 > "Review is clean. Run `/approve-design DESIGN-NNNN` to commit and close Stage 3."
+
+**If this is a coordination-repo thread with only the Cross-Repo Contract findings clean (blocking findings remain elsewhere in the DESIGN):**
+> "The Cross-Repo Contract has no blocking findings, though the rest of DESIGN-NNNN does. Run `/approve-design DESIGN-NNNN interface-freeze` to approve just the Cross-Repo Contract now — this unblocks every participant's `create-plan` for XDEP-only dependencies — while `/address-design-review DESIGN-NNNN` continues on the remaining findings."

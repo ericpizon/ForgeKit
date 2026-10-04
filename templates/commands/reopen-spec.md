@@ -4,8 +4,10 @@ type: command
 name: /reopen-spec
 description: TPO command to reopen the spec phase when a discovery invalidates the approved SPEC — captures discovery record, runs impact analysis, resets product_validated, updates pipeline_status
 status: active
-version: 1
+version: 2
 primary_role: tpo
+changelog:
+  - v2 — added the coordination-repo path: a thread-wide SPEC back-cycle flags every participant's own PLAN, not just one — silently leaving other participants building against an invalidated SPEC is exactly the failure mode this command exists to prevent.
 ---
 
 # /reopen-spec
@@ -37,12 +39,14 @@ Read SPEC-NNNN frontmatter. Note:
 - `product_validated` value
 - `validated_by`, `validated_date`
 
-Check the registry for downstream artifacts on this thread:
+**`repo_role: code` (default):** check the registry for downstream artifacts on this thread:
 - Does DESIGN-NNNN exist? What is its status?
 - Does PLAN-NNNN exist? Read its `pipeline_status` and milestone statuses.
 - Does TEST-NNNN exist? What is its status?
 - Are any milestones `in_progress`?
 - Are there any open PRs in the registry?
+
+**`repo_role: coordination` (this SPEC belongs to a cross-repo thread):** read `sdlc/THREAD-NNNN/thread.yml` for the participant list. Does DESIGN-NNNN exist locally? What is its status? For **every** participant, resolve its own PLAN-NNNN (if any) via [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md) — `pipeline_status`, milestone statuses, and any open PRs. A thread-wide SPEC invalidates the foundation every participant's PLAN was built on, not just one; silently leaving other participants unaware is exactly the failure mode this command exists to prevent.
 
 ### Step 2 — Discovery intake
 
@@ -80,6 +84,19 @@ Downstream artifacts:
   Open PRs: [warn if any found — must be reviewed after revision]
 ```
 
+**`repo_role: coordination`:** replace the single `PLAN-NNNN` line with one row per participant — every one of them was built against the SPEC now being reopened:
+
+```
+Downstream artifacts:
+  DESIGN-NNNN ([status]): [affected — reason] | [likely unaffected — reason]
+  Participants:
+    transformer-service — PLAN-NNNN ([status]): pipeline_status.spec will be updated to revision_requested
+    document-worker — PLAN-NNNN ([status]): pipeline_status.spec will be updated to revision_requested
+    search-indexer — no PLAN yet: nothing to flag
+  MN in_progress (any participant): [risk noted per participant]
+  Open PRs (any participant): [warn if any found — must be reviewed after revision]
+```
+
 Then ask:
 
 > "This back-cycle will set SPEC-NNNN to `revision_requested` and reset product validation. The impact analysis above shows downstream effects — these are notes, not automatic changes. Confirm to proceed."
@@ -106,6 +123,11 @@ After confirmation:
 **PLAN-NNNN frontmatter (if PLAN exists):**
 - Update `pipeline_status.spec: revision_requested`
 
+**`repo_role: coordination` — every participant's PLAN-NNNN (if it exists):**
+- Update `pipeline_status.spec: revision_requested` in each one, not just the first found
+- If a participant repo is reachable as one of this session's own working directories, apply the update directly (same as `approve-design`'s ARCH.md handling); otherwise, hand the update off explicitly to that participant — name the repo and the exact field change, never silently skip a participant just because it isn't locally reachable
+- **Record which outcome happened, per participant, in the Discovery Record itself** (not just in this session's chat output) — a hand-off that only exists as a spoken instruction is invisible the moment this session ends. Use `applied` or `handed off — pending confirmation` in the Blast radius line below. A future `/sync-registry` run from the coordination repo can then cross-check: a participant still marked `handed off` whose own PLAN doesn't actually show `revision_requested` yet is a hand-off that never got carried out, not a false alarm.
+
 ### Step 5 — Discovery Record format
 
 Append to SPEC-NNNN:
@@ -127,7 +149,7 @@ Append to SPEC-NNNN:
 - DESIGN-NNNN: [affected / not affected — reason]
 - OBS-NNNN: [affected / not affected]
 - SEC-NNNN: [affected / not affected]
-- PLAN-NNNN: [affected / not affected]
+- PLAN-NNNN: [affected / not affected] *(repo_role: coordination — list every participant with its outcome: "transformer-service — applied", "document-worker — handed off, pending confirmation", "search-indexer — no PLAN yet", etc.)*
 - TEST-NNNN: [affected / not affected]
 - MN in_progress: [risk noted / not affected — can continue]
 
@@ -144,6 +166,7 @@ Before closing:
 - [ ] `## Product Validation` annotated if section exists
 - [ ] `## Discovery — [date]` section appended to SPEC-NNNN
 - [ ] PLAN-NNNN `pipeline_status.spec` updated to `revision_requested` (if PLAN exists)
+- [ ] *(repo_role: coordination)* Every participant's PLAN-NNNN (not just one) has `pipeline_status.spec` updated, applied directly or explicitly handed off — none silently skipped
 - [ ] SPEC-NNNN `version` incremented, `updated` date current, changelog entry added
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
@@ -159,3 +182,5 @@ Before closing:
 > 4. Assess DESIGN impact: run `/review-design SPEC-NNNN DESIGN-NNNN` to determine whether DESIGN changes are needed. If yes: begin the address-design-review → approve-design cycle.
 >
 > Note: no downstream artifact is safe to use until SPEC-NNNN is back to `approved`. Inform the Architect and Lead Developer that a spec back-cycle is in progress.
+>
+> **`repo_role: coordination`:** inform every participant's Lead Developer, not just one — each participant's PLAN was flagged above, and each needs to independently decide whether to pause `in_progress` work.

@@ -4,9 +4,11 @@ type: command
 name: /create-spec
 description: TPO command to author a SPEC artifact from a problem description or Postmortem action item
 status: active
-version: 1
+version: 2
 primary_role: tpo
 output_artifact_type: spec
+changelog:
+  - v2 — added the coordination-repo path (`repo_role: coordination`): declares thread participants, allocates THREAD-NNNN, writes thread.yml, and outputs SPEC.md under sdlc/THREAD-NNNN/ instead of sdlc/specs/. No change for repo_role: code.
 ---
 
 # /create-spec
@@ -26,6 +28,27 @@ Author a new SPEC artifact from a problem description. The TPO applies the spec 
 - **Problem description:** A clear statement of the pain being addressed — who experiences it, under what conditions, what the current workaround costs. Does not need to be a formal artifact; a conversation or a Postmortem action item is sufficient.
 - **Rough scope intent:** What the requestor believes is in scope vs. out of scope. The TPO will sharpen this, but needs a starting position.
 - **Stack context:** Read ARCH.md for the project's tech stack, constraints, and conventions. These are the implementation boundaries a spec must respect.
+
+## Pre-flight — Coordination repo check
+
+Read `project.yml`'s `repo_role`. This step applies only when it's `coordination`; for `repo_role: code` (every existing project, and the default), skip straight to "Pre-flight — Gather inputs" below — nothing changes.
+
+**If `repo_role: coordination`:** this invocation authors SPEC.md for a new cross-repo thread, not a local project spec. Before gathering the usual inputs:
+
+1. Ask for the participant repos:
+   > **Which repos does this thread span?** List each one (e.g., `org/transformer-service`, `org/document-worker`). At least two — a thread with only one participant belongs in that repo's own `create-spec`, not here.
+2. Determine the next available `THREAD-NNNN` — scan `sdlc/` for existing `THREAD-NNNN/` directories and take the next sequential number. This is a convenience allocation, not a collision guarantee; a CI check on this repo validates uniqueness against HEAD at merge time and requires the later of two concurrent allocations to reallocate — the same shape of problem as two migration files landing on the same number.
+3. Create `sdlc/THREAD-NNNN/` and write `thread.yml`:
+   ```yaml
+   thread: THREAD-NNNN
+   participants:
+     - repo: org/transformer-service
+     - repo: org/document-worker
+   ```
+4. The SPEC this command produces is written to `sdlc/THREAD-NNNN/SPEC.md` — not `sdlc/specs/SPEC-NNNN-slug.md`. The thread number is the identifying number; there is no separate SPEC sequence inside a coordination repo.
+5. Read `ARCH.md` from every participant repo (not this repo's own — a coordination repo has none) before drafting, since Constraints & Assumptions and NFRs need to respect every participant's actual stack, not a single implicit one. Record each as an `inputs.architecture` entry (repo/ref/path, per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) in SPEC-NNNN frontmatter — every downstream command in this thread re-resolves and extends this same list rather than re-deriving participants from `thread.yml` each time.
+
+Everything else in this command proceeds unchanged, with `sdlc/THREAD-NNNN/SPEC.md` as the output path instead of `sdlc/specs/SPEC-NNNN-slug.md`.
 
 ## Pre-flight — Gather inputs
 
@@ -62,7 +85,7 @@ Do not proceed to Step 1 until both answers are provided. If the user says "I'll
 
 The produced SPEC must contain all of the following Required Sections: Problem Statement, Background (if needed), Goals, Non-Goals, User Stories, Acceptance Criteria, Non-Functional Requirements, Constraints & Assumptions, Security Considerations, Observability Considerations, Open Questions.
 
-Frontmatter must include: `id`, `type: spec`, `schema_version: 1`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`, `session_id: null`).
+Frontmatter must include: `id`, `type: spec`, `schema_version: 1`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`, `session_id: null`). For a `repo_role: coordination` thread, frontmatter also includes `thread: THREAD-NNNN` and an `inputs.architecture` list (one entry per participant ARCH.md read).
 
 ## Quality Gate
 

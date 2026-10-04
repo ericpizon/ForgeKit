@@ -4,12 +4,14 @@ type: command
 name: /generate-release-notes
 description: TPO command to produce RELEASE-NOTES-vX.Y.Z and formally mark the feature as delivered — final commit of the release phase
 status: active
-version: 1
+version: 2
 primary_role: tpo
 output_artifact_type: release-notes
 links:
   - relation: follows
     target: validate-release
+changelog:
+  - v2 — added a coordination-repo path: aggregates every participant's shipped changes into one thread-wide RELEASE-NOTES in the coordination repo, rather than one participant's notes standing in for the whole thread.
 ---
 
 # /generate-release-notes
@@ -24,17 +26,23 @@ Produce the RELEASE-NOTES artifact and formally close the feature thread. Docume
 /generate-release-notes RELEASE-PLAN-v1.0.0
 ```
 
+For a `repo_role: coordination` thread release: `/generate-release-notes THREAD-NNNN RELEASE-PLAN-v1.0.0-production`.
+
 ## Pre-flight Check
 
 Read `RELEASE-PLAN-vX.Y.Z.md` Validation Results section. The smoke test must be `PASS`. If not, stop: "Production validation is not complete — smoke test must pass before signing off the release. Run `/validate-release` first."
 
+**`repo_role: coordination` (thread releases only):** read `sdlc/THREAD-NNNN/RELEASE-PLAN-vX.Y.Z-{environment}.md`'s Validation Results and Participants table instead. `system.feature_verification` must be `passed` (every required cross-repo scenario has eligible evidence, per `/validate-release` Track 4) and every participant's own `deployment_validation` must be `passed` (propagated there by each participant's own `/validate-release` Tracks 1–3 — no need to resolve each participant's local RELEASE-PLAN separately). If either is missing, stop with the equivalent message, naming which participant or which required scenario is not yet validated.
+
 ## Step 1 — Collect content
 
-Read:
+**`repo_role: code`:** read:
 - **RELEASE-PLAN-vX.Y.Z.md** — scope, readiness checklist, deployment record, validation results
 - **PLAN-NNNN** — milestone names and AC coverage per milestone
 - **SPEC-NNNN** — feature title, problem statement, goals (for human-readable summary)
 - **TEST-NNNN** — execution results (any P1+ failures recorded in production round)
+
+**`repo_role: coordination`:** read `sdlc/THREAD-NNNN/RELEASE-PLAN-vX.Y.Z-{environment}.md` (scope, participants table, deployment record, validation results including cross-repo scenario evidence), `sdlc/THREAD-NNNN/SPEC.md`, and `sdlc/THREAD-NNNN/OBS.md` (a single shared document for the whole thread — read it once, not per participant), then resolve every participant's own PLAN-NNNN and TEST-NNNN (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) — the release notes aggregate every participant's changes, not one participant's notes standing in for the whole thread.
 
 ## Step 2 — Draft RELEASE-NOTES
 
@@ -86,6 +94,18 @@ Per milestone — brief, human-readable description of the capability each miles
 ...
 ```
 
+**`repo_role: coordination`:** group by participant repo first, then by that participant's own milestones within it — a reader needs to know which repo delivered what, not just a flattened milestone list with no ownership:
+
+```markdown
+### transformer-service
+**M1 — [Milestone name]**
+...
+
+### document-worker
+**M1 — [Milestone name]**
+...
+```
+
 ### Acceptance criteria delivered
 
 | AC | Description |
@@ -102,6 +122,17 @@ Per milestone — brief, human-readable description of the capability each miles
 - **GitHub Release:** [URL]
 ```
 
+**`repo_role: coordination`:** one row per participant, plus the system-level verification result:
+
+```markdown
+| Repo | Deployed at | Production URL | GitHub Release |
+|---|---|---|---|
+| transformer-service | [timestamp] | [URL] | [URL] |
+| document-worker | [timestamp] | [URL] | [URL] |
+
+**Feature verification (cross-repo):** passed — [N] required scenario(s) eligible
+```
+
 ### Known issues / follow-ups
 
 Any P1+ test failures from the production validation round, deferred manual tests that did not pass, or accepted-risk SEC findings that require a future revisit. If none: "None."
@@ -112,11 +143,13 @@ Any differences between what RELEASE-PLAN-vX.Y.Z defined and what actually happe
 
 ## Step 3 — Mark SPEC as shipped
 
-Update SPEC-NNNN frontmatter:
+**`repo_role: code`:** update SPEC-NNNN frontmatter:
 
 ```yaml
 status: shipped
 ```
+
+**`repo_role: coordination`:** update `sdlc/THREAD-NNNN/SPEC.md` frontmatter the same way — there is one SPEC per thread, not one per participant, so this is a single update regardless of how many repos participated.
 
 ## Step 4 — Pause for review
 
@@ -132,6 +165,7 @@ Wait for confirmation.
 
 ## Step 5 — Commit everything
 
+**`repo_role: code`:**
 ```bash
 git add sdlc/releases/RELEASE-NOTES-vX.Y.Z.md
 git add sdlc/specs/SPEC-NNNN-[slug].md
@@ -142,6 +176,18 @@ git add sdlc/registry/index.md
 git commit -m "release(vX.Y.Z): RELEASE-NOTES published — [feature title] delivered"
 git push origin main
 ```
+
+**`repo_role: coordination`:**
+```bash
+git add sdlc/releases/RELEASE-NOTES-vX.Y.Z.md
+git add sdlc/THREAD-NNNN/SPEC.md
+git add sdlc/THREAD-NNNN/RELEASE-PLAN-vX.Y.Z-{environment}.md
+git add sdlc/THREAD-NNNN/OBS.md            # only if updated (e.g. Instrumentation Implementation Log entries)
+git add sdlc/registry/index.md
+git commit -m "THREAD-NNNN: RELEASE-NOTES published — [feature title] delivered"
+git push origin main
+```
+OBS-NNNN is a thread-wide shared artifact (one document, tasks tagged per participant) — it lives here, in the coordination repo, not in any one participant's own `sdlc/observability/`. TEST-NNNN, by contrast, really is per-participant (each repo has its own) and stays in that participant's repo, not part of this commit.
 
 ## Step 6 — Final confirmation
 

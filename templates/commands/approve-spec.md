@@ -4,9 +4,12 @@ type: command
 name: /approve-spec
 description: TPO command to close the spec phase — confirm review is ready, mark SPEC approved, commit all spec-phase artifacts
 status: active
-version: 1
+version: 3
 primary_role: tpo
 output_artifact_type: spec (approved)
+changelog:
+  - v3 — coordination-repo commit now includes thread.yml, created by /create-spec but previously never added to any commit until caught by eye as an untracked file.
+  - v2 — added the coordination-repo commit path: SPEC-NNNN and ANALYSIS-NNNN live at sdlc/THREAD-NNNN/SPEC.md and sdlc/THREAD-NNNN/ANALYSIS.md for a thread, not sdlc/specs/ and sdlc/analysis/.
 ---
 
 # /approve-spec
@@ -95,10 +98,19 @@ Show the user the approved SPEC and ANALYSIS. Then ask:
 > If all three check out: "Ready to commit and move to design. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
+
+`repo_role: code`:
 ```
 git add sdlc/specs/SPEC-NNNN-slug.md sdlc/analysis/ANALYSIS-NNNN-slug.md sdlc/registry/index.md
 git commit -m "SPEC-NNNN: approved — [N review rounds]"
 ```
+
+`repo_role: coordination` (SPEC and ANALYSIS live thread-scoped, not in the flat `sdlc/specs/`/`sdlc/analysis/` a `repo_role: code` project uses):
+```
+git add sdlc/THREAD-NNNN/SPEC.md sdlc/THREAD-NNNN/ANALYSIS.md sdlc/THREAD-NNNN/thread.yml sdlc/registry/index.md
+git commit -m "THREAD-NNNN: SPEC approved — [N review rounds]"
+```
+`thread.yml` was created by `/create-spec` but never committed until now — always include it (an already-tracked, unchanged `thread.yml` on a later approval round of the same thread is a harmless no-op in `git add`).
 
 **Push (only if user confirms team context):**
 ```

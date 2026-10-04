@@ -4,9 +4,11 @@ type: command
 name: /review-plan
 description: Lead Developer command to run all Stage 5 plan perspectives in one pass — SRE, Developer, QE, Security, Architect
 status: active
-version: 2
+version: 3
 primary_role: lead-developer
 output_artifact_type: plan (reviewed)
+changelog:
+  - v3 — added a staleness pre-check for PLANs with an inputs.cross_repo_contract block, and an Architect Perspective check that satisfies_xdeps resolves cross-repo dependencies directly rather than through acceptance_criteria.
 ---
 
 # /review-plan
@@ -34,6 +36,8 @@ If a `## Plan Review — Round N` section already exists in PLAN-NNNN:
 6. Append a new `## Plan Review — Round N` section. Do not modify prior round sections.
 
 ## Before Running Perspectives
+
+**Staleness check** *(only if PLAN-NNNN frontmatter has an `inputs.cross_repo_contract` block)*: re-resolve the coordination repo's current `approved` Cross-Repo Contract revision (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) and compare it to `inputs.cross_repo_contract.revision`. If they differ, this PLAN is `stale` — set PLAN-NNNN's status accordingly and stop; the review cannot proceed against dependencies that have since changed. Direct the user back to `/create-plan` to re-derive against the current revision (or confirm the divergence is immaterial to this repo's own XDEPs before overriding, but never silently).
 
 Verify PLAN-NNNN contains all required sections. If a section is missing, return to `/create-plan` — do not run perspectives against an incomplete artifact.
 
@@ -109,6 +113,7 @@ Adopt the Architect role. Review PLAN-NNNN for fidelity to DESIGN-NNNN. Assess:
 5. **ADR traceability.** If any task implements behavior that was the subject of an ADR, the task description should reference that ADR.
 6. **Milestone delivery sequence fidelity.** Does the milestone ordering respect DESIGN's module layering?
 7. **Invariant-preservation check.** For each ADR or DESIGN Key Decision that establishes an explicit invariant or boundary (e.g. "the model must never author X," "every write to this resource must be conditional"), confirm the task(s) implementing that area state the invariant explicitly in the task description — not just a reference to the DESIGN section. A task whose literal wording could be satisfied while violating the invariant is a blocking finding; the invariant must be spelled out where the Developer will actually be working, not left to memory of having read DESIGN once.
+8. **XDEP resolution discipline** *(thread participants only)*. Every XDEP from the coordination repo where this repo is provider or consumer must be satisfied by at least one task's `satisfies_xdeps` — an unsatisfied XDEP is a blocking finding. Conversely, confirm no task's `satisfies_xdeps` entry was actually resolved by matching `acceptance_criteria` instead — the two fields are independent, and an XDEP identified only via a shared AC (not stated directly in `satisfies_xdeps`) is a blocking finding per [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md). Also confirm the `dependency_kind` of each satisfied XDEP is consistent with what the task actually does (e.g. a task satisfying a `contract`-kind XDEP should be publishing or consuming the named interface, not merely adjacent to it).
 
 ### 6. Cross-Perspective Check
 
@@ -156,6 +161,8 @@ Append a `## Plan Review — Round N` section to PLAN-NNNN. Then update `current
 - [ ] Happy Path Trace validated
 - [ ] Alternate/Failure Path Trace validated for any User Story with more than one terminal outcome
 - [ ] Every ADR/Key Decision invariant traced to a task that states it explicitly
+- [ ] *(thread participants only)* Staleness check completed; PLAN not reviewed against a superseded Cross-Repo Contract revision
+- [ ] *(thread participants only)* Every applicable XDEP satisfied by a task, and no XDEP resolved through acceptance_criteria alone
 - [ ] Each finding labeled blocking or non-blocking with a reason
 - [ ] Cross-perspective check completed
 

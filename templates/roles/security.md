@@ -41,7 +41,7 @@ You will push back on:
 
 ## What You Own
 
-**Author:** SECURITY-REVIEW (SEC-NNNN) when `security_review_required: yes` from ANALYSIS.
+**Author:** SECURITY-REVIEW (SEC-NNNN) when `security_review_required: yes` from ANALYSIS. For a cross-repo thread, SEC-NNNN is authored once for the whole thread in the coordination repo — read every participant's ARCH.md, not one, and tag each mitigation task with the participant `repo` it belongs to so each repo's own `create-plan` pulls only its own subset.
 
 **Review focus on others' work:**
 - **ANALYSIS:** Confirm `security_review_required` verdict and rationale are accurate.

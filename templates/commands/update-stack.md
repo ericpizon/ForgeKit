@@ -4,7 +4,7 @@ type: command
 name: /update-stack
 description: Lead Developer command to update one or more stack values in project.yml and propagate changes into all command files that have those values baked in — use when a stack decision changes after /forge-init
 status: active
-version: 3
+version: 4
 primary_role: lead-developer
 ---
 
@@ -40,6 +40,7 @@ Read `.claude/project.yml`. Display current values in two groups:
 | `stack.deploy.command` | [value] | create-release-plan, execute-release |
 | `stack.deploy.migration_command` | [value] | create-release-plan, execute-release |
 | `stack.deploy.env_pull` | [value] | create-release-plan, execute-release |
+| `stack.ci_trigger_command` | [value or "none"] | execute-tests |
 
 **Fields stored in project.yml only** (changing these updates project.yml; no command files affected):
 
@@ -81,6 +82,7 @@ For each field being updated:
 - **`stack.lint`** — must be a runnable shell command (non-empty string, not just a description). Remind the user: this command runs verbatim in review steps — it must succeed in the project's CI environment.
 - **`stack.test.unit`** and **`stack.test.e2e`** — must be a runnable shell command, or the literal string `none` if no runner is configured.
 - **`stack.deploy.command`**, **`stack.deploy.migration_command`**, **`stack.deploy.env_pull`** — must be a runnable shell command or the literal string `none`.
+- **`stack.ci_trigger_command`** — must be a runnable shell command or the literal string `none` (meaning `/execute-tests` always runs locally rather than triggering CI). Not a description of the CI system (`"GitHub Actions"` is not valid) — the actual command that triggers it (`gh workflow run test.yml`).
 - **`stack.llm_agent_untrusted_input`** — must be `yes`, `no`, or `n/a` (only valid if `stack.llm_agent_framework` is `none`). If changing from `no`/`n/a` to `yes`: warn — "This flips on the project's prompt-injection review posture, but ARCH.md's Security Conventions section and any already-approved SPEC/DESIGN/SEC artifacts were not reviewed against it. Update ARCH.md's Security Conventions manually to add the standing prompt-injection framing rule, and treat any thread touching the new LLM/agent input path as needing a fresh security-review pass, not an inherited one."
 - **`compliance.frameworks`** — must be a list of recognized values (`pci_dss`, `hipaa`, `soc2`, `gdpr`, `ccpa`, `other`) or `[none]`. If adding a framework that wasn't previously present: warn — "This adds a compliance obligation, but ARCH.md's Compliance Obligations section and any already-approved SPEC/DESIGN/SEC artifacts were not reviewed against it. Update ARCH.md's Compliance Obligations section manually with this framework's concrete engineering implications, and treat any thread touching in-scope data as needing a fresh security-review pass. This does not retroactively make past threads non-compliant — it means they were never assessed against a framework that didn't apply to them at the time." If removing a framework, do not silently drop findings that cited it in any committed SEC-NNNN — those stay as historical record regardless of the current `project.yml` value.
 - **`compliance.pci_scope`** — must be `n/a`, `delegated`, `partial`, or `full`. Only meaningful if `pci_dss` is in `compliance.frameworks`; if not, force it to `n/a` and note the correction to the user rather than silently accepting an inconsistent pair.

@@ -4,8 +4,10 @@ type: command
 name: /execute-release
 description: SRE command to apply production migrations, deploy to production, and create a release tag — the authorized production deployment step
 status: active
-version: 1
+version: 2
 primary_role: sre
+changelog:
+  - v2 — added an optional deployment-wave pre-flight check for a repo participating in a cross-repo thread release, for orgs with no existing cross-repo deployment orchestration. This repo's own readiness gate is otherwise unchanged — cross-repo sequencing is never a mandatory second gate on top of an org's own orchestration.
 ---
 
 # /execute-release
@@ -20,9 +22,15 @@ Deploy the approved release to production and create the release tag. This is th
 /execute-release RELEASE-PLAN-vX.Y.Z
 ```
 
+For a release that specifically deploys this repo's part of a cross-repo thread's feature (as opposed to this repo's own unrelated release): `/execute-release THREAD-NNNN vX.Y.Z-{environment}`.
+
 ## Pre-flight Check
 
-Read `RELEASE-PLAN-vX.Y.Z.md` frontmatter `status`. Must be `approved`. If not, stop: "RELEASE-PLAN must be `approved` before deployment. Run `/approve-release-plan RELEASE-PLAN-vX.Y.Z` first."
+**This repo's own release (default):** read `RELEASE-PLAN-vX.Y.Z.md` frontmatter `status`. Must be `approved`. If not, stop: "RELEASE-PLAN must be `approved` before deployment. Run `/approve-release-plan RELEASE-PLAN-vX.Y.Z` first."
+
+**A cross-repo thread's release:** there is no local `RELEASE-PLAN-vX.Y.Z.md` for a release that only exists as part of the thread — resolve `RELEASE-PLAN-vX.Y.Z-{environment}.md` from the coordination repo instead (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md), using this repo's PLAN-NNNN `thread`/`coordination_repo` pointer). Check the top-level `status: approved` (set only once `approvals.overall: true` — every participant *and* the thread-level coordination approval are both in place, per `approve-release-plan`) and this repo's own row in `approvals.participants` is `approved: true` bound to the `candidate_ref` actually being deployed. If either isn't satisfied, stop with the equivalent message pointed at the coordination repo's RELEASE-PLAN.
+
+**Optional wave pre-flight** *(only if this repo's PLAN-NNNN carries a `thread`/`coordination_repo` pointer, and only for orgs with no existing cross-repo deployment orchestration — Argo CD, Spinnaker, Harness, or equivalent already own this sequencing and should never get a second, competing gate from ForgeKit)*: using that pointer, resolve the thread's `RELEASE-PLAN-vX.Y.Z-{environment}.md` from the coordination repo (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) and check this repo's own Deployment wave order entry. If an earlier wave's participant isn't yet `deployment: complete`, ask before proceeding — this is a manual-coordination aid, not a hard block, since ForgeKit doesn't own execution: "This repo is in Wave [N]; Wave [N-1] participant(s) [list] are not yet deployed. Proceed anyway, or wait?" This check is scoped entirely to reading the thread's own release plan — it never provisions, schedules, or triggers anything in another repo.
 
 ## Step 1 — Final deployment confirmation
 
@@ -54,7 +62,7 @@ git pull origin main
 
 ## Step 3 — Apply production database migrations
 
-Read the **Risk Assessment** section of `RELEASE-PLAN-vX.Y.Z.md`. Check the **Migration risk** line.
+Read the **Risk Assessment** section of `RELEASE-PLAN-vX.Y.Z.md`. Check the **Migration risk** line. **For a cross-repo thread release:** the coordination repo's RELEASE-PLAN tracks gate status (Tests/Security/Observability pass/fail) per participant, not migration mechanics — those stay this repo's own concern, exactly as in a local release. Read migration risk from this repo's own PLAN-NNNN and ARCH.md instead.
 
 **If `Migration risk: none` (no schema changes in this release):** skip this step and note "No migrations — skipped" in the Deployment Record.
 
@@ -130,6 +138,8 @@ git add sdlc/bugs/BUG-NNNN.md   # only if linked_bug is set
 git commit -m "release(vX.Y.Z): deployed to production"
 git push origin main
 ```
+
+**If this repo participates in a cross-repo thread release:** also update this repo's row in the coordination repo's `RELEASE-PLAN-vX.Y.Z-{environment}.md` (`deployment: complete`, and `deployment_validation` if this repo ran its own smoke check) — that shared record is how other participants and `execute-release`'s optional wave pre-flight know this wave is done. Commit that update in the coordination repo, separately from this repo's own commit above.
 
 ## Step 7 — Handoff
 

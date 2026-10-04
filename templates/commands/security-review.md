@@ -4,12 +4,15 @@ type: command
 name: /security-review
 description: Security role command to produce SEC-NNNN — a full threat model and findings report for a DESIGN; only invoked when ANALYSIS sets security_review_required yes
 status: active
-version: 3
+version: 5
 primary_role: security
 reviewing_roles:
   - lead-developer
   - architect
 output_artifact_type: security-review
+changelog:
+  - v4 — added a coordination-repo path: reads ARCH.md from every thread participant, and tags each finding's mitigation task with the participant repo it belongs to so create-plan can pull only its own subset.
+  - v5 — fixed the commit path for the coordination-repo case, which still hardcoded sdlc/security/ — SEC-NNNN for a thread lives at sdlc/THREAD-NNNN/SEC.md.
 ---
 
 # /security-review
@@ -31,7 +34,7 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 - **SPEC-NNNN** — approved
 - **DESIGN-NNNN** — approved
 - **ANALYSIS-NNNN** — completed; read the Risk Flags section — these are the primary inputs to the security review scope
-- **ARCH.md** — read for the project's auth model, secrets handling patterns, and known security conventions
+- **ARCH.md** — read for the project's auth model, secrets handling patterns, and known security conventions. For a `repo_role: coordination` thread, re-resolve every entry in DESIGN-NNNN's own `inputs.architecture` list (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) rather than reading a single local ARCH.md — a security surface assessment scoped to one implicit auth model misses whatever the other participants actually expose. Carry the same list forward as an `inputs.architecture` entry in SEC-NNNN frontmatter.
 
 ## Steps
 
@@ -49,7 +52,7 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 3. **Assess each ANALYSIS Risk Flag** — Evaluate each RF item from ANALYSIS-NNNN. State whether the DESIGN mitigates it, accepts it (with rationale), or leaves it open.
 4. **Identify additional findings** — Apply the Security role quality bar to surfaces the ANALYSIS did not flag: timing attacks, log exposure, header security, middleware scope.
 5. **Rate each finding** — Critical (exploitable unauthenticated), High (authenticated but high impact), Medium (specific conditions required), Low (defense-in-depth gap), Informational.
-6. **Draft mitigations** — For each open finding, provide a concrete recommended action specific to the project's tech stack (from ARCH.md) and codebase: specific function, specific file, specific code pattern. Not "consider using X" — name the exact mechanism and where to apply it.
+6. **Draft mitigations** — For each open finding, provide a concrete recommended action specific to the project's tech stack (from ARCH.md) and codebase: specific function, specific file, specific code pattern. Not "consider using X" — name the exact mechanism and where to apply it. For a `repo_role: coordination` thread, also name which participant `repo` the mitigation task belongs to — a mitigation with no owning participant can't be pulled into any repo's `create-plan`.
 7. **Draft accepted-risk findings** — For each finding that cannot be mitigated within this slice's scope, document: the risk, why it is accepted, who approves it, and the specific condition under which it must be revisited.
 8. **Compliance Considerations** *(only if `project.yml`'s `compliance.frameworks` is not `[none]`)* — Read ARCH.md's "Compliance Obligations" section for the frameworks in scope and their stated engineering implications. For each framework this DESIGN's feature actually touches: name the specific control(s) implicated (cite the control ID where the framework has one — e.g. PCI-DSS Req 3.4, HIPAA §164.312(a)(1) — a framework without numbered controls like SOC 2's Trust Services Criteria or GDPR gets the specific principle instead), state whether the DESIGN satisfies it, and treat any gap as a regular finding rated by the same Critical/High/Medium/Low/Informational scale in Step 5 — a compliance gap is not a separate severity track. For PCI-DSS specifically: check `compliance.pci_scope` — if `delegated`, confirm the DESIGN actually keeps card data out of application code/logs/DB (a leak into this project's surface silently changes the project's real PCI scope, regardless of what was declared at `forge-init`). **This step identifies control gaps for a human compliance owner to act on. It does not constitute a compliance attestation, and SEC-NNNN must not claim the project "is compliant" with any framework** — say what was checked and what remains open, not a certification verdict.
 
@@ -57,7 +60,7 @@ Pass artifact IDs as arguments: `/security-review SPEC-NNNN DESIGN-NNNN ANALYSIS
 
 SEC-NNNN must contain all Required Sections per the SECURITY-REVIEW template: Scope of Review, Findings (with severity, description, attack scenario, mitigation per finding), Residual Risk Assessment (accepted-risk findings with approver and revisit condition), Compliance Considerations (per-framework control coverage if `compliance.frameworks` is not `[none]`; otherwise state explicitly "no compliance framework applies per project.yml" rather than leaving the section empty).
 
-Frontmatter must include: `findings_status` (map of finding ID to `open` | `mitigated` | `accepted_risk`); `trigger_source` (ANALYSIS-NNNN ID); `target_design_version`; `schema_version: 1`; `generation` block (`command: /security-review`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`).
+Frontmatter must include: `findings_status` (map of finding ID to `open` | `mitigated` | `accepted_risk`); `trigger_source` (ANALYSIS-NNNN ID); `target_design_version`; `schema_version: 1`; `generation` block (`command: /security-review`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null`). For a `repo_role: coordination` thread, frontmatter also includes an `inputs.architecture` list (one entry per participant ARCH.md read).
 
 ## Lead Developer Review
 
@@ -75,6 +78,7 @@ Before SEC-NNNN is marked `completed`:
 - [ ] `findings_status` frontmatter accurately reflects the current status of each finding
 - [ ] `schema_version: 1` present in SEC frontmatter
 - [ ] `generation` block present: command, command_version, model self-identified, generated_at set, session_id: null
+- [ ] *(coordination-repo threads only)* Every open finding's mitigation task is tagged with its owning participant `repo`
 
 ## Handoff
 
@@ -82,9 +86,17 @@ Before SEC-NNNN is marked `completed`:
 > Show the user the SEC file and ask: "Please review the security findings before I commit. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
+
+`repo_role: code`:
 ```
 git add sdlc/security/SEC-NNNN-slug.md sdlc/registry/index.md
 git commit -m "SEC-NNNN: Security review complete — [N Critical/High open, N accepted risk]"
+```
+
+`repo_role: coordination` (thread-scoped, not the flat `sdlc/security/` a `repo_role: code` project uses):
+```
+git add sdlc/THREAD-NNNN/SEC.md sdlc/registry/index.md
+git commit -m "THREAD-NNNN: Security review complete — [N Critical/High open, N accepted risk]"
 ```
 
 **Push (only if user confirms team context):**

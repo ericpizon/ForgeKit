@@ -4,9 +4,11 @@ type: command
 name: /address-plan-review
 description: Lead Developer command to address findings from PLAN review sections and prepare the PLAN for re-review or approval
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 output_artifact_type: plan (revised)
+changelog:
+  - v2 — the zero-blocking exit path no longer bypasses disposition of a new non-blocking finding from a re-review round; it now appends a minimal Address Summary before handing off to /approve-plan, which already required every non-blocking finding to carry a documented disposition.
 links:
   - relation: relates_to
     target: create-plan
@@ -36,7 +38,9 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
 
 ## Steps
 
-1. **Read `current_review_round` from PLAN-NNNN frontmatter.** Navigate directly to `## Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-plan PLAN-NNNN`. Do not commit anything.
+1. **Read `current_review_round` from PLAN-NNNN frontmatter.** Navigate directly to `## Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings:
+   - If every non-blocking finding in this round already has a disposition recorded in a prior `## Address Summary` (true on a first clean round with no findings at all) — there is nothing to address. **Exit here.** Trigger `/approve-plan PLAN-NNNN`. Do not commit anything.
+   - If this round contains any non-blocking finding with no recorded disposition yet (a re-review round can legitimately surface a new one even with zero blocking findings) — do not exit yet. Append a minimal `## Address Summary — Round N` containing only a `### Not Addressed` list, with each new non-blocking finding marked `accepted` (Step 5's default-acceptance rule applies here too — only mark otherwise if the user has explicitly requested addressing it). Then trigger `/approve-plan PLAN-NNNN`. `/approve-plan`'s own gate requires every non-blocking finding to carry a documented disposition — this is what satisfies it without forcing a full address-and-re-review round-trip over a trivial finding.
 
    If `current_review_round` is 0 or no review section exists yet — the review has not been run. Run `/review-plan PLAN-NNNN SPEC-NNNN DESIGN-NNNN SEC-NNNN` first.
 

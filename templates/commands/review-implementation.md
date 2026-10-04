@@ -4,13 +4,15 @@ type: command
 name: /review-implementation
 description: Multi-role review of a milestone's implementation — Lead Developer, Security, SRE, QE perspectives in one pass; produces IMPL-REVIEW artifact
 status: active
-version: 3
+version: 4
 primary_role: lead-developer
 reviewing_roles:
   - security
   - sre
   - quality-engineer
 output_artifact_type: impl-review
+changelog:
+  - v4 — added a staleness check for PLANs with an inputs.cross_repo_contract block, the last of the five gate points from templates/reference/cross-repo-resolution.md's staleness rule.
 ---
 
 # /review-implementation
@@ -35,6 +37,10 @@ Review the implementation of one milestone from four perspectives: Lead Develope
 - **ARCH.md** — read for coding conventions, module layout patterns, auth model, and testing rules
 - **Source code** — read all files created or modified for MN. Derive the file list from MN's task descriptions in PLAN-NNNN.
 - **`sdlc/reviews/IMPL-REVIEW-NNNN-MN.md`** — read if it exists (re-review context)
+
+## Staleness check
+
+*(Only if PLAN-NNNN has an `inputs.cross_repo_contract` block.)* Before reviewing, re-resolve the coordination repo's current `approved` Cross-Repo Contract revision (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) and compare to `inputs.cross_repo_contract.revision`. If they differ, the code under review may have been generated against a now-superseded dependency: flag this at the top of the review round as a blocking finding under Lead Developer Findings rather than silently reviewing as normal — the fix may be a code change, or may just be confirming MN's specific tasks are unaffected, but that determination has to happen before approval, not skipped.
 
 ## On Re-Review
 

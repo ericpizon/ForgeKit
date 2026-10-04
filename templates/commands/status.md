@@ -4,8 +4,10 @@ type: command
 name: /status
 description: Show current pipeline state for a thread — phase statuses, active review rounds, milestone progress, and suggested next action. Use for cold-start orientation after a session break.
 status: active
-version: 1
+version: 2
 primary_role: any
+changelog:
+  - v2 — added a cross-repo section for a thread participant: thread membership, the Cross-Repo Contract's working/approved state, whether this repo's own inputs are stale, and the resolution status of any XDEPs this repo's current milestone depends on.
 ---
 
 # /status
@@ -33,9 +35,15 @@ Use once PLAN-NNNN exists. Before PLAN is created, the pipeline is short enough 
    - If any milestone is `in_progress`: read `sdlc/reviews/IMPL-REVIEW-NNNN-MN.md` frontmatter (`current_review_round`) for each in-progress milestone.
    - If any `pipeline_status` field shows `revision_requested`: note the stage and the artifact involved.
 
-4. **Emit the status summary** — see Output format below.
+4. **Cross-repo check** *(only if PLAN-NNNN frontmatter has a `thread` and `coordination_repo` pointer)* — this is the fact most easily lost track of when working alone or async: "am I blocked on another repo, and is anyone waiting on me?"
+   - Re-resolve the coordination repo's current Cross-Repo Contract `working`/`approved` state (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)).
+   - Compare it to this PLAN's own `inputs.cross_repo_contract.revision` — if they differ, this PLAN is stale against the current approved contract.
+   - Resolve every XDEP where this repo is provider or consumer (from `sdlc/dependencies/THREAD-NNNN-XDEP-*.yml` in the coordination repo). For each, note its `status` (`active`/`superseded`/`retired`) and, if this repo's current milestone has a task with `satisfies_xdeps` referencing it, whether that task is done.
+   - Note any XDEP where this repo is the *consumer* and the *provider*'s side isn't done yet (this repo is blocked), and any XDEP where this repo is the *provider* and the *consumer* hasn't started (someone may be waiting on this repo).
 
-5. **Infer and state the next action** — see Next Action Inference below.
+5. **Emit the status summary** — see Output format below.
+
+6. **Infer and state the next action** — see Next Action Inference below.
 
 ## Output
 
@@ -63,6 +71,17 @@ Date: YYYY-MM-DD
 | M2        | Flag CRUD        | in_progress | Round 2       |
 | M3        | Dashboard        | pending     | —             |
 
+### Cross-repo
+*(Omit this entire section if PLAN-NNNN has no `thread` pointer.)*
+
+**Thread:** THREAD-NNNN (coordination repo: org/forge-sdlc)
+**Cross-Repo Contract:** working rev [N] ([draft/in_review/approved]) — approved rev [M] | **STALE** if this PLAN's `inputs.cross_repo_contract.revision` doesn't match [M]
+
+| XDEP | Role | Status | This repo's task | Blocking? |
+|---|---|---|---|---|
+| THREAD-0142-XDEP-01 | consumer | active | satisfied (T7) | — |
+| THREAD-0142-XDEP-02 | provider | active | not yet satisfied | someone may be waiting on this repo |
+
 ### Next action
 [single line — exact next command to run and why]
 ```
@@ -74,6 +93,10 @@ Read pipeline_status from the bottom up. The first incomplete stage determines t
 **Back-cycle in progress (check first):**
 If any `pipeline_status` field is `revision_requested`:
 > "Back-cycle in progress: [stage] is under revision. Resolve the [ARTIFACT-NNNN] revision before running downstream commands."
+
+**Cross-Repo Contract stale (check second, thread participants only):**
+If the Cross-Repo Contract's approved revision no longer matches this PLAN's `inputs.cross_repo_contract.revision`:
+> "This PLAN is stale against the Cross-Repo Contract (built against rev [N], approved is now rev [M]). Re-run `/create-plan` before proceeding with implementation."
 
 **PLAN not yet approved:**
 - `current_review_round = 0` → "No plan review has run. Run `/review-plan PLAN-NNNN SPEC-NNNN DESIGN-NNNN`."

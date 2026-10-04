@@ -4,8 +4,10 @@ type: command
 name: /upgrade-pipeline
 description: Lead Developer command to pull ForgeKit template updates into this project — diffs installed commands and roles against a newer ForgeKit installation and applies changes selectively, preserving project customizations
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
+changelog:
+  - v2 — added a third scope, Reference docs (.claude/reference/), so a project upgrading rather than re-running /forge-init actually receives new shared reference docs — these didn't exist as a scope before the multi-repo coordination reference docs were introduced.
 ---
 
 # /upgrade-pipeline
@@ -14,7 +16,7 @@ primary_role: lead-developer
 
 Pull ForgeKit template improvements into this project without re-running `/forge-init`. Diffs every installed command and role file against the source templates, presents a **human-readable description of what changed** (not a raw line diff), and applies changes you accept.
 
-ARCH.md, `sdlc/` artifacts, and `project.yml` are never touched — only `.claude/commands/`, `.claude/roles/`, and `PIPELINE.md`.
+ARCH.md, `sdlc/` artifacts, and `project.yml` are never touched — only `.claude/commands/`, `.claude/roles/`, `.claude/reference/`, and `PIPELINE.md`.
 
 ## Usage
 
@@ -51,7 +53,7 @@ Available version: [version from forge-init.md frontmatter]
 
 ## Step 2 — Inventory all files
 
-Scan three scopes in sequence. For each scope, read and compare every file.
+Scan four scopes in sequence. For each scope, read and compare every file.
 
 ### Commands
 
@@ -84,6 +86,14 @@ For each file in `[ForgeKit]/templates/roles/`:
 2. Compare template against installed file (no token substitution needed for roles).
 3. Categorize as new / updated / unchanged.
 
+### Reference docs
+
+For each file in `[ForgeKit]/templates/reference/`:
+
+1. Check whether `.claude/reference/[filename]` exists in this project. If the whole `.claude/reference/` directory is missing, treat every file as **new** — a project initialized before these docs existed will not have it yet, and this is the path that backfills it without requiring a full `/forge-init` redo.
+2. Compare template against installed file (no token substitution — copied verbatim, like role files).
+3. Categorize as new / updated / unchanged.
+
 ### PIPELINE.md
 
 Compare `[ForgeKit]/templates/PIPELINE.md` against the project root `PIPELINE.md`. PIPELINE.md is a static reference document — categorize as updated or unchanged.
@@ -106,6 +116,11 @@ Roles
   [N] new
   [N] unchanged
 
+Reference docs
+  [N] updated
+  [N] new
+  [N] unchanged
+
 PIPELINE.md: [updated | unchanged]
 ```
 
@@ -117,7 +132,7 @@ If there are changes: "Proceed to review each change? (yes / cancel)"
 
 ## Step 4 — Review and accept changes
 
-Work through changed files in order: new commands → updated commands → new roles → updated roles → PIPELINE.md.
+Work through changed files in order: new commands → updated commands → new roles → updated roles → new/updated reference docs → PIPELINE.md.
 
 ### New files
 
@@ -160,6 +175,20 @@ Accept / Skip / Show full content?
 
 Determine this by checking whether the installed file matches the pattern of a ForgeKit-generated command (frontmatter structure, section headers). If it differs significantly in structure or has additions not present in any ForgeKit template, treat it as potentially customized.
 
+### Reference docs
+
+New files: present the same "NEW COMMAND"-style prompt, substituting the file's own opening line as the description (reference docs have no frontmatter to pull a `description:` from).
+
+Updated files:
+```
+UPDATED: .claude/reference/[filename] (shared reference doc — no customization expected)
+
+What changed:
+  [Semantic summary of what's new]
+
+Accept? (yes / skip)
+```
+
 ### PIPELINE.md
 
 ```
@@ -181,6 +210,7 @@ For each accepted file:
 2. Write to the correct location:
    - Commands → `.claude/commands/[filename]`
    - Roles → `.claude/roles/[filename]`
+   - Reference docs → `.claude/reference/[filename]` (create the directory if it doesn't exist yet)
    - PIPELINE.md → project root `PIPELINE.md`
 3. Log each write: "Applied: [filename]"
 
@@ -192,7 +222,7 @@ After all files are written, update **only** the `forgekit_version` field in `.c
 
 Before reporting complete:
 - [ ] All accepted command files written with no unreplaced `{{placeholder}}` tokens remaining
-- [ ] No files outside `.claude/commands/`, `.claude/roles/`, and `PIPELINE.md` were modified
+- [ ] No files outside `.claude/commands/`, `.claude/roles/`, `.claude/reference/`, and `PIPELINE.md` were modified
 - [ ] ARCH.md not touched
 - [ ] `sdlc/` not touched
 - [ ] `project.yml` updated only for `forgekit_version` — no other field changed
@@ -212,6 +242,8 @@ Applied:
   [N] new commands added
   [N] roles updated
   [N] new roles added
+  [N] reference docs updated
+  [N] new reference docs added
   PIPELINE.md: [updated | unchanged]
 
 Skipped:
@@ -231,6 +263,6 @@ Skipped files — review manually if you want to adopt these updates:
 **Do not commit automatically.** The user reviews the applied changes, then commits:
 
 ```bash
-git add .claude/commands/ .claude/roles/ PIPELINE.md .claude/project.yml
+git add .claude/commands/ .claude/roles/ .claude/reference/ PIPELINE.md .claude/project.yml
 git commit -m "chore: upgrade ForgeKit pipeline to v[version]"
 ```

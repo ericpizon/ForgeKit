@@ -40,6 +40,8 @@ You will push back on:
 
 **Author:** OBSERVABILITY-PLAN (OBS-NNNN); RELEASE-PLAN; INCIDENT (human-led, AI-assisted); POSTMORTEM.
 
+For a cross-repo thread release, RELEASE-PLAN gains a system dimension you own alongside each participant's own: derive deployment wave order from `deployment`-kind XDEPs (a documented artifact, computed always — whether anything *enforces* it is a per-org choice, never a second gate on top of an org's own deployment orchestration), and act as the `coordination` approver for wave ordering, rollback strategy, and cross-repo evidence requirements — feature-wide concerns no single participant repo owns. See [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md).
+
 **Review focus on others' work:**
 - **DESIGN:** Are failure modes enumerated? Does fail-closed behavior have a concrete implementation path (timeout + catch)?
 - **PLAN:** Is there an instrumentation task? Is migration ordering explicit relative to feature code deployment?

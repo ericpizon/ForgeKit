@@ -4,9 +4,11 @@ type: command
 name: /approve-plan
 description: Lead Developer command to close the plan review loop — confirm all findings resolved, mark PLAN approved, trigger TEST-PLAN authorship
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
 output_artifact_type: plan (approved)
+changelog:
+  - v2 — added a staleness re-check before final approval for PLANs with an inputs.cross_repo_contract block.
 ---
 
 # /approve-plan
@@ -32,6 +34,8 @@ Pass the PLAN ID: `/approve-plan PLAN-NNNN`.
    - PLAN version is current
 
    If any blocking finding remains: **do not proceed**. Return to `/address-plan-review`.
+
+   **Staleness re-check** *(only if PLAN-NNNN has an `inputs.cross_repo_contract` block)*: re-resolve the coordination repo's current `approved` revision one more time (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) — a clean review round does not guarantee the Cross-Repo Contract hasn't advanced in the time since. If it has, this PLAN is `stale`: **do not approve**. Direct the user back to `/create-plan` (or a fresh `/review-plan` pass, if the divergence is scoped enough to address without a full re-derivation) before proceeding.
 
 2. **Update PLAN status to `approved`.** In PLAN frontmatter:
    - Set `status: approved`
@@ -62,6 +66,7 @@ Before committing:
 - [ ] All non-blocking findings addressed or explicitly accepted as risk
 - [ ] PLAN frontmatter: `status: approved`; `approval:` block set (`approved_by`, `approved_role: lead-developer`, `approved_at`, `decision_summary` populated)
 - [ ] Registry updated for PLAN-NNNN
+- [ ] *(thread participants only)* Staleness re-check passed — the Cross-Repo Contract's approved revision still matches `inputs.cross_repo_contract.revision`
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
 

@@ -72,7 +72,7 @@ Before a SPEC leaves your hands, you verify:
 
 ## What You Own
 
-**Author:** SPEC-NNNN.
+**Author:** SPEC-NNNN. For a feature spanning more than one repo, you author it once in the dedicated coordination repo (`project.yml`'s `repo_role: coordination`) — declaring the thread's participants and reading every participant's ARCH.md before drafting, since Constraints & Assumptions and NFRs need to respect every participant's actual stack, not a single implicit one. You also author the thread-wide RELEASE-NOTES at the end, aggregating every participant's changes rather than one participant's notes standing in for the whole thread.
 
 **You do not own:** ANALYSIS, DESIGN, PLAN, or any downstream artifact. You are the upstream producer. Once a SPEC is approved, your role in that thread is complete unless ANALYSIS returns a `needs_revision` verdict.
 
@@ -80,7 +80,7 @@ Before a SPEC leaves your hands, you verify:
 
 **Before SPEC approval — validate product intent:** Run `/validate-spec SPEC-NNNN` after the review cycle is clean. You translate each AC to plain language and answer two tiers of questions (three structural questions + one per-AC question) with a named human sign-off. `product_validated: true` must be set in SPEC frontmatter before `/approve-spec` can proceed and before the Architect can begin `/create-design`. If the SPEC is revised for any reason after validation, `product_validated` resets automatically — re-validation is required.
 
-**When a discovery invalidates the SPEC:** Use `/reopen-spec SPEC-NNNN`. Back-cycling to the spec is not a process failure — it is the correct response when a downstream artifact reveals a fundamental scope or requirement problem. The command captures a structured discovery record, surfaces blast radius before making any file changes, and resets the pipeline status. You control the scope decision; no downstream role can force a spec change without your sign-off.
+**When a discovery invalidates the SPEC:** Use `/reopen-spec SPEC-NNNN`. Back-cycling to the spec is not a process failure — it is the correct response when a downstream artifact reveals a fundamental scope or requirement problem. The command captures a structured discovery record, surfaces blast radius before making any file changes, and resets the pipeline status. You control the scope decision; no downstream role can force a spec change without your sign-off. For a thread SPEC, this flags *every* participant's PLAN, not just one — silently leaving other participants building against an invalidated SPEC is exactly the failure mode a back-cycle exists to prevent.
 
 ## When Invoked
 

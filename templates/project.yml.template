@@ -1,7 +1,8 @@
 project:
   name: "{{project.name}}"
   description: "{{project.description}}"
-  type: {{project.type}}           # greenfield | brownfield
+  type: {{project.type}}           # greenfield | brownfield | coordination
+  repo_role: {{repo_role}}         # code | coordination — see the multi-repo coordination model
   team_size: {{team.size}}         # solo | small | enterprise
   initialized_at: {{today}}
   forgekit_version: "1.0"
@@ -23,6 +24,9 @@ external_tool:
     incident: "{{artifact_map.incident}}"
 # [END INCLUDE]
 
+# [INCLUDE ONLY IF repo_role: code — a coordination repo has no stack and no compliance
+#  surface of its own; omit this entire block for repo_role: coordination rather than
+#  filling it with placeholders]
 stack:
   language: {{stack.language}}
   framework: {{stack.framework}}
@@ -37,6 +41,10 @@ stack:
     env_pull: "{{stack.deploy.env_pull}}"
     migration_command: "{{stack.deploy.migration_command}}"
   ci: {{stack.ci}}
+  ci_trigger_command: "{{stack.ci_trigger_command}}"   # runnable command execute-tests uses to trigger
+                                                         # this repo's CI (e.g. "gh workflow run test.yml",
+                                                         # a Jenkins CLI invocation) — or "none" to always
+                                                         # run tests locally instead of triggering CI
   observability: {{stack.observability}}
   auth: {{stack.auth}}
   llm_agent_framework: {{stack.llm_agent_framework}}   # or "none"
@@ -46,6 +54,7 @@ compliance:
   frameworks: {{compliance.frameworks}}   # e.g. [pci_dss], [hipaa], [soc2, gdpr], or [none]
   pci_scope: {{compliance.pci_scope}}     # n/a | delegated | partial | full — only meaningful if pci_dss is in frameworks
   notes: "{{compliance.notes}}"           # free text — anything not captured by the fixed framework list
+# [END INCLUDE]
 
 pipeline:
   security_review: conditional   # conditional = triggered on auth/secrets changes; always | never also valid

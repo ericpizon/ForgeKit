@@ -4,7 +4,7 @@ type: command
 name: /revise-spec
 description: TPO command to revise a SPEC based on ANALYSIS findings when readiness_verdict is needs_revision
 status: active
-version: 1
+version: 2
 primary_role: tpo
 output_artifact_type: spec
 links:
@@ -12,6 +12,8 @@ links:
     target: create-spec
   - relation: relates_to
     target: review-spec
+changelog:
+  - v2 — corrected the revision-summary instruction to reference findings by their bracketed ID, matching review-spec.md v6's requirement that every finding carry one (previously said the opposite — "no numeric IDs").
 ---
 
 # /revise-spec
@@ -57,7 +59,7 @@ Pass both artifact IDs: `/revise-spec SPEC-0001 ANALYSIS-0001`.
    - [Section: brief description of finding] — **deferred** — [reason and conditions for revisit]
    ```
 
-   Reference findings by their ANALYSIS section and a brief description (e.g., `Completeness Assessment: Goal G3 has no AC`; `Ambiguities: AC7 can be interpreted two ways`). ANALYSIS findings have no numeric IDs — do not invent them.
+   Reference findings by their bracketed ID from ANALYSIS (e.g., `[LD-2]: Goal G3 has no AC`; `[QE-1]: AC7 can be interpreted two ways`) — every finding in ANALYSIS-NNNN carries one (`review-spec.md`'s Output Contract requires it). Do not invent an ID for a finding that doesn't have one; if an older ANALYSIS predates this convention and a finding has no ID, reference it by section and description instead.
 
    Every flagged item from the ANALYSIS must appear in one of the two lists. No finding may be silently dropped.
 

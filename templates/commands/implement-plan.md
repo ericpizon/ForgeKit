@@ -4,9 +4,11 @@ type: command
 name: /implement-plan
 description: Developer command to implement all tasks in one PLAN milestone — generating code, tests, and migrations, then prompting for local verification before review
 status: active
-version: 1
+version: 2
 primary_role: developer
 output_artifact_type: source-code
+changelog:
+  - v2 — added a staleness pre-flight check for PLANs with an inputs.cross_repo_contract block, alongside the existing TEST-NNNN/PLAN-NNNN approval checks.
 ---
 
 # /implement-plan
@@ -43,6 +45,7 @@ Before generating any code, verify all of the following. Surface a blocker and s
    - `tests_passed` → stop — "MX tests are passing but no PR has been created. Run `/create-pr PLAN-NNNN MX` first."
    - Any other status → stop — "MX must reach `pr_merged` before MN can start. Current status: [status]."
 5. **For M1 specifically — SETUP prerequisites:** Read ARCH.md for required environment variables and local dev setup expectations. Confirm dev server is running, database is connected, required env vars are set. Surface any missing prerequisites as blockers before proceeding.
+6. **Staleness check** *(only if PLAN-NNNN has an `inputs.cross_repo_contract` block)*: re-resolve the coordination repo's current `approved` Cross-Repo Contract revision (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) and compare to `inputs.cross_repo_contract.revision`. If they differ: **stop** — "PLAN-NNNN's Cross-Repo Contract is stale (built against revision [N], approved is now revision [M]). Do not generate code against a dependency that may have changed. Re-run `/create-plan` (or confirm with the Architect that MN's specific tasks are unaffected before overriding) first."
 
 ## Create Milestone Branch
 

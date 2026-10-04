@@ -4,13 +4,15 @@ type: command
 name: /sync-registry
 description: Scans all SDLC artifacts, groups them by Thread ID, and regenerates the global registry index and per-thread FEATURE dashboards
 status: active
-version: 1
+version: 2
 primary_role: tpo
 links:
   - relation: produces
     target: registry/index.md
   - relation: produces
     target: features/FEATURE-NNNN.md
+changelog:
+  - v2 — added a coordination-repo path producing a thread-level portfolio view across every participant, and a one-line thread pointer for a participant repo's own local registry.
 ---
 
 # /sync-registry
@@ -38,6 +40,17 @@ FEATURE files are always regenerated from source — never hand-edited.
 ```
 
 No arguments. Scans the entire `sdlc/` directory.
+
+## Pre-flight — Coordination repo check
+
+Read `project.yml`'s `repo_role`. For `repo_role: code` (the default), continue to Step 1 below with one addition: **if a thread pointer exists** (any PLAN in this repo has a `thread`/`coordination_repo` frontmatter pair), add a one-line pointer to each such thread's entry in `sdlc/registry/index.md` — thread ID and coordination repo — rather than attempting to reproduce that thread's full cross-repo picture locally. That stays the coordination repo's job.
+
+**If `repo_role: coordination`:** this invocation produces a thread-level portfolio view across every participant — the value this command's design always pointed at — instead of scanning a flat `sdlc/specs/`, `sdlc/design/`, etc. layout that a coordination repo doesn't have.
+
+1. Scan `sdlc/THREAD-NNNN/` for each thread directory: read `thread.yml` (participants), `SPEC.md`, `DESIGN.md` (including its `cross_repo_contract` working/approved block), `SECURITY-REVIEW.md`/`OBSERVABILITY-PLAN.md` if present, any `RELEASE-PLAN-vX.Y.Z-{environment}.md` files, `SYSTEM-TEST-PLAN.md` if present, and any thread-scoped `adr/`.
+2. Scan the top-level `sdlc/dependencies/` and `sdlc/scenarios/` directories, associating each `THREAD-NNNN-XDEP-NN.yml` / `THREAD-NNNN-E2E-NN.yml` file with its thread by the `THREAD-NNNN` ID prefix in the filename.
+3. For each participant in `thread.yml`, resolve its PLAN-NNNN frontmatter (`pipeline_status`, milestone implementation statuses) via [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md) — a lightweight read, frontmatter and milestone status lines only, the same discipline `/status` already applies locally.
+4. Skip Steps 1–3 below (they describe the flat single-repo scan and stage-precedence table) and proceed to the coordination-repo output format (below) instead of the single-repo FEATURE-NNNN.md format.
 
 ## Step 1 — Scan artifacts
 
@@ -224,6 +237,73 @@ items are owned entirely within their PM and do not surface in the registry.]
 Sort threads by Thread ID ascending. Link each thread ID to its FEATURE-NNNN.md file.
 
 For the open postmortem action items section: scan every file in `sdlc/postmortems/`, read each `## Action items` table, and collect rows where `Status` is `open` and `Type` is `code-fix` or `feature`. Include the PM link, AI ID, description, type, owner, and linked artifact (or `—` if unlinked). Sort by PM ID ascending.
+
+## Step 4b/5b — Coordination-repo output (coordination-repo threads only)
+
+For each thread found in Pre-flight, write `sdlc/features/FEATURE-THREAD-NNNN.md` instead of the single-repo FEATURE-NNNN.md format:
+
+```markdown
+---
+id: FEATURE-THREAD-NNNN
+type: feature
+thread_id: "THREAD-NNNN"
+rollup_generated_at: [ISO timestamp]
+---
+
+# Thread NNNN — [title from SPEC.md]
+
+## Participants
+
+| Repo | Implementation | Deployment (latest release) |
+|---|---|---|
+| transformer-service | [pipeline_status.plan / milestone rollup] | [from latest RELEASE-PLAN, if any] |
+| document-worker | [pipeline_status.plan / milestone rollup] | [from latest RELEASE-PLAN, if any] |
+
+## Cross-Repo Contract
+
+**Working:** rev [N] ([draft/in_review/approved])   **Approved:** rev [M]
+
+| XDEP | Provider | Consumer | Status |
+|---|---|---|---|
+| THREAD-NNNN-XDEP-01 | transformer-service | document-worker | active |
+
+## System test coverage
+
+*(omit if the thread has no SYSTEM-TEST-PLAN.md)*
+
+| Scenario | Covers | Status |
+|---|---|---|
+| THREAD-NNNN-E2E-01 | XDEP-01, XDEP-02 | active |
+
+## Releases
+
+| Version — environment | Status | Deployment ready | Feature verification |
+|---|---|---|---|
+| v1.2.3 — production | approved | true | passed |
+
+[If no RELEASE-PLAN exists yet: "No releases yet."]
+```
+
+Then write `sdlc/registry/index.md` with a thread-level portfolio table in place of the single-repo Feature Registry:
+
+```markdown
+# [project.name] — Cross-Repo Thread Registry
+
+**Last synced:** [ISO timestamp]
+**Threads:** N
+
+| Thread | Feature | Participants | Contract | Stage | Updated |
+|---|---|---|---|---|---|
+| [THREAD-0142](../features/FEATURE-THREAD-0142.md) | [title] | transformer-service, document-worker | approved rev 4 | design in progress | [date] |
+
+---
+
+*Generated by `/sync-registry`. Do not edit manually — run `/sync-registry` to refresh.*
+```
+
+A participant's PLAN that could not be resolved (repo unreachable, network/auth issue) is shown as `unresolved` in its Implementation column rather than silently omitted — a portfolio view that quietly drops a participant it couldn't reach is worse than one that shows the gap.
+
+**Stale hand-off check.** If SPEC.md or DESIGN.md has a `## Discovery` section recording a participant as `handed off — pending confirmation` (per `reopen-spec`/`reopen-design`), cross-check that participant's actual resolved `pipeline_status` — if it doesn't yet show the expected `revision_requested`, the hand-off was never carried out. Surface this explicitly in the thread's FEATURE-THREAD-NNNN.md (a **Pending hand-offs** section) rather than letting a stale hand-off go unnoticed simply because the session that created it ended.
 
 ## Step 6 — Show and confirm
 

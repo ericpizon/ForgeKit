@@ -5,6 +5,7 @@ status: draft
 version: 1
 approved_by: pending
 initialized_at: {{today}}
+changelog: []
 ---
 
 # {{project.name}} — System Architecture
@@ -96,6 +97,14 @@ initialized_at: {{today}}
 - **Secrets handling:** *(fill in: where secrets live, naming convention, how they're accessed)*
 - **API key pattern:** *(fill in if applicable)*
 - **Known-unsafe patterns to avoid:** *(fill in: e.g., "no direct SQL string construction," "no eval")*
+
+---
+
+## Compliance Obligations
+
+*(Include this section only if a compliance framework other than "none" applies — PCI-DSS, HIPAA/PHI, SOC 2, GDPR, CCPA, or other. Omit the section entirely otherwise; do not leave it in with "none" as a value.)*
+
+*(Fill in: for each applicable framework, its concrete engineering implications for this project's actual stack and data flows — not the full text of the regulation. End with: "This section tracks engineering-level controls only. It is not a compliance attestation — obtaining and maintaining [framework] status requires a qualified assessor/auditor and organizational controls outside this repository's scope.")*
 
 ---
 

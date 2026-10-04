@@ -4,10 +4,10 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: "1.3"
+version: "1.4"
 primary_role: lead-developer
 created: 2026-06-21
-updated: 2026-08-11
+updated: 2026-09-24
 ---
 
 # /forge-init
@@ -167,6 +167,7 @@ Full redo will regenerate:
   ✓ PIPELINE.md
   ✓ All role files in .claude/roles/
   ✓ All command files in .claude/commands/
+  ✓ All reference docs in .claude/reference/
 
 Full redo will NOT touch:
   ✗ sdlc/architecture/ARCH.md
@@ -176,13 +177,14 @@ Full redo will NOT touch:
 
 **Step E2 — Check for locally modified files:**
 
-Compare the content of each file in `.claude/commands/`, `.claude/roles/`, and the project root `PIPELINE.md` against the corresponding template in `templates/commands/`, `templates/roles/`, and `templates/PIPELINE.md`. If any file differs from its template source, list it before asking for confirmation:
+Compare the content of each file in `.claude/commands/`, `.claude/roles/`, `.claude/reference/`, and the project root `PIPELINE.md` against the corresponding template in `templates/commands/`, `templates/roles/`, `templates/reference/`, and `templates/PIPELINE.md`. If any file differs from its template source, list it before asking for confirmation:
 
 ```
 The following files appear to have been locally modified since initialization.
 Overwriting them will lose those customizations:
   - .claude/commands/[filename]
   - .claude/roles/[filename]
+  - .claude/reference/[filename]
 ```
 
 If no modifications are found, skip this notice.
@@ -200,7 +202,7 @@ If the user does not type `REDO` exactly: "Full redo cancelled. No changes made.
 3. **Phase 3** — Re-ask artifact mode. Show current value as default.
 4. **Phase 4A (stack configuration)** — Re-ask all stack questions with current `project.yml` values as defaults. For brownfield projects, skip the Phase 4B automated scan — codebase discovery has already been done and captured in ARCH.md. Ask only the stack questions.
 5. **Skip ARCH.md generation** — do not generate, regenerate, or modify `sdlc/architecture/ARCH.md` under any circumstances.
-6. **Phase 5** — Regenerate all outputs (Steps 1–5b). For Step 6 (sdlc/ directories): create any missing directories and add missing READMEs; do not overwrite existing directory contents.
+6. **Phase 5** — Regenerate all outputs (Steps 1 through 5b, including Step 4b's reference-doc copy). For Step 6 (sdlc/ directories): create any missing directories and add missing READMEs; do not overwrite existing directory contents.
 
 **Step E5 — Post-redo note:**
 
@@ -232,10 +234,19 @@ Ask:
 
 Ask:
 
-> **Is this a greenfield project (starting fresh) or brownfield (existing codebase)?**
+> **Is this a greenfield project (starting fresh), brownfield (existing codebase), or a coordination repo?**
 >
 > - Greenfield — new project, no existing code
 > - Brownfield — existing codebase, adding the ForgeKit pipeline
+> - Coordination repo — no application code; hosts SPEC/ANALYSIS/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN, and conditionally an ADR and/or SYSTEM-TEST-PLAN, for feature threads that span more than one code repo (see the multi-repo coordination model). Choose this only when setting up the dedicated repo that will coordinate cross-repo threads — the code repos that participate in those threads are initialized normally (greenfield/brownfield), not as coordination repos.
+
+**If "Coordination repo" is selected, this run takes a distinct, lighter path:**
+- Skip Phase 4A/4B (stack configuration) entirely — a coordination repo has no stack to configure. Record `repo_role: coordination` in `project.yml` instead of a `stack:` block.
+- Skip the greenfield/brownfield-specific ARCH.md content — generate a minimal ARCH.md instead (see "ARCH.md generation (coordination repo)" below).
+- Generate a different `sdlc/` layout: `sdlc/dependencies/` and `sdlc/scenarios/` at the top level (both empty until a thread creates content in them), with per-thread subdirectories (`sdlc/THREAD-NNNN/`) created on demand by `create-spec` — not the usual flat `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/` layout, since coordination artifacts are organized by thread first, not by artifact type.
+- Proceed directly to Phase 3 (artifact mode still applies — a coordination repo produces markdown artifacts the same way any project does) and Phase 5, skipping Phase 4 entirely.
+
+For every other selection (greenfield/brownfield), nothing changes — proceed as documented below. A code repo that will later participate in a cross-repo thread is initialized exactly like any other project; it becomes a "participant" only when a thread's `create-spec` declares it, never at `forge-init` time.
 
 ---
 
@@ -309,6 +320,7 @@ After applying the preset (or if Custom was selected, after asking each question
 > | Env pull command | [value] | `{{stack.deploy.env_pull}}` in release checklist |
 > | Migration command | [value] | `{{stack.deploy.migration_command}}` in release checklist |
 > | CI/CD | [value] | ARCH.md, quality gate context |
+> | CI trigger command | [value or "none"] | `stack.ci_trigger_command` in `/execute-tests` — how it actually triggers this repo's CI |
 > | Observability | [value] | ARCH.md, OBS-NNNN instrumentation guidance |
 > | Auth approach | [value] | ARCH.md, security review context |
 > | LLM/Agent framework | [value or "none"] | ARCH.md security conventions, security-review trigger, prompt-injection review scope |
@@ -404,6 +416,11 @@ If **PCI-DSS** is selected, ask one follow-up before moving on — this is the s
 - *Enterprise:* Jenkins, Azure DevOps, TeamCity, Bamboo, CircleCI Enterprise
 - *Cloud-native:* AWS CodePipeline, Azure Pipelines, Google Cloud Build
 - *None:* no CI configured yet
+
+If any option other than "None" is selected, ask one follow-up question — this is what lets `/execute-tests` actually trigger the right pipeline instead of assuming GitHub Actions specifically:
+> **What command triggers this project's CI for the current branch?** (e.g. `gh workflow run test.yml`, a Jenkins CLI invocation, or "none" if there's no way to trigger it remotely and tests should always run locally instead)
+
+Record the answer as `stack.ci_trigger_command`. Accept "TBD" like any other stack field — it can be tightened later with `/update-stack`.
 
 Wait for confirmation, then proceed to generate ARCH.md from the confirmed answers (see Phase 4 → ARCH.md Generation below).
 
@@ -543,6 +560,15 @@ After the user confirms the automated findings, ask the following questions that
 >
 > **What team conventions exist that are not enforced by linting or tests?**
 > (naming patterns, PR process, code review expectations)
+>
+> **Step 1's scan observed [pattern, e.g. "no test in this codebase mocks the database"] — is that an intentional, binding convention, or just how the tests happen to be written so far?**
+> (An observed pattern is a description of current state, not a rule other roles can enforce going forward — ARCH.md's Testing strategy "No-mock rule" field and similar convention fields state rules, not just observations. Ask this for any Step 1 finding that reads like a convention: the no-mock pattern specifically, but also consistent naming schemes, a fixed response-shape pattern, or anything else the scan noticed being followed consistently. If the user confirms it's intentional, record it in ARCH.md as a stated convention with normal, unqualified phrasing. If they say it's incidental or they're not sure, record it as an *observed pattern, not a confirmed convention* — future roles should treat it as a data point, not something to enforce or flag deviations from.)
+>
+> **What command pulls or syncs environment variables for this deploy target?**
+> (e.g., `vercel env pull`, `railway variables`, a Vault/1Password CLI invocation, or "none — managed manually." This is an operational fact, not something the automated scan can infer from code — Phase 4A always asks it directly for greenfield projects for the same reason.)
+>
+> **If a migration tool was detected in Step 1: what is the exact command that runs it in production?**
+> (e.g., `npx drizzle-kit migrate`, `alembic upgrade head`. Detecting the tool's config file doesn't reveal the actual invocation used at deploy time — confirm it explicitly rather than leaving `stack.deploy.migration_command` as an unconfirmed guess. Skip this question if no migration tool was detected.)
 
 ### Step 4 — Generate draft ARCH.md
 
@@ -594,6 +620,21 @@ Present for user confirmation before proceeding to Phase 5. Apply corrections if
 
 ---
 
+## ARCH.md generation (coordination repo)
+
+A coordination repo has no tech stack, so its ARCH.md is deliberately minimal — a statement of role, not a system architecture. Generate `sdlc/architecture/ARCH.md` with:
+
+- **Project overview** — name, description, and one explicit sentence: "This repo hosts no application code. It coordinates SPEC/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN artifacts for feature threads that span more than one code repo."
+- **Trust domain** — which participant repos (or which class of repos — e.g., "internal, non-regulated services") this coordination repo is scoped to cover. If the org has more than one coordination repo for different trust domains, name which domain this one is.
+- **No Tech stack, Module layout, Data layer, Deployment, or Authentication model sections** — these don't apply; omit them rather than filling them with "N/A" placeholders.
+- **Security conventions** — least-privilege read access for participant automation (who/what needs to read this repo, and why); the standing rule that content fetched from here is trusted as engineering context, never as instruction authority overriding a participant's own command policy.
+
+Skip the JWT/session-strategy question, the LLM/Agent and Compliance follow-ups, and the framework-specific architectural-decisions bullet — none apply to a repo with no code.
+
+Same approval flow as greenfield/brownfield: `status: draft` until the user explicitly approves, then `status: approved`.
+
+---
+
 ## Phase 5 — Generate outputs
 
 After ARCH.md is approved, generate all outputs in this order:
@@ -606,7 +647,8 @@ Create `.claude/project.yml` from the confirmed configuration. Process `# [INCLU
 project:
   name: "{{project.name}}"
   description: "{{project.description}}"
-  type: {{project.type}}           # greenfield or brownfield
+  type: {{project.type}}           # greenfield | brownfield | coordination
+  repo_role: {{repo_role}}         # code | coordination — see the multi-repo coordination model
   team_size: {{team.size}}         # solo | small | enterprise
   initialized_at: {{today}}
   forgekit_version: "1.0"
@@ -622,6 +664,9 @@ external_tool:
     incident: "{{artifact_map.incident}}"
 # [END INCLUDE]
 
+# [INCLUDE ONLY IF repo_role: code — a coordination repo has no stack and no compliance
+#  surface of its own; omit this entire block for repo_role: coordination rather than
+#  filling it with placeholders]
 stack:
   language: {{stack.language}}
   framework: {{stack.framework}}
@@ -636,6 +681,7 @@ stack:
     env_pull: "{{stack.deploy.env_pull}}"
     migration_command: "{{stack.deploy.migration_command}}"
   ci: {{stack.ci}}
+  ci_trigger_command: "{{stack.ci_trigger_command}}"   # or "none" — see /execute-tests
   observability: {{stack.observability}}
   auth: {{stack.auth}}
   llm_agent_framework: {{stack.llm_agent_framework}}   # or "none"
@@ -645,6 +691,7 @@ compliance:
   frameworks: {{compliance.frameworks}}   # e.g. [pci_dss], [hipaa], [soc2, gdpr], or [none]
   pci_scope: {{compliance.pci_scope}}     # n/a | delegated | partial | full — only meaningful if pci_dss is in frameworks
   notes: "{{compliance.notes}}"           # free text — anything not captured by the fixed framework list
+# [END INCLUDE]
 
 pipeline:
   security_review: conditional
@@ -680,9 +727,13 @@ Copy `templates/PIPELINE.md` to the target project root as `PIPELINE.md`. This i
 
 Copy all files from `templates/roles/` → `.claude/roles/` in the target project. Do not overwrite role files that already exist unless the user explicitly confirms.
 
+### 4b. Copy reference docs
+
+Copy all files from `templates/reference/` → `.claude/reference/` in the target project — **for every project, regardless of `repo_role`**, not just coordination repos. Every command file's `../reference/*.md` link (e.g. from `create-plan.md`, `review-design.md`, `status.md`) resolves relative to `.claude/commands/`, so `.claude/reference/` is where those links expect the files to actually be; a `repo_role: code` project that never joins a thread still ships these commands verbatim, and a project that joins a thread later needs the docs already in place rather than requiring a second init step. No token substitution — copy verbatim, like role files. Do not overwrite files that already exist unless the user explicitly confirms (re-run case).
+
 ### 5. Generate command files
 
-For each file in `templates/commands/`:
+**`repo_role: code` (default):** for each file in `templates/commands/`:
 
 1. Read the template file
 2. Substitute all stack values:
@@ -697,6 +748,8 @@ For each file in `templates/commands/`:
 
 3. Write the substituted file to `.claude/commands/` in the target project
 
+**`repo_role: coordination`:** `project.yml` has no `stack:` block to substitute from — do not attempt the substitution step above. Copy every file from `templates/commands/` to `.claude/commands/` verbatim, unchanged, `{{stack.*}}` tokens and all. Most commands a coordination repo invokes (`create-spec`, `create-design`, `review-design`, `status`, etc.) contain no such token at all. A few — `create-release-plan.md` is the notable one — do contain `{{stack.deploy.*}}` tokens, but only inside that file's single-repo-only Step 5 template; the coordination-repo path (Step 5b in that same file) never reads or executes that section, so the unsubstituted tokens sit there inert rather than causing a broken invocation. Implementation-phase commands (`implement-plan`, `execute-tests`, `execute-release`) also keep their tokens unsubstituted, for the more basic reason that a coordination repo has no code and no PLAN to ever run them against.
+
 ### 5b. Copy placeholder commands
 
 Copy all files from `placeholder-commands/` → `.claude/commands/` in the target project. These are ForgeKit utility commands (like `/update-arch`) that are stubs pending full implementation, copied directly rather than generated from templates.
@@ -704,6 +757,17 @@ Copy all files from `placeholder-commands/` → `.claude/commands/` in the targe
 Do not overwrite `.claude/commands/forge-init.md` if it already exists in the target — `/forge-init` is a ForgeKit command, not a pipeline command.
 
 ### 6. Create sdlc/ directory structure
+
+**If `repo_role: coordination`, this step is entirely different — skip the rest of this step and instead create:**
+
+- `sdlc/architecture/` — ARCH.md only, per "ARCH.md generation (coordination repo)" above
+- `sdlc/dependencies/` — copy the README from `templates/sdlc/dependencies/`. XDEP records live here, one file per cross-repo dependency, empty until a thread creates one — see `templates/reference/xdep-schema.md` for the schema.
+- `sdlc/scenarios/` — copy the README from `templates/sdlc/scenarios/`. Cross-repo E2E scenario definitions live here, empty until a thread creates one — same reference doc covers the scenario schema.
+- `sdlc/registry/` — master artifact index, same as any project
+
+No `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, `sdlc/test-plans/`, `sdlc/adr/`, etc. — a coordination repo organizes artifacts by **thread**, not by artifact type. `create-spec` creates `sdlc/THREAD-NNNN/` on demand for each new thread, containing that thread's SPEC/ANALYSIS/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN together — there is no flat, cross-thread `specs/` directory to pre-create. Any ADR a thread's `create-design` authors is thread-scoped too: `sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md`, created on demand the same way — never the flat `sdlc/adr/` a `repo_role: code` project uses, since an ADR about one thread's cross-repo contract has no meaning outside that thread. `SYSTEM-TEST-PLAN.md` (if the thread needs one — see `templates/reference/xdep-schema.md`) is thread-scoped the same way: `sdlc/THREAD-NNNN/SYSTEM-TEST-PLAN.md`, authored by that thread's `create-test-plan` run, not present for a thread whose dependencies are fully covered by contract-level verification.
+
+**For `repo_role: code` (greenfield/brownfield), proceed as below, unchanged:**
 
 Create the following directories in the target project, copying the README.md from each `templates/sdlc/` counterpart:
 
@@ -741,6 +805,7 @@ Show the user a full summary of what was created:
 > - `PIPELINE.md` — command reference and role guide
 > - `.claude/roles/` — N role files
 > - `.claude/commands/` — N pipeline commands + 1 placeholder command (`/update-arch`)
+> - `.claude/reference/` — N shared reference docs
 > - `sdlc/architecture/ARCH.md` — [approved by user]
 > - `sdlc/` — directory structure with READMEs
 >
@@ -759,18 +824,26 @@ Show the user a full summary of what was created:
 
 ## Quality gate
 
-**First-run:**
+**First-run (`repo_role: code` — greenfield/brownfield):**
 - [ ] project.yml written with no TBD values for fields the user answered (TBD only for fields explicitly marked unknown)
 - [ ] project.yml `external_tool:` block present if `artifact_mode` is `copy-paste` or `hybrid`; absent for markdown mode
 - [ ] CLAUDE.md ForgeKit block written or injected without losing existing content; no `<!-- IF ... -->` markers remain in the final file
 - [ ] PIPELINE.md copied to project root
 - [ ] ARCH.md approved by user — not just generated, explicitly approved
 - [ ] All role files copied
+- [ ] All reference docs copied to `.claude/reference/` — every command's `../reference/*.md` link depends on this, regardless of `repo_role`
 - [ ] All command files generated with stack values substituted (no unreplaced `{{placeholders}}` remaining)
 - [ ] All 17 `sdlc/` directories created with READMEs
 - [ ] Security findings (brownfield) recorded in ARCH.md
 - [ ] No existing files overwritten without user confirmation
 - [ ] If run bootstrap-style (target directory ≠ session's working directory), the directory-switch reminder was shown before the Next step message
+
+**First-run (`repo_role: coordination`):**
+- [ ] project.yml written with `repo_role: coordination` and no `stack:`/`compliance:` block present
+- [ ] ARCH.md generated per "ARCH.md generation (coordination repo)" — no Tech stack/Module layout/Data layer/Deployment/Authentication sections — and explicitly approved by the user
+- [ ] `sdlc/dependencies/`, `sdlc/scenarios/`, `sdlc/registry/`, `sdlc/architecture/` created — no `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, or other per-artifact-type directories
+- [ ] All role files and command files still copied — a coordination repo runs the full pipeline for its own SPEC/DESIGN/etc. authorship, it just has no stack to substitute into implementation-phase commands
+- [ ] All reference docs copied to `.claude/reference/` — `sdlc/dependencies/README.md` and `sdlc/scenarios/README.md` both link to them
 
 **Re-run mode — Option B (artifact mode):**
 - [ ] project.yml `artifact_mode` updated; `external_tool:` block added (hybrid/copy-paste) or removed (markdown) correctly

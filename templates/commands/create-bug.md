@@ -4,9 +4,11 @@ type: command
 name: /create-bug
 description: Quality Engineer command to file a defect report — capture reproduction steps, severity estimate, affected version, and linked artifacts; creates BUG-NNNN in reported status
 status: active
-version: 1
+version: 2
 primary_role: quality-engineer
 output_artifact_type: bug
+changelog:
+  - v2 — added an optional related_xdep field for a bug that's actually a cross-repo contract violation rather than a defect local to one repo.
 ---
 
 # /create-bug
@@ -45,6 +47,8 @@ Prompt the user for the following:
 > **Is this reproducible?** (always / intermittent / reproduced once)
 >
 > **Linked artifacts:** (SPEC-NNNN, PLAN-NNNN, or INC-NNNN if known — leave blank if unknown)
+>
+> **Related cross-repo dependency, if applicable:** (THREAD-NNNN-XDEP-NN — only if this defect is actually a contract violation between this repo and another participant, not a defect local to this repo's own code; leave blank otherwise)
 
 Severity estimate guidelines — the reporter's initial read; `/triage-bug` confirms:
 
@@ -82,6 +86,7 @@ reproducibility: [always | intermittent | once]
 linked_incident: [INC-NNNN | null]
 linked_spec: [SPEC-NNNN | null]
 linked_plan: [PLAN-NNNN | null]
+related_xdep: [THREAD-NNNN-XDEP-NN | null]
 fix_plan: null
 fix_milestone: null
 rejection_reason: null
@@ -124,6 +129,7 @@ generation:
 - Incident: [INC-NNNN | none]
 - Spec: [SPEC-NNNN | unknown]
 - Plan: [PLAN-NNNN | unknown]
+- Cross-repo dependency: [THREAD-NNNN-XDEP-NN | none]
 
 ## Triage
 
@@ -147,6 +153,7 @@ generation:
 - [ ] Severity estimate is provided with a one-line reason
 - [ ] Reproducibility field is set
 - [ ] All known linked artifacts recorded; unknown fields set to `null`
+- [ ] If this defect is actually a cross-repo contract violation, `related_xdep` names the specific XDEP rather than being left blank
 - [ ] `schema_version: 1` present in frontmatter
 - [ ] `generation` block present: command, command_version, model self-identified, generated_at set, session_id: null
 

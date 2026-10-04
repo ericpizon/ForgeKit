@@ -4,10 +4,11 @@ type: command
 name: /execute-tests
 description: QE command to run automated tests for a milestone's test cases — CI-first with local fallback; records results in PLAN-NNNN; QE classifies failures and routes to QE fix path (test code) or developer path (production code)
 status: active
-version: 2
+version: 3
 primary_role: quality-engineer
 changelog:
   - v2 — failure routing redesigned: QE classifies each failure as production code bug (test_failed → developer) or test code bug (QE fixes and reruns, no review cycle); mixed failures handled as a batch
+  - v3 — CI detection generalized from a hardcoded `.github/workflows/` check to `stack.ci_trigger_command`, a plain runnable command — the old check silently ran tests locally for any non-GitHub-Actions CI system instead of triggering it
 links:
   - relation: follows
     target: approve-implementation
@@ -49,15 +50,15 @@ Separate into two buckets:
 
 ## CI Detection
 
-Check whether `.github/workflows/` exists in the repository root.
+Read `project.yml`'s `stack.ci_trigger_command`. This is a plain runnable command, not an assumption about which CI system produced it — do not detect CI by checking for `.github/workflows/` specifically, since that only ever matches GitHub Actions and silently falls through to the Local Path for any other CI system (Jenkins, CircleCI, GitLab CI, etc.), running tests locally instead of actually triggering that repo's real pipeline.
 
-### CI Path (`.github/workflows/` exists)
+### CI Path (`stack.ci_trigger_command` is set and not `none`)
 
-1. Trigger the CI workflow for the current branch (via `gh workflow run` or by pushing to the feature branch)
-2. Stream CI output; wait for completion
+1. Run `stack.ci_trigger_command` for the current branch (e.g. `gh workflow run test.yml`, a Jenkins CLI invocation, or whatever the project's own CI needs to be triggered)
+2. Stream CI output if the command supports it; otherwise poll for completion via the project's own CI tooling
 3. Parse results: collect pass/fail per test case from the test runner output
 
-### Local Path (no `.github/workflows/`)
+### Local Path (`stack.ci_trigger_command` is `none` or unset)
 
 Run the project's unit and e2e test commands (from `project.yml` stack configuration):
 

@@ -34,9 +34,9 @@ You will push back on:
 
 ## What You Own
 
-**Author:** ANALYSIS; PLAN.
+**Author:** ANALYSIS; PLAN. For a repo participating in a cross-repo thread, PLAN resolves DESIGN/SEC/OBS from the coordination repo instead of local files, filters to only the tasks tagged for this repo, and tags any task satisfying a cross-repo dependency with `satisfies_xdeps` — independent of, and in addition to, whatever acceptance criteria that task also satisfies. Never resolve an XDEP's identity through an AC; ACs are traceability only. See [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md).
 
-**PLAN frontmatter to maintain:** The `pipeline_status` block in PLAN frontmatter is your snapshot of upstream artifact states at plan creation. Update `pipeline_status.plan: approved` when you run `/approve-plan`. Use `/status PLAN-NNNN` to orient after a session break — it reads only frontmatter and emits the full pipeline state and suggested next action. The `current_review_round` field tracks the latest review round; downstream commands navigate directly to it without scanning.
+**PLAN frontmatter to maintain:** The `pipeline_status` block in PLAN frontmatter is your snapshot of upstream artifact states at plan creation. Update `pipeline_status.plan: approved` when you run `/approve-plan`. Use `/status PLAN-NNNN` to orient after a session break — it reads only frontmatter and emits the full pipeline state and suggested next action; for a thread participant it also shows the Cross-Repo Contract's working/approved state and whether this repo is blocking or blocked on another participant. The `current_review_round` field tracks the latest review round; downstream commands navigate directly to it without scanning. A PLAN with an `inputs.cross_repo_contract` block is re-checked against the coordination repo's current approved revision at `review-plan`, `approve-plan`, `implement-plan`, and `review-implementation` — a stale PLAN blocks at each of those gates until re-derived.
 
 **Before implementation begins:** Confirm the Developer has run pre-flight checks from `/implement-plan` — TEST-NNNN `approved`, PLAN `approved`, milestone `pending`, all `depends_on_milestones` at `pr_merged`. Surface any blocker before starting, not mid-implementation.
 

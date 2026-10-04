@@ -4,8 +4,10 @@ type: command
 name: /reopen-design
 description: Architect command to reopen the design phase when a discovery invalidates the approved DESIGN — captures discovery record, runs impact analysis, updates pipeline_status
 status: active
-version: 1
+version: 2
 primary_role: architect
+changelog:
+  - v2 — added the coordination-repo path: a thread-wide DESIGN back-cycle flags every participant's own PLAN, not just one.
 ---
 
 # /reopen-design
@@ -34,11 +36,13 @@ Do not proceed without explicit confirmation.
 
 Read DESIGN-NNNN frontmatter. Note current `status`.
 
-Check the registry for downstream artifacts on this thread:
+**`repo_role: code` (default):** check the registry for downstream artifacts on this thread:
 - Does PLAN-NNNN exist? Read its `pipeline_status` and milestone statuses.
 - Does TEST-NNNN exist? What is its status?
 - Are any milestones `in_progress`?
 - Are there any open PRs in the registry?
+
+**`repo_role: coordination` (this DESIGN belongs to a cross-repo thread):** read `sdlc/THREAD-NNNN/thread.yml` for the participant list. For **every** participant, resolve its own PLAN-NNNN (if any) via [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md) — `pipeline_status`, milestone statuses, and open PRs. Also note whether this DESIGN's Cross-Repo Contract has any `approved` revision already relied on by a participant — reopening the DESIGN does not automatically retract an already-approved Interface Freeze (see Step 4 below).
 
 ### Step 2 — Discovery intake
 
@@ -73,6 +77,24 @@ Downstream artifacts:
 Note: the TPO should be informed that a design back-cycle is in progress.
 ```
 
+**`repo_role: coordination`:** replace the single `PLAN-NNNN` line with one row per participant, and add an explicit Cross-Repo Contract disposition — an already-approved Interface Freeze does not automatically retract just because something else in DESIGN reopens:
+
+```
+Downstream artifacts:
+  OBS-NNNN ([status]): [affected if observability design changes] | [not affected]
+  SEC-NNNN ([status]): [affected if security surface changes] | [not affected]
+  Participants:
+    transformer-service — PLAN-NNNN ([status]): pipeline_status.design will be updated to revision_requested
+    document-worker — PLAN-NNNN ([status]): pipeline_status.design will be updated to revision_requested
+  Cross-Repo Contract (approved rev [M], if any): [unaffected — the discovery doesn't touch any XDEP, stays approved]
+    | [affected — the discovery changes a dependency; bump working.revision and re-run the Interface Freeze
+       review before treating rev M as still current]
+  MN in_progress (any participant): [risk noted — discovery may affect ongoing implementation]
+  Open PRs (any participant): [warn if any found — must be reviewed after revision]
+
+Note: the TPO should be informed that a design back-cycle is in progress.
+```
+
 Then ask:
 
 > "This back-cycle will set DESIGN-NNNN to `revision_requested` and update PLAN's pipeline_status. Confirm to proceed."
@@ -94,6 +116,15 @@ After confirmation:
 **PLAN-NNNN frontmatter (if PLAN exists):**
 - Update `pipeline_status.design: revision_requested`
 
+**`repo_role: coordination` — every participant's PLAN-NNNN (if it exists):**
+- Update `pipeline_status.design: revision_requested` in each one
+- Apply directly if the participant repo is reachable as a working directory this session; otherwise hand off explicitly, naming the repo and field change
+- Record which outcome happened, per participant, in the Discovery Record's Blast radius line (`applied` or `handed off — pending confirmation`) — a hand-off that exists only in this session's chat output is invisible once the session ends. `/sync-registry` run later from the coordination repo can then catch a hand-off that never actually got carried out.
+
+**`repo_role: coordination` — Cross-Repo Contract disposition (per the Step 3 determination):**
+- If the discovery does not touch any XDEP: leave `cross_repo_contract.approved` untouched — it stays valid, and participants relying only on XDEPs may continue.
+- If the discovery does touch an XDEP: bump `cross_repo_contract.working.revision`, set `working.status: draft`, and note in the Discovery Record that the Interface Freeze must be re-reviewed before the new `approved` revision can be trusted — do not silently leave the old `approved` revision looking current while the underlying XDEP has actually changed.
+
 ### Step 5 — Discovery Record format
 
 Append to DESIGN-NNNN:
@@ -114,9 +145,10 @@ Append to DESIGN-NNNN:
 **Blast radius:**
 - OBS-NNNN: [affected / not affected — reason]
 - SEC-NNNN: [affected / not affected]
-- PLAN-NNNN: [affected / not affected]
+- PLAN-NNNN: [affected / not affected] *(repo_role: coordination — list every participant with its outcome: "transformer-service — applied", "document-worker — handed off, pending confirmation")*
 - TEST-NNNN: [affected / not affected]
 - MN in_progress: [risk noted / not affected — can continue]
+- Cross-Repo Contract *(repo_role: coordination only)*: [unaffected — approved rev [M] stands] | [affected — working.revision bumped, Interface Freeze re-review required before rev [M+1] can be trusted]
 
 **Status change:** DESIGN-NNNN `approved` → `revision_requested`
 ```
@@ -129,6 +161,8 @@ Before closing:
 - [ ] DESIGN-NNNN status set to `revision_requested`
 - [ ] `## Discovery — [date]` section appended to DESIGN-NNNN
 - [ ] PLAN-NNNN `pipeline_status.design` updated to `revision_requested` (if PLAN exists)
+- [ ] *(repo_role: coordination)* Every participant's PLAN-NNNN updated, applied directly or explicitly handed off — none silently skipped
+- [ ] *(repo_role: coordination)* Cross-Repo Contract disposition explicitly determined (unaffected vs. working.revision bumped) — never left ambiguous
 - [ ] DESIGN-NNNN `version` incremented, `updated` date current, changelog entry added
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
@@ -144,3 +178,5 @@ Before closing:
 > 4. Assess PLAN impact: run `/review-plan PLAN-NNNN SPEC-NNNN DESIGN-NNNN` to determine whether tasks or milestones need revision. If yes: begin the address-plan-review → approve-plan cycle. TEST-NNNN may also need `/address-test-plan-review TEST-NNNN` if task scope changed.
 >
 > Inform the TPO and Lead Developer that a design back-cycle is in progress.
+>
+> **`repo_role: coordination`:** inform every participant's Lead Developer, not just one. If the Cross-Repo Contract was affected, run `/approve-design DESIGN-NNNN interface-freeze` again once the new working revision clears `/review-design`'s Cross-Repo Contract Review — no participant should treat the prior `approved` revision as current in the meantime.

@@ -4,11 +4,14 @@ type: command
 name: /review-spec
 description: Lead Developer command to review a SPEC for scope coherence, completeness, ambiguity, risk, and implementation feasibility; produces ANALYSIS-NNNN
 status: active
-version: 4
+version: 6
 primary_role: lead-developer
 reviewing_roles:
   - security
 output_artifact_type: analysis
+changelog:
+  - v6 — Output Contract now requires every finding to carry a bracketed, role-prefixed ID ([LD-N]/[QE-N]/[SEC-N]/[SC-N]), matching every other review command and resolving a contradiction with revise-spec.md's prior "no numeric IDs" instruction.
+  - v5 — added a coordination-repo check: the Lead Developer perspective reads ARCH.md from every thread participant (not one) when reviewing a coordination-repo SPEC.
 ---
 
 # /review-spec
@@ -23,6 +26,12 @@ Review a SPEC for completeness, internal consistency, ambiguity, and implementat
 - After `/revise-spec` revises the SPEC (next review round)
 
 Pass the SPEC ID: `/review-spec SPEC-NNNN`.
+
+## Pre-flight — Coordination repo check
+
+Read `project.yml`'s `repo_role`. This step applies only when it's `coordination`; for `repo_role: code` (the default), skip straight to "On Re-Review" / "Steps" below — nothing changes.
+
+**If `repo_role: coordination`:** SPEC-NNNN describes a cross-repo thread, so "implementation feasibility relative to the project's actual stack" has no single answer — re-resolve every entry in SPEC-NNNN's own `inputs.architecture` list (per [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md)) rather than reading a single local ARCH.md. Carry the same list forward as an `inputs.architecture` entry in ANALYSIS-NNNN frontmatter. The Lead Developer Perspective's feasibility check (below) is assessed against every participant's stack — a goal or NFR only infeasible for one participant is still a feasibility finding.
 
 ## On Re-Review
 
@@ -40,7 +49,7 @@ Run all three perspectives in sequence. The combined verdict is produced after a
 
 ### Lead Developer Perspective
 
-Adopt the Lead Developer role as defined in `.claude/roles/lead-developer.md`. Read ARCH.md before assessing feasibility — implementation feasibility is relative to the project's actual stack, not a generic baseline.
+Adopt the Lead Developer role as defined in `.claude/roles/lead-developer.md`. Read ARCH.md before assessing feasibility — implementation feasibility is relative to the project's actual stack, not a generic baseline. For a coordination-repo thread, this means every participant's ARCH.md (see Pre-flight above), not one.
 
 **Before reviewing content — check section presence:**
 Verify all required sections exist in SPEC-NNNN: Problem Statement, Goals, Non-Goals, User Stories, Acceptance Criteria, Non-Functional Requirements, Constraints & Assumptions, Security Considerations, Observability Considerations, Open Questions. A missing section is a blocking finding — do not proceed with content review for that area until the section exists.
@@ -96,6 +105,8 @@ Adopt the Security role as defined in `.claude/roles/security.md`. Assess the `s
 ## Output Contract
 
 Append an `## Analysis Round N` section to ANALYSIS-NNNN (create the file on Round 1). Each round section contains: Completeness Assessment, Ambiguities & Open Questions, Risk Flags, Security Review Trigger Assessment (with checklist), Readiness Verdict. Optional: Suggested Spec Revisions (if `needs_revision`).
+
+Every finding (Scope Coherence, Completeness, Ambiguity, Risk Flag, QE, Security — any item raised in any perspective) must carry a bracketed, role-prefixed, per-round-numbered ID: `[LD-N]` for Lead Developer findings, `[QE-N]` for Quality Engineer findings, `[SEC-N]` for Security findings, `[SC-N]` for Scope Coherence findings. Number each prefix independently starting at 1 within each round (a new round restarts numbering). This matches the ID convention used by every other review command in the pipeline (`review-design.md`, `review-plan.md`, etc.) and is required so `/revise-spec` and later `/review-spec` rounds can reference findings unambiguously.
 
 Update ANALYSIS-NNNN frontmatter each round: `readiness_verdict` (`ready` | `needs_revision`); `security_review_required` (`yes` | `no`); `target_spec_version`. On Round 1 creation: also initialize a `generation` block — `command: /review-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context], `generated_at: [today's date]`, `session_id: null` — and set `schema_version: 1` in ANALYSIS frontmatter. Do not update `generation` or `schema_version` on re-reviews.
 

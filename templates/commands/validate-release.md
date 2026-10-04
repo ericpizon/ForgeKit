@@ -4,8 +4,10 @@ type: command
 name: /validate-release
 description: SRE + QE command to validate the deployed release in production — derived smoke tests, manual test cases deferred from testing phase, and OBS signal validation
 status: active
-version: 2
+version: 3
 primary_role: sre
+changelog:
+  - v3 — added Track 4, cross-repo scenario evidence consumption for a thread release: resolves evidence from each required scenario's execution binding and checks it against the eligibility rule, rather than execute-tests producing it locally.
 ---
 
 # /validate-release
@@ -107,9 +109,31 @@ validation_status: validated_at_release
 
 ---
 
+## Track 4 — Cross-Repo Scenario Evidence (thread releases only)
+
+*(Only if the thread's RELEASE-PLAN-vX.Y.Z-{environment}.md has a Required cross-repo evidence section.)* Unlike Tracks 1–3, this track is not run redundantly by every participant against their own deployment — `system.feature_verification` is a thread-level field, not a per-participant one (the same split as `deployment_ready` vs `deployment`), so this track runs once, after every participant that a required scenario depends on has completed its own Tracks 1–3. Run it from the coordination repo (or by whichever role owns coordination for this thread, per `approve-release-plan`'s `coordination` approver), resolving and writing back to `sdlc/THREAD-NNNN/RELEASE-PLAN-vX.Y.Z-{environment}.md` directly rather than a local RELEASE-PLAN file.
+
+This track consumes evidence — it never executes anything itself. Execution is bound to an external system (per [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md)); `execute-tests` never produces this evidence locally, and a participant's own `execute-tests` run never decides a scenario's result.
+
+For each required scenario:
+
+1. Resolve the evidence record from the scenario's execution binding.
+2. Check it against the eligibility rule — a `PASS` only satisfies this release if **all** of the following hold, not merely "a recent PASS exists for this scenario ID":
+   - Right scenario (ref-pinned to the current scenario definition)
+   - Right test implementation (ref-pinned)
+   - Right service revisions (the evidence's `revision_set` matches the actual candidate/deployed set for this release, not an older or unrelated cohort)
+   - Right `target_environment`
+   - Occurred *after* the deployment prerequisites it depends on became effective (a 9am nightly `PASS` does not satisfy an 11:30am release gate if the required services deployed at 11:00–11:30)
+3. Record the result: `PASS` (eligible), `FAIL` (the system behaved incorrectly), `BLOCKED_ENVIRONMENT` (a required dependency wasn't ready), or `ERROR` (the execution mechanism itself failed — harness crash, runner failure, credential/platform unavailability). Anything but an eligible `PASS` is unsatisfied for gating purposes, but the specific reason stays visible rather than collapsing into a generic failure.
+4. A scenario evidenced only by an ineligible `PASS` (wrong revision set, stale timing, etc.) is treated the same as no evidence at all — do not let a technically-existing `PASS` substitute for one that actually covers this release.
+
+Update the thread's RELEASE-PLAN `system.feature_verification` field once every required scenario has eligible evidence: `passed`. If any scenario is `quarantined` (an explicit accepted risk with a named approver and revisit condition, per `templates/sdlc/scenarios/README.md`), it does not block — record it as such rather than treating the gate as satisfied.
+
+---
+
 ## Record Validation Results
 
-Update `RELEASE-PLAN-vX.Y.Z.md` Validation Results section:
+Update `RELEASE-PLAN-vX.Y.Z.md` (this repo's own local RELEASE-PLAN — or, for a thread participant, that repo's own state; Tracks 1–3 are always local, never written to the coordination repo) Validation Results section:
 
 ```markdown
 ## Validation Results
@@ -119,6 +143,18 @@ Update `RELEASE-PLAN-vX.Y.Z.md` Validation Results section:
 - OBS signal validation: validated | partial (structured logs confirmed; telemetry export not configured) — [date]
 - Validated at: [timestamp]
 ```
+
+**Track 4 only (run from the coordination repo, per Track 4 above):** update `sdlc/THREAD-NNNN/RELEASE-PLAN-vX.Y.Z-{environment}.md`'s own Validation Results section instead — a separate file from any participant's local one:
+
+```markdown
+## Validation Results
+
+- Cross-repo scenario evidence: N eligible, M ineligible/missing — [date]
+- Feature verification: passed | pending (see system.feature_verification)
+- Validated at: [timestamp]
+```
+
+**Thread participants (Tracks 1–3):** after recording locally, also update this repo's own row in the coordination repo's Participants table — `deployment_validation: passed` (or the specific failure) — the same propagation `execute-release` already does for `deployment: complete`. This is what lets Track 4 (and `generate-release-notes`) confirm every participant's own validation passed without re-deriving it.
 
 ---
 
@@ -138,6 +174,10 @@ Record the failure, note it as a known gap, and proceed. Document in `/generate-
 ### OBS signals not visible — exporter not configured
 
 Not a failure. Record as: "Structured logs confirmed in production logs. Metric/trace export requires telemetry exporter to be configured." Proceed.
+
+### Required cross-repo scenario evidence missing, ineligible, or FAIL
+
+Treat the same as a smoke test failure — stop immediately, do not proceed to `/generate-release-notes`. A `FAIL` means the system behaved incorrectly across the actual composition of services; missing or ineligible evidence means the gate cannot be evaluated at all, which is not the same as passing. `BLOCKED_ENVIRONMENT` or `ERROR` results need investigation before re-running — they are not automatically failures of the feature itself, but they are not passes either. A `quarantined` scenario with documented accepted risk does not block.
 
 ---
 

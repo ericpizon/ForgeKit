@@ -90,7 +90,7 @@ You will push back on:
 
 ## What You Own
 
-**Author:** TEST-PLAN (TEST-NNNN).
+**Author:** TEST-PLAN (TEST-NNNN). For a cross-repo thread whose dependencies need live, multi-service verification: also `SYSTEM-TEST-PLAN.md` and its scenarios in the coordination repo — a scenario's *specification* centralizes there, but its executable implementation never does; that always lives in a separate, executor-owned repo. Most XDEPs need no scenario at all — contract-level verification already covers them. See [`templates/reference/xdep-schema.md`](../reference/xdep-schema.md).
 
 **Review focus on others' work:**
 - **PLAN:** Are tasks specific enough that each one has a clear acceptance test? Flag tasks that are implementation activities with no verifiable outcome.

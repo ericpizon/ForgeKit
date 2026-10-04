@@ -4,11 +4,13 @@ type: command
 name: /review-release-plan
 description: Lead Developer + Security + QE inline review of RELEASE-PLAN — scope accuracy, security resolution, and validation readiness; appends review round directly to RELEASE-PLAN
 status: active
-version: 2
+version: 3
 primary_role: lead-developer
 reviewing_roles:
   - security
   - quality-engineer
+changelog:
+  - v3 — added a coordination-repo path: reads every participant's PLAN/TEST-NNNN, and validates or overrides the proposed deployment/rollback wave ordering per participant/XDEP rather than accepting the derived order automatically.
 ---
 
 # /review-release-plan
@@ -22,6 +24,17 @@ Review the RELEASE-PLAN from three perspectives: Lead Developer (scope accuracy,
 ```
 /review-release-plan RELEASE-PLAN-vX.Y.Z
 ```
+
+## Pre-flight — Coordination repo check
+
+Read `project.yml`'s `repo_role`. This step applies only when it's `coordination` and RELEASE-PLAN-vX.Y.Z-{environment}.md is a thread-wide release; for `repo_role: code`, skip — nothing changes.
+
+**If `repo_role: coordination`:** resolve every participant's PLAN-NNNN and TEST-NNNN, and the shared SEC/OBS findings scoped to this release, via [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md) — the same "read every participant, not one" extension already applied in `create-design`/`create-plan`. Each perspective below runs once per participant where its checks are participant-scoped (e.g. rollback plan viability), and once at the thread level where they're system-scoped (e.g. deployment wave ordering).
+
+**Deployment/rollback wave ordering (new check, thread releases only).** The Lead Developer must explicitly validate or override the Deployment wave order and Rollback plan sections `create-release-plan` derived — the derived order is a *proposal*, never accepted automatically:
+- Confirm the wave order actually reflects real `deployment`-kind XDEP constraints, not an artifact of file ordering.
+- For the rollback plan's reverse-wave default: for each participant/XDEP, confirm reverse rollback is actually safe (schema changes in particular — a forward-only migration must be named explicitly as an exception, never silently reverse-rolled-back). An unexamined reverse-wave default for a participant with a forward-only migration is a **blocking** finding.
+- If the org has real cross-repo deployment orchestration (Argo CD, Spinnaker, Harness, etc.), confirm the derived order was actually translated into that tool's own configuration rather than left as a document nobody consumes — non-blocking if unconfirmed, but worth naming explicitly either way.
 
 ## On Re-Review
 
@@ -59,6 +72,7 @@ Adopt the Quality Engineer role (`.claude/roles/quality-engineer.md`). Read TEST
 - **OBS signal adequacy:** the Validation Plan must include at least one OBS verification step per primary signal. A plan with no OBS validation step is **non-blocking** on low-risk deployments; **blocking** on first production deployment or High migration risk.
 - **Rollback trigger definition:** the Rollback Plan section must name a specific, observable trigger condition — not just "if something breaks." An unobservable trigger is a **non-blocking** finding.
 - **Known-issues completeness:** if known issues are listed, each must state an owner and a target resolution date or milestone. An open known issue with no owner is a **non-blocking** finding.
+- **Required cross-repo evidence (thread releases only):** for each scenario in the Required cross-repo evidence section, confirm its execution binding and triggers are actually configured (not just declared) — a scenario listed as `required: release` with no real trigger wired up is a **blocking** finding, since `validate-release` will have nothing eligible to consume.
 
 ## Review Output
 

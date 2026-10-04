@@ -4,7 +4,7 @@ type: command
 name: /address-design-review
 description: Architect command to address findings from DESIGN review sections and prepare the DESIGN for re-review or approval
 status: active
-version: 2
+version: 3
 primary_role: architect
 output_artifact_type: design (revised)
 links:
@@ -14,6 +14,8 @@ links:
     target: review-design
   - relation: relates_to
     target: approve-design
+changelog:
+  - v3 — finding list, Address Summary example, and Handoff text now account for Options Analysis Review (runs every round, not just coordination threads) and Cross-Repo Contract Review, which review-design.md had grown to include but this command's own text still only named the original four perspectives.
 ---
 
 # /address-design-review
@@ -40,7 +42,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
 
    If `current_review_round` is 0 or no review section exists yet — the review has not been run. Run `/review-design SPEC-NNNN DESIGN-NNNN` first.
 
-2. **List every finding by perspective** (DBA, Security, SRE, Lead Developer) and blocking status before making any changes.
+2. **List every finding by perspective** — DBA, Security, SRE, Lead Developer, Options Analysis (every thread), and Cross-Repo Contract Review (coordination-repo threads only) — and blocking status before making any changes.
 
 3. **Triage.** Separate into three buckets:
    - **Must resolve now:** blocking findings from any perspective
@@ -66,6 +68,8 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
    ### Addressed
    - [DBA-1] — [what was changed in DESIGN to resolve this]
    - [SEC-1] — [what was changed]
+   - [OPT-1] — [what was changed, e.g. a different option adopted or the recommendation re-justified]
+   - [XDEP-1] — [what was changed in the Cross-Repo Contract, coordination-repo threads only]
 
    ### Not Addressed
    - [SRE-1] — **accepted risk** — [rationale]
@@ -105,4 +109,4 @@ Re-read the DESIGN with fresh eyes. Does the revised DESIGN still make sense as 
 **Run the next review round:**
 → Tell the user: "Run `/review-design SPEC-NNNN DESIGN-NNNN` for the next review round."
 
-`/review-design` reads the updated DESIGN and the address summary, runs all four perspectives against the revision, and produces a new `## Design Review — Round N+1` section. The cycle repeats until the review is clean, at which point `/approve-design` handles the single commit for the entire stage.
+`/review-design` reads the updated DESIGN and the address summary, runs all perspectives that apply this round (DBA, Security, SRE, Lead Developer, Options Analysis always; Cross-Repo Contract Review for coordination-repo threads) against the revision, and produces a new `## Design Review — Round N+1` section. The cycle repeats until the review is clean, at which point `/approve-design` handles the single commit for the entire stage.
