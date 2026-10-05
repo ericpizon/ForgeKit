@@ -4,10 +4,11 @@ type: command
 name: /create-spec
 description: TPO command to author a SPEC artifact from a problem description or Postmortem action item
 status: active
-version: 2
+version: 3
 primary_role: tpo
 output_artifact_type: spec
 changelog:
+  - v3 — frontmatter initialization now includes `changelog: []`, which approve-spec.md and revise-spec.md both already assumed existed and appended to on every version bump. Same gap class as ARCH.md.template (changelog) and create-plan.md/create-test-plan.md (updated), caught during SPEC-0001's own first real /approve-spec run.
   - v2 — added the coordination-repo path (`repo_role: coordination`): declares thread participants, allocates THREAD-NNNN, writes thread.yml, and outputs SPEC.md under sdlc/THREAD-NNNN/ instead of sdlc/specs/. No change for repo_role: code.
 ---
 
@@ -85,7 +86,7 @@ Do not proceed to Step 1 until both answers are provided. If the user says "I'll
 
 The produced SPEC must contain all of the following Required Sections: Problem Statement, Background (if needed), Goals, Non-Goals, User Stories, Acceptance Criteria, Non-Functional Requirements, Constraints & Assumptions, Security Considerations, Observability Considerations, Open Questions.
 
-Frontmatter must include: `id`, `type: spec`, `schema_version: 1`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`, `session_id: null`). For a `repo_role: coordination` thread, frontmatter also includes `thread: THREAD-NNNN` and an `inputs.architecture` list (one entry per participant ARCH.md read).
+Frontmatter must include: `id`, `type: spec`, `schema_version: 1`, `title`, `status: draft`, `created`, `updated`, `version: 1`, `changelog: []` (`approve-spec.md` and `revise-spec.md` both append entries to this on every version bump; it must exist from creation, not be added ad hoc at first approval), `owner`, `priority`, `stakeholders`, `links: []`, `generation` block (`command: /create-spec`, `command_version: [use version from this command's frontmatter]`, `model` [self-identify from system context — e.g., claude-sonnet-4-6], `generated_at: [today's date]`, `session_id: null`). For a `repo_role: coordination` thread, frontmatter also includes `thread: THREAD-NNNN` and an `inputs.architecture` list (one entry per participant ARCH.md read).
 
 ## Quality Gate
 
@@ -100,6 +101,7 @@ Before handing off to `/review-spec`:
 - [ ] `security_review_required` self-assessment is present and reasoned
 - [ ] No open question is so fundamental it could change a Goal or Non-Goal if answered differently
 - [ ] `schema_version: 1` present in frontmatter
+- [ ] `changelog: []` present in frontmatter
 - [ ] `generation` block present: command, command_version, model self-identified, generated_at set to today's date, session_id: null
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
