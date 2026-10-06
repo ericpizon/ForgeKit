@@ -229,10 +229,35 @@ Executed by: /execute-tests PLAN-0001 M3 TEST-0001
 
 ### M4 — Single-Repo → Cross-Repo Promotion (G3)
 **Tasks:** T8, T9, T16, T19b, T20
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC8, AC9, AC10, AC11, AC12 (full)
 **Depends on:** M1 only. *(Corrected per Round 1's `[SRE-1]`: T8's own AC8 logic already has a reactive fallback for `coordination_repo` being unset — it asks and persists at that point rather than requiring M3 deployed first. M4 needs M3's logic to exist *eventually*, not *first*; this is not a hard deployment-ordering dependency.)*
 **Rollback:** Safe — `/promote-to-thread` and `/status`'s new detection branch are both purely additive; a SPEC with no `pending_promotion`/`status: promoted` field behaves exactly as today.
+
+### Test Execution — Round 1
+Date: 2026-10-06
+Mode: local (scenario-based, per TEST-0001's own Test Strategy — scripted walkthroughs of `promote-to-thread.md`/`status.md`'s actual text against two disposable fixture repos: a promoting `repo_role: code` repo and a `repo_role: coordination` repo, exercised as a real two-repo interaction, not a single-repo simulation)
+Executed by: /execute-tests PLAN-0001 M4 TEST-0001
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-19 | P0 | PASS | `coordination_repo` already set in `project.yml`: reused without asking. |
+| TC-FUNC-20 | P1 | PASS | `coordination_repo` unset: asked reactively, persisted — confirmed in the **same commit** as `pending_promotion` (`git show --stat` on the actual fixture commit). |
+| TC-FUNC-21 | P0 | PASS | SPEC in `status: draft`: `THREAD-0100` minted, `pending_promotion` committed in the promoting repo (real git SHA `8e1865e`) while the coordination repo's `sdlc/` was still confirmed empty via `ls` — the D4 ordering invariant checked concretely, not just asserted. `thread.yml` written listing the participant. |
+| TC-FUNC-22 | P0 | PASS | SPEC in `status: approved` (`SPEC-TC22`): same mechanism succeeded — `THREAD-0101` minted, `thread.yml` written, finalized to `promoted`. |
+| TC-FUNC-23 | P1 | PASS | Re-invoking on an already-`promoted` SPEC (`SPEC-TC22`): Step 0 no-op, reported existing `THREAD-0101`; confirmed via directory listing that no `THREAD-0102` was minted. |
+| TC-FUNC-24 | P1 | PASS | Re-invoking after `pending_promotion` was committed but before any coordination-repo write: resumed from Step 2 without minting a second `THREAD-0100`. |
+| TC-FUNC-25 | P0 | PASS | Prior ANALYSIS Round 1 finding `[LD-1]` re-examined and recorded as **invalidated by the newly-discovered scope**, with reasoning — not a blanket restart or silent carry-forward — in the copied `THREAD-0100/ANALYSIS.md`'s new `## Promotion Disposition` section. |
+| TC-FUNC-26 | P0 | PASS | Original `SPEC-TC21` file confirmed still on disk (`ls`), `status: promoted`, `superseded_by: THREAD-0100`. |
+| TC-FUNC-27 | P0 | PASS | `/status SPEC-TC22` (promoted): reports the promotion and names `THREAD-0101`. |
+| TC-FUNC-28 | P1 | PASS | `/status SPEC-TC28` (`pending_promotion` set, `status: draft`): reports "promotion in progress — resume via `/promote-to-thread`," distinct from both the plain-draft and promoted-redirect reports. |
+| TC-ADR-0001-01 | P0 | PASS | The specific interruption point ADR-0001 exists to make safe — `pending_promotion` committed, zero coordination-repo writes yet — was reproduced concretely (verified via `ls` on the coordination fixture immediately after the promoting-repo commit) and resumed correctly without a duplicate mint. |
+| TC-OBS-promote_to_thread_outcome-01 | P1 | PASS | `interrupted` logged by the resuming invocation upon discovering `pending_promotion`; `resumed_and_completed` (not plain `completed`) logged separately at that same run's own Step 7 — both recorded in sequence in the fixture's observability log. |
+| TC-SEC-SEC3-01 | P2 | PASS *(now fully complete — M3 covered `/forge-init`, this completes `/promote-to-thread`)* | `acme.platform//context` verified via direct regex test to fail the `org/repo` pattern; rejected and re-prompted; `acme/platform-context` verified to pass and was then persisted. |
+| TC-EDGE-2 | P2 | PASS | SPEC in `status: revision_requested` (mid-`/reopen-spec`): Step 0 refused cleanly before Step 1 ever ran; frontmatter confirmed unchanged — no `pending_promotion`/`status` corruption. |
+
+**P0 results:** 7 passed, 0 failed (TC-FUNC-19, 21, 22, 25, 26, 27, TC-ADR-0001-01)
+**P1+ results:** 7 passed, 0 failed, 0 deferred-to-release
 
 ### M5 — Proportional Environment Governance (G4)
 **Tasks:** T10
