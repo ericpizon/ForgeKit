@@ -203,10 +203,29 @@ Executed by: /execute-tests PLAN-0001 M2 TEST-0001
 
 ### M3 — Durable Coordination-Repo Context (G2)
 **Tasks:** T6, T7, T19a
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC5, AC6, AC7 (full)
 **Depends on:** M1
 **Rollback:** Safe — the new `forge-init` question defaults to "not yet" (unset); `SYSTEM-ARCH.md` regeneration only fires when an XDEP reaches `active`, and its own failure mode is already fail-open by design.
+
+### Test Execution — Round 1
+Date: 2026-10-06
+Mode: local (scenario-based, per TEST-0001's own Test Strategy — scripted walkthroughs of `forge-init.md`/`approve-design.md`'s actual text against disposable fixture repos: one `repo_role: coordination` fixture for TC-FUNC-14/15/16 and TC-ADR-0002-01, one `repo_role: code` fixture for TC-FUNC-17/18 and TC-SEC-SEC3-01)
+Executed by: /execute-tests PLAN-0001 M3 TEST-0001
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-14 | P0 | PASS | `known_participants`/`environments` added to a coordination repo's `project.yml`; parsed cleanly via `npx js-yaml` — genuine schema-acceptance check, not just eyeballed. |
+| TC-FUNC-14b | P2 | deferred-to-release | Manual — cross-suite confirmation that no other command's behavior silently changes because of these fields' presence; not a single automatable assertion. |
+| TC-FUNC-15 | P0 | PASS | Interface Freeze with 2 new `active` XDEPs: `SYSTEM-ARCH.md`'s Dependency Map regenerated wholesale, `dependency_map_generated_at` advanced, prior hand-edited content replaced entirely. |
+| TC-FUNC-16 | P1 | PASS | A third, deliberately malformed XDEP file (confirmed via a real YAML parse failure) triggered a logged warning; regeneration proceeded with the 2 valid XDEPs; Interface Freeze approval was not blocked. |
+| TC-FUNC-17 | P0 | PASS | `repo_role: code` fixture, Phase 2b answered with `acme/platform-context`: `coordination_repo` recorded in `project.yml`. |
+| TC-FUNC-18 | P2 | PASS | Phase 2b answered "not yet": `coordination_repo` key entirely absent; confirmed (via grep across `forge-init.md`) the question appears only in Phase 2b, Option C, and Full redo — never any other re-run path. |
+| TC-ADR-0002-01 | P1 | PASS | The pre-existing hand-edited "HAND-EDITED STALE ENTRY" row is confirmed absent from the regenerated Dependency Map — proving the section is genuinely derived, not incrementally preserving manual edits. |
+| TC-SEC-SEC3-01 | P2 | PASS *(partial — M3 scope)* | A pasted URL (`https://github.com/acme/platform-context`) verified to fail the `org/repo` pattern via direct regex test; rejected and re-prompted; corrected answer (`acme/platform-context`) verified to pass and was then written. `/promote-to-thread`'s reactive-equivalent portion re-runs at M4 (doesn't exist yet). |
+
+**P0 results:** 3 passed, 0 failed (TC-FUNC-14, 15, 17)
+**P1+ results:** 4 passed, 0 failed, 1 deferred-to-release (TC-FUNC-14b)
 
 ### M4 — Single-Repo → Cross-Repo Promotion (G3)
 **Tasks:** T8, T9, T16, T19b, T20
