@@ -4,9 +4,11 @@ type: command
 name: /address-test-plan-review
 description: Quality Engineer command to address findings from TEST-PLAN review sections and prepare for re-review or approval
 status: active
-version: 1
+version: 2
 primary_role: quality-engineer
 output_artifact_type: test-plan (revised)
+changelog:
+  - v2 — the zero-blocking exit path no longer bypasses disposition of a new non-blocking finding from a re-review round; it now appends a minimal Address Summary before handing off to /approve-test-plan, which already required every non-blocking finding to carry a documented disposition. Same gap class, and same fix, as address-plan-review.md v2 and address-design-review.md's non-blocking handling — found when TEST-0001's own Round 2 actually hit it.
 links:
   - relation: relates_to
     target: create-test-plan
@@ -38,7 +40,9 @@ Pass the TEST-PLAN ID: `/address-test-plan-review TEST-0001`.
 
 Adopt the Quality Engineer role. Apply the perspective and stack knowledge from [`.claude/roles/quality-engineer.md`](.claude/roles/quality-engineer.md) throughout these steps — particularly the test case format conventions and the quality bar for security and observability coverage.
 
-1. **Read `current_review_round` from TEST-NNNN frontmatter.** Navigate directly to `## Test Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings — there is nothing to address. **Exit here.** Trigger `/approve-test-plan TEST-NNNN`. Do not modify anything.
+1. **Read `current_review_round` from TEST-NNNN frontmatter.** Navigate directly to `## Test Plan Review — Round {current_review_round}` — do not scan for it. If the status shows zero blocking findings:
+   - If every non-blocking finding in this round already has a disposition recorded in a prior `## Address Summary` (true on a first clean round with no findings at all) — there is nothing to address. **Exit here.** Trigger `/approve-test-plan TEST-NNNN`. Do not modify anything.
+   - If this round contains any non-blocking finding with no recorded disposition yet (a re-review round can legitimately surface a new one even with zero blocking findings) — do not exit yet. Append a minimal `## Address Summary — Round N` containing only a `### Not Addressed` list, with each new non-blocking finding marked `accepted` (Step 5's default-acceptance rule applies here too — only mark otherwise if the user has explicitly requested addressing it). Then trigger `/approve-test-plan TEST-NNNN`. `/approve-test-plan`'s own gate requires every non-blocking finding to carry a documented disposition — this is what satisfies it without forcing a full address-and-re-review round-trip over a trivial finding.
 
    If `current_review_round` is 0 or no review section exists yet — run `/review-test-plan` first.
 
