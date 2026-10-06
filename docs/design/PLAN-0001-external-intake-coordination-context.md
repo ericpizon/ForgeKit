@@ -147,7 +147,7 @@ No database, no infrastructure — "sequencing" here means: shared mechanisms be
 
 ### M1 — Foundation: Shared Mechanics & Directory Scaffolding
 **Tasks:** T1, T2, T3
-**Implementation status:** tests_passed
+**Implementation status:** pr_merged
 **AC Coverage:** supports AC1, AC2, AC4, AC5, AC13–AC16 (no standalone AC — pure foundation)
 **Depends on:** —
 **Rollback:** Safe — no command behavior changes yet; this milestone only adds a new reference doc and two new directory READMEs.
