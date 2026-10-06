@@ -4,9 +4,10 @@ type: command
 name: /execute-tests
 description: QE command to run automated tests for a milestone's test cases — CI-first with local fallback; records results in PLAN-NNNN; QE classifies failures and routes to QE fix path (test code) or developer path (production code)
 status: active
-version: 3
+version: 4
 primary_role: quality-engineer
 changelog:
+  - v4 — Test Case Identification now also pulls in TC-OBS-*/TC-SEC-*/TC-ADR-* cases by cross-referencing MN's observability/security tasks against the signal/finding ID each test case names, since these carry no AC at all and filtering only by the AC Coverage Map silently never executed them at any milestone; and now also pulls in Edge/Alternate-path cases that cite an in-scope AC only in prose, with no row in the formal table. Caught running `/execute-tests PLAN-0001 M2 TEST-0001` — M2 has OBS/SEC tasks (T13-T15, T17-T18a) and TEST-0001 has a `TC-EDGE-1` citing AC2 only in prose, both of which the old table-only filter would have skipped entirely at every milestone.
   - v2 — failure routing redesigned: QE classifies each failure as production code bug (test_failed → developer) or test code bug (QE fixes and reruns, no review cycle); mixed failures handled as a batch
   - v3 — CI detection generalized from a hardcoded `.github/workflows/` check to `stack.ci_trigger_command`, a plain runnable command — the old check silently ran tests locally for any non-GitHub-Actions CI system instead of triggering it
 links:
@@ -40,9 +41,13 @@ Read PLAN-NNNN milestone MN's `**Implementation status:**`.
 
 ## Test Case Identification
 
-Read TEST-NNNN. Filter to test cases whose ACs map to MN's `**AC Coverage:**` field.
+Read TEST-NNNN. Two independent sources feed MN's test scope — a TEST-NNNN with only an AC Coverage Map (no OBS/SEC/ADR sections) only ever has the first:
 
-Separate into two buckets:
+1. **AC-mapped cases:** test cases whose ACs appear in MN's `**AC Coverage:**` field (per TEST-NNNN's AC Coverage Map).
+2. **Task-sourced cases** (`TC-OBS-*`, `TC-SEC-*`, `TC-ADR-*`): these are not tied to an AC at all — they're tied to an OBS-NNNN signal, a SEC-NNNN finding, or an ADR, named directly in their own test case title or description (e.g. `TC-OBS-source_work_intake_result-01` ↔ OBS-0001's `source_work.intake_result` signal; `TC-SEC-SEC1-01` ↔ SEC-0001's SEC-1). Cross-reference against MN's own task list in PLAN-NNNN: an `observability`/`security` task whose description cites a signal or finding ID pulls in every test case naming that same ID. A test case naming a command MN's tasks don't touch (e.g. a `/promote-to-thread` signal when MN only modifies `/create-spec`) is out of scope for MN even if the signal/finding ID itself is in TEST-NNNN. **Filtering only by the AC Coverage Map misses this entire category — OBS/SEC/ADR test cases carry no AC at all, so a milestone with observability or security tasks and no corresponding AC-mapped case for them would otherwise never get these tests executed at any milestone.**
+3. **Edge/Alternate-path cases that cite an in-scope AC only in prose**, not in the formal AC Coverage Map table (e.g. a `TC-EDGE-N` whose description says "confirm AC2's gate still fires correctly" for a variant input, with no corresponding row in the table). Scan the Edge Cases and Alternate Path sections for any case naming an AC that is in MN's `**AC Coverage:**` field — include it even though the table itself doesn't list it there.
+
+Separate the combined set into two buckets:
 
 **Automated** (`execution: automated`) — run these.
 

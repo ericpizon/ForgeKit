@@ -164,10 +164,42 @@ TEST-0001's own AC Coverage Map states explicitly: "M1 — Foundation: No ACs of
 
 ### M2 — External Work Intake (G1)
 **Tasks:** T4, T5, T13, T14, T15, T17, T18a
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC1, AC2, AC3, AC4 (full)
 **Depends on:** M1
 **Rollback:** Safe — `--from` is a new optional argument; a SPEC created without it behaves exactly as today. No existing behavior changes.
+
+### Test Execution — Round 1
+Date: 2026-10-05
+Mode: local (scenario-based — ForgeKit has no compiled code/CI; per TEST-0001's own Test Strategy, each case is a scripted walkthrough of `create-spec.md`/`approve-spec.md`'s actual text against a disposable fixture repo, with a mocked ADO/Confluence connector, checking resulting file/frontmatter state)
+Executed by: /execute-tests PLAN-0001 M2 TEST-0001
+
+**Pre-flight gap found and fixed:** `execute-tests.md`'s Test Case Identification step only ever filtered by TEST-NNNN's AC Coverage Map table, which would have silently skipped every `TC-OBS-*`/`TC-SEC-*`/`TC-ADR-*` case (none carry an AC) and `TC-EDGE-1` (cites AC2 only in prose, no table row) at every milestone, forever. Fixed in `execute-tests.md` v4 before running M2's own test cases — see that file's changelog.
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-1 | P0 | PASS | Working connector simulated; fetched directly; `source_work` recorded. |
+| TC-FUNC-2 | P1 | PASS | No connector; fell to paste; `source_work` identical shape to TC-FUNC-1. |
+| TC-FUNC-3 | P1 | PASS | Connector attempted, errored (`not_found`); fell back to paste, not blocked. |
+| TC-FUNC-4 | P0 | PASS | Fetched path: `product_spec` has `fetched_at`, no companion file exists. |
+| TC-FUNC-5 | P0 | PASS | Paste + `compliance.frameworks:[none]`, no credential match: `.source.md` written automatically; `content_digest` verified as the file's real SHA-256. |
+| TC-FUNC-6 | P1 | PASS | Paste + non-`[none]` compliance: confirmation required and given before write. |
+| TC-FUNC-7 | P1 | PASS | Same as TC-FUNC-6, confirmation declined: `capture_status: declined`, no companion file, SPEC still created. |
+| TC-FUNC-8 | P0 | PASS | `product_spec` core fields (`system`/`page_id`/`revision`) identically shaped across TC-FUNC-1 (fetch) and TC-FUNC-2 (paste). |
+| TC-FUNC-9 | P0 | PASS | Working write access simulated; exact content shown; confirmed; `write_back.result: updated`. |
+| TC-FUNC-10 | P1 | PASS | No write access; `write_back.result: copy_paste_fallback`, `attempted: false`. |
+| TC-FUNC-11 | P1 | PASS | Write attempted, confirmed, then failed (`network_error`); sanitized category recorded, never raw output; fell back to copy-paste. |
+| TC-FUNC-12 | P2 | PASS | No `source_work` block at all: write-back step skipped entirely, no `write_back` field added. |
+| TC-FUNC-13 | P1 | PASS | Simulated `/reopen-spec` → `/revise-spec` → second `/approve-spec`: write-back fired a second time (v2 changelog records a second `updated` event). |
+| TC-EDGE-1 | P2 | PASS | `compliance.frameworks: [soc2, gdpr]` (multi-value): gate still fires — triggered by "non-`[none]`", not a single-value match. |
+| TC-OBS-source_work_intake_result-01 | P1 | PASS | All three values (`fetched`/`pasted`/`fetch_failed`) each fired only from their actual trigger — verified via grep against the simulated structured log. |
+| TC-OBS-source_work_write_back_result-01 | P1 | PASS | All three values (`updated`/`copy_paste_fallback`/`write_failed`) each fired only from their actual trigger, same verification method. |
+| TC-OBS-compliance_gate_outcome-01 | P1 | PASS | All three values (`captured`/`declined`/`not_applicable`) each fired only from their actual trigger. |
+| TC-SEC-SEC1-01 | P1 | PASS | Credential-shaped string (`sk-[A-Za-z0-9]{20,}`) in pasted content, `compliance.frameworks:[none]`: regex match verified directly; confirmation gate fired; declined → `.source.md` confirmed absent from fixture directory listing. |
+| TC-SEC-SEC2-01 | P1 | PASS *(partial — M2 scope)* | Path-traversal-crafted title (`../../etc/passwd...`): naive transform still carried `../`; sanitization rule (strip outside `[a-z0-9-]`) verified via shell transform to neutralize it completely. `/create-investigation`/`/create-adr` portions of this case re-run at M6 (those commands don't exist yet). |
+
+**P0 results:** 5 passed, 0 failed (TC-FUNC-1, 4, 5, 8, 9)
+**P1+ results:** 13 passed, 0 failed, 0 deferred-to-release
 
 ### M3 — Durable Coordination-Repo Context (G2)
 **Tasks:** T6, T7, T19a
