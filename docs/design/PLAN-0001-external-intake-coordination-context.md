@@ -288,7 +288,7 @@ Executed by: /execute-tests PLAN-0001 M5 TEST-0001
 
 ### M6 — Investigation / Decision Workflow (G5)
 **Tasks:** T11, T12, T18b
-**Implementation status:** tests_passed
+**Implementation status:** pr_merged
 **AC Coverage:** AC16, AC17 (full)
 **Depends on:** M1
 **Rollback:** Safe — both commands are wholly new; nothing existing changes.
