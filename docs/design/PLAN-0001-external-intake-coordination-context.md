@@ -37,7 +37,7 @@ pipeline_status:
   obs: OBS-0001 approved
   sec: SEC-0001 completed
   plan: approved
-  test: pending
+  test: approved
 ---
 
 # PLAN-0001 — External Work Intake and Durable Coordination Context
