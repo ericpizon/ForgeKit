@@ -79,3 +79,4 @@ Tagged `observability` for `/create-plan`.
 | IT-1 — `source_work.intake_result` in `/create-spec` | M2 | implemented | 2026-10-05 |
 | IT-2 — `source_work.write_back_result` in `/approve-spec` | M2 | implemented | 2026-10-05 |
 | IT-3 — `compliance_gate.outcome` in `/create-spec` | M2 | implemented | 2026-10-05 |
+| IT-4 — `promote_to_thread.outcome` in `/promote-to-thread` | M4 | implemented | 2026-10-06 |

@@ -5,7 +5,7 @@ schema_version: 1
 findings_status:
   SEC-1: mitigated   # implemented in M2 (T17)
   SEC-2: mitigated   # implemented in M2 (T18a)
-  SEC-3: open   # T19a (M3, /forge-init path) done; T19b (M4, /promote-to-thread's reactive equivalent) still pending — mitigated only once both land. known_participants[].repo/environments[].name accepted as residual risk regardless — see finding's own Resolution note
+  SEC-3: mitigated   # T19a (M3, /forge-init path) and T19b (M4, /promote-to-thread's reactive equivalent) both done. known_participants[].repo/environments[].name accepted as residual risk — see finding's own Resolution note
 trigger_source: ANALYSIS-0001
 target_design_version: 3
 generation:

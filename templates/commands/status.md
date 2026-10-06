@@ -4,9 +4,10 @@ type: command
 name: /status
 description: Show current pipeline state for a thread — phase statuses, active review rounds, milestone progress, and suggested next action. Use for cold-start orientation after a session break.
 status: active
-version: 2
+version: 3
 primary_role: any
 changelog:
+  - v3 — added the `/status SPEC-NNNN` form (AC12): detects `status: promoted` and redirects to `superseded_by`, and detects `pending_promotion` set without `status: promoted` (an interrupted `/promote-to-thread` run) and directs the user to resume rather than reporting stale draft/approved status. Valid even before any PLAN exists, since promotion can happen as early as `status: draft`. Built for SPEC-0001 (T9).
   - v2 — added a cross-repo section for a thread participant: thread membership, the Cross-Repo Contract's working/approved state, whether this repo's own inputs are stale, and the resolution status of any XDEPs this repo's current milestone depends on.
 ---
 
@@ -22,7 +23,20 @@ Use once PLAN-NNNN exists. Before PLAN is created, the pipeline is short enough 
 
 ```
 /status PLAN-NNNN
+/status SPEC-NNNN   ← promotion-state check, see below — valid even before any PLAN exists
 ```
+
+## SPEC-NNNN form — promotion state check
+
+*(G3) Invoked directly against a SPEC rather than a PLAN — the only form that makes sense before a PLAN exists at all, since `/promote-to-thread` is valid starting from `status: draft` (during ANALYSIS, before any PLAN) just as much as `status: approved` (during DESIGN).* Read SPEC-NNNN frontmatter only, then branch:
+
+- **`status: promoted`** (AC12) — report the promotion explicitly: "SPEC-NNNN was promoted to **THREAD-NNNN** (`superseded_by`) — THREAD-NNNN is now the authoritative artifact for this work, in the coordination repo. Do not continue the single-repo pipeline on SPEC-NNNN itself." Never show single-repo pipeline status (draft/approved/review-round state) for a promoted SPEC as if it were still authoritative — that status is frozen at whatever it was the moment promotion completed, and reporting it plainly would read as current when it isn't.
+- **`pending_promotion` set, `status` not yet `promoted`** (the Round-1 self-caught fix — an interrupted `/promote-to-thread` run) — report: "Promotion in progress — SPEC-NNNN has a pending promotion to **THREAD-NNNN** that didn't complete. Resume via `/promote-to-thread SPEC-NNNN` — it will pick up from the first incomplete step, not mint a second THREAD-NNNN." Do not report ordinary draft/approved status here either; a human reading "status: draft" next to a dangling `pending_promotion` would reasonably assume promotion never started, when in fact it's mid-flight.
+- **Neither field set** — this SPEC was never promoted. Report its plain `status` (draft/approved/etc.) — nothing cross-repo to add; fall through to the ordinary single-repo orientation a `/status` call on any other SPEC would give.
+
+This form never loads a PLAN, a THREAD-NNNN's own artifacts, or anything beyond SPEC-NNNN's own frontmatter — it answers exactly one question ("is this SPEC still the authoritative artifact, or did it move") as fast as the file-level `/status` check this command already promises elsewhere.
+
+## PLAN-NNNN form — full pipeline/milestone status
 
 ## Steps
 

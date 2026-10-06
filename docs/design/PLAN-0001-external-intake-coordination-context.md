@@ -229,7 +229,7 @@ Executed by: /execute-tests PLAN-0001 M3 TEST-0001
 
 ### M4 — Single-Repo → Cross-Repo Promotion (G3)
 **Tasks:** T8, T9, T16, T19b, T20
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC8, AC9, AC10, AC11, AC12 (full)
 **Depends on:** M1 only. *(Corrected per Round 1's `[SRE-1]`: T8's own AC8 logic already has a reactive fallback for `coordination_repo` being unset — it asks and persists at that point rather than requiring M3 deployed first. M4 needs M3's logic to exist *eventually*, not *first*; this is not a hard deployment-ordering dependency.)*
 **Rollback:** Safe — `/promote-to-thread` and `/status`'s new detection branch are both purely additive; a SPEC with no `pending_promotion`/`status: promoted` field behaves exactly as today.
