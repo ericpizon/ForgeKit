@@ -4,7 +4,7 @@ type: security-review
 schema_version: 1
 findings_status:
   SEC-1: mitigated   # implemented in M2 (T17)
-  SEC-2: mitigated   # implemented in M2 (T18a)
+  SEC-2: mitigated   # T18a (M2, /create-spec) and T18b (M6, /create-investigation + /create-adr) both now done. Note: marked "mitigated" at M2 on T18a alone, before T18b existed - the same class of premature marking SEC-3 was deliberately NOT given at M3 (kept "open" until both its tasks landed). Caught here, at M6, after the fact; moot now that T18b is actually complete, but the M2-M5 window's frontmatter overstated this finding's completeness.
   SEC-3: mitigated   # T19a (M3, /forge-init path) and T19b (M4, /promote-to-thread's reactive equivalent) both done. known_participants[].repo/environments[].name accepted as residual risk — see finding's own Resolution note
 trigger_source: ANALYSIS-0001
 target_design_version: 3
