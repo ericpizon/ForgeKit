@@ -64,3 +64,7 @@ SEC-0001's SEC-3 resolution (recorded during M3's implementation review) explici
 
 ### Next Step
 `/approve-implementation PLAN-0001 M5`
+
+### Addendum — found during `/execute-tests`, 2026-10-06
+
+`TC-EDGE-3` (TEST-0001's own self-flagged open question: "missing or invalid `governance` value — confirm the relevant commands reject or error clearly rather than silently defaulting to an assumption... flagging here for `/review-test-plan` to assess whether it reveals a genuine spec gap") was never actually picked up by either of TEST-0001's two review rounds — the question was raised and then never answered before TEST-0001's own approval. Running it against the real implementation during M5's test execution surfaced that Step 1's governance branch had no explicit case for anything other than `ci`/`promotion`/`release` — a missing or malformed value would have fallen through undefined. Fixed in `promote-to-environment.md` directly: an explicit fourth branch refuses and directs to fix `project.yml`, never silently defaulting. Not re-opening this review round for a one-line addition; documented here for the audit trail, consistent with how this engagement has handled every other gap caught after its originating review already closed.

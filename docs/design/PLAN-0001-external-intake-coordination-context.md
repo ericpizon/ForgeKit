@@ -261,10 +261,30 @@ Executed by: /execute-tests PLAN-0001 M4 TEST-0001
 
 ### M5 — Proportional Environment Governance (G4)
 **Tasks:** T10
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC13, AC14, AC15 (full)
 **Depends on:** M1, M3 (reads the `environments` list, documented in M3's T3)
 **Rollback:** Safe — `governance: ci` has no command path at all; `governance: release` is untouched; only `governance: promotion` exercises new code.
+
+### Test Execution — Round 1
+Date: 2026-10-06
+Mode: local (scenario-based, per TEST-0001's own Test Strategy — scripted walkthroughs of `promote-to-environment.md`'s actual text against a `repo_role: coordination` fixture declaring 5 environments spanning all three governance values plus one deliberately malformed one)
+Executed by: /execute-tests PLAN-0001 M5 TEST-0001
+
+**Gap found and fixed:** `TC-EDGE-3` was TEST-0001's own self-flagged open question ("confirm the relevant commands reject or error clearly rather than silently defaulting to an assumption... flagging here for `/review-test-plan` to assess whether it reveals a genuine spec gap") — raised but never actually answered by either of TEST-0001's two review rounds before its approval. Running it against the real implementation surfaced that `promote-to-environment.md`'s Step 1 had no explicit branch for a missing/malformed `governance` value at all. Fixed inline (a fourth branch: refuse, direct to fix `project.yml`, never silently default) before recording this round's results — see `IMPL-REVIEW-0001-M5.md`'s Addendum.
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-29 | P0 | PASS | All four exercised environments (`dev-ci`/`ci`, `qa`+`pre-prod-integration-ring-3`/`promotion`, `production`/`release`) branched purely on `governance` — literal names never inspected after Step 1's lookup. |
+| TC-FUNC-30 | P2 | PASS | `pre-prod-integration-ring-3` (not dev/qa/production) behaved identically to `qa` under `governance: promotion` — confirmed by comparing the two resulting files' shape. |
+| TC-FUNC-31 | P0 | PASS | `dev-ci` (`governance: ci`): refused immediately; confirmed no `sdlc/promotions/dev-ci.md` exists. |
+| TC-FUNC-32 | P0 | PASS | `qa` (`governance: promotion`): row appended with a per-participant candidate map (`approve-release-plan.md`'s exact `{repo: ref}` shape), promoter, timestamp, smoke-test result. |
+| TC-FUNC-33 | P1 | PASS | `qa.md` confirmed to contain exactly the 4-column table — no Gating-criteria, Rollback, or Validation Plan content anywhere in it. |
+| TC-ADR-0004-01 | P1 | PASS | Two separate invocations against `qa` produced **2 rows in 1 file** (`grep -c` confirmed) — not two numbered artifacts. |
+| TC-EDGE-3 | P2 | PASS *(gap found and fixed this round)* | `staging-broken` (`governance: promotoin`, a typo): the new fourth branch refused cleanly; confirmed no `sdlc/promotions/staging-broken.md` exists. Also confirmed `production`'s `governance: release` refusal left no file. |
+
+**P0 results:** 3 passed, 0 failed (TC-FUNC-29, 31, 32)
+**P1+ results:** 4 passed, 0 failed, 0 deferred-to-release
 
 ### M6 — Investigation / Decision Workflow (G5)
 **Tasks:** T11, T12, T18b
