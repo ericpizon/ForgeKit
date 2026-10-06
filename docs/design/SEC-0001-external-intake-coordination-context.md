@@ -5,7 +5,7 @@ schema_version: 1
 findings_status:
   SEC-1: mitigated   # implemented in M2 (T17)
   SEC-2: mitigated   # implemented in M2 (T18a)
-  SEC-3: open
+  SEC-3: open   # T19a (M3, /forge-init path) done; T19b (M4, /promote-to-thread's reactive equivalent) still pending — mitigated only once both land. known_participants[].repo/environments[].name accepted as residual risk regardless — see finding's own Resolution note
 trigger_source: ANALYSIS-0001
 target_design_version: 3
 generation:
@@ -65,6 +65,8 @@ In scope: G1's intake and write-back paths (trust boundary against externally-so
 **Mitigation:** `/forge-init`'s coordination-repo question (AC7) and `/promote-to-thread`'s reactive equivalent (AC8) validate the supplied value against a safe `org/repo`-shaped pattern (e.g. `^[\w.-]+/[\w.-]+$`) before writing it to `project.yml`, re-prompting on a non-match. Same validation applies to `environments[].name`.
 
 **Recommended disposition:** Open — concrete, implementable mitigation task, no design change required; defense-in-depth, not a live exploit path.
+
+**Resolution (2026-10-06, during M3 implementation review, `[SEC-1]`):** `coordination_repo` validation — the one field this finding names with an actual writing command behind it — is implemented in T19a (`.claude/commands/forge-init.md`'s Phase 2b, Option C, and Full redo) and T19b (M4, `/promote-to-thread`'s reactive equivalent). `known_participants[].repo` and `environments[].name` are **accepted as residual risk, not further mitigated**: both are directly-edited `project.yml` fields with no ForgeKit command in the write path at all (by M1/T3's own design) — there is nothing to validate "before writing," the way AC7's interactive Q&A allows. Forcing validation onto a hand-edited YAML field would mean inventing a new authoring command neither SPEC-0001 nor DESIGN-0001 called for, solely to serve this Low-severity, non-attacker-driven finding. The already-standard practice of each consuming command (`/promote-to-environment`, M5, and any future reader of `known_participants`) validating its own input at the point of use is accepted as sufficient defense-in-depth for these two fields.
 
 ## Assessment of ANALYSIS Risk Flags
 

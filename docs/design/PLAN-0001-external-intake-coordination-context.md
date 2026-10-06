@@ -65,7 +65,7 @@ Modify `templates/commands/approve-spec.md`: implement AC4 (write-back prompt, c
 **AC:** AC4
 
 **T6** | functional
-Modify `templates/commands/forge-init.md`: add AC7's coordination-participation question to the `repo_role: code` path, writing `coordination_repo` to `project.yml` (baseline — see T19a for the validation extension).
+Modify `.claude/commands/forge-init.md` (corrected from an earlier citation of `templates/commands/forge-init.md` — `forge-init.md` has no template counterpart; it's ForgeKit's own bootstrapping command, not one copied into adopting projects, same factual-citation-error class as T3's "Phase 4B" fix): add AC7's coordination-participation question to the `repo_role: code` path, writing `coordination_repo` to `project.yml` (baseline — see T19a for the validation extension).
 **AC:** AC7
 
 **T7** | functional
@@ -120,7 +120,7 @@ Author new command `templates/commands/create-adr.md` (**ADR-0003**): implement 
 **Source:** SEC-0001 SEC-2 — see SEC-0001 for full mitigation spec.
 **Milestone:** M6
 
-**T19a** | security | `templates/commands/forge-init.md`
+**T19a** | security | `.claude/commands/forge-init.md` (corrected from `templates/commands/forge-init.md` — same citation-error class as T6/T3)
 **Source:** SEC-0001 SEC-3 — see SEC-0001 for full mitigation spec.
 **Milestone:** M3
 
@@ -203,7 +203,7 @@ Executed by: /execute-tests PLAN-0001 M2 TEST-0001
 
 ### M3 — Durable Coordination-Repo Context (G2)
 **Tasks:** T6, T7, T19a
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC5, AC6, AC7 (full)
 **Depends on:** M1
 **Rollback:** Safe — the new `forge-init` question defaults to "not yet" (unset); `SYSTEM-ARCH.md` regeneration only fires when an XDEP reaches `active`, and its own failure mode is already fail-open by design.

@@ -4,10 +4,11 @@ type: command
 name: /approve-design
 description: Architect command to close the design review loop — confirm all findings resolved, mark DESIGN approved, update ARCH, trigger Stage 4
 status: active
-version: 3
+version: 4
 primary_role: architect
 output_artifact_type: design (approved)
 changelog:
+  - v4 — Interface Freeze now also regenerates the coordination repo's SYSTEM-ARCH.md Dependency Map wholesale from the current active-XDEP set (D1/ADR-0002), creating the file lazily if needed; a regeneration failure logs a warning and never blocks the Interface Freeze approval itself. Built for SPEC-0001 (AC6).
   - v3 — Interface Freeze Step 2 now points at cross-repo-resolution.md's self-referential-ref pattern for approved.ref instead of the unresolvable "advance approved.ref to match working" instruction (working carries no ref to copy).
   - v2 — added the coordination-repo Interface Freeze path (`/approve-design DESIGN-NNNN interface-freeze`): approves the Cross-Repo Contract sub-section independently of the rest of DESIGN, advancing its working/approved revision; full approval now updates each affected participant's own ARCH.md rather than a coordination repo's (which carries no cross-cutting patterns). Moved "Sync Your Branch" ahead of the Interface Freeze path so a team context pulls before reading review findings on that path too, not just the full-approval path.
 ---
@@ -42,11 +43,12 @@ This applies to both paths below, including the Interface Freeze path — a coor
 `/approve-design DESIGN-NNNN interface-freeze` approves only the Cross-Repo Contract sub-section, ahead of the rest of DESIGN — used when `/review-design`'s Cross-Repo Contract Review is clean but other findings on the DESIGN remain open. This exists because "wait for the whole DESIGN to be approved" is a liability with several participants: one unresolved design question in one participant's section would otherwise block every other participant's `create-plan`, even when nothing in their own work depends on it.
 
 1. Confirm the latest `## Design Review — Round N`'s Cross-Repo Contract Findings are clean (zero blocking). If not, do not proceed — direct the user to `/address-design-review DESIGN-NNNN` first.
-2. Set `cross_repo_contract.working.status: approved` in DESIGN-NNNN frontmatter (see [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md#the-cross-repo-contract-working-and-approved-are-tracked-separately)), then advance `approved.revision` to match `working.revision`. `approved.ref` has no equivalent in `working` to copy — it must point at this same approval commit, which doesn't have a SHA yet. Use the self-referential-ref pattern: write `approved.ref: PENDING_SELF_COMMIT`, make the approval commit (step 6 below), then make an immediate one-line follow-up commit replacing the sentinel with the real SHA (see [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md#the-self-referential-ref-pattern)).
+2. Set `cross_repo_contract.working.status: approved` in DESIGN-NNNN frontmatter (see [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md#the-cross-repo-contract-working-and-approved-are-tracked-separately)), then advance `approved.revision` to match `working.revision`. `approved.ref` has no equivalent in `working` to copy — it must point at this same approval commit, which doesn't have a SHA yet. Use the self-referential-ref pattern: write `approved.ref: PENDING_SELF_COMMIT`, make the approval commit (step 7 below), then make an immediate one-line follow-up commit replacing the sentinel with the real SHA (see [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md#the-self-referential-ref-pattern)).
 3. Update the `status` field on every XDEP this revision touched to `active` (superseding any prior revision's XDEP file per the append-only lifecycle in `templates/sdlc/dependencies/README.md`).
-4. Do **not** update `status: approved` on DESIGN-NNNN itself, and do not touch ARCH in any participant repo — the rest of the DESIGN remains `draft`/under review independently.
-5. Show the user the approved Cross-Repo Contract section and confirm before committing: "Cross-Repo Contract approved — revision [N] is now the approved contract for this thread. Every participant whose PLAN depends only on XDEPs may now run `create-plan`. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
-6. Commit and push exactly as in the full-approval Handoff below, but with a commit message of the form `DESIGN-NNNN: Cross-Repo Contract approved (Interface Freeze, rev [N])` and without touching ARCH.
+4. **Regenerate `SYSTEM-ARCH.md`'s Dependency Map** in the coordination repo (D1/ADR-0002) — this is the exact moment an XDEP transitions to `active`, which is what triggers regeneration; it is never incrementally patched and never requires a separate sync command. Read every `active`-status XDEP currently on record across every thread in this coordination repo (not just this thread's own), and rebuild the `## Dependency Map` section wholesale from that complete set. If `SYSTEM-ARCH.md` does not exist yet in this coordination repo, create it lazily now (frontmatter `type: system-architecture`, `schema_version: 1`, `dependency_map_generated_at: [today]`, `changelog: []`; body starts with an empty `## External Subsystems` section — hand-maintained, never touched by this step — followed by the freshly generated `## Dependency Map`). Update `dependency_map_generated_at` to today regardless of whether the file was just created or already existed. **If regeneration fails** (e.g., a malformed XDEP file encountered while reading the active set): log a warning naming the specific XDEP and the parse problem, and proceed — `SYSTEM-ARCH.md` is a derived convenience view, not a gate; it must never block the Interface Freeze approval itself, which is what actually matters (the Cross-Repo Contract's own approval, step 2 above).
+5. Do **not** update `status: approved` on DESIGN-NNNN itself, and do not touch ARCH in any participant repo — the rest of the DESIGN remains `draft`/under review independently.
+6. Show the user the approved Cross-Repo Contract section and confirm before committing: "Cross-Repo Contract approved — revision [N] is now the approved contract for this thread. Every participant whose PLAN depends only on XDEPs may now run `create-plan`. [If SYSTEM-ARCH.md was regenerated:] SYSTEM-ARCH.md's Dependency Map has been regenerated to reflect the current active XDEP set. [If regeneration failed:] SYSTEM-ARCH.md regeneration failed ([warning detail]) — this does not block approval, but the Dependency Map may be stale until the next successful regeneration. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+7. Commit and push exactly as in the full-approval Handoff below, but with a commit message of the form `DESIGN-NNNN: Cross-Repo Contract approved (Interface Freeze, rev [N])`, also including `SYSTEM-ARCH.md` if it was created or updated, and without touching ARCH.
 
 Once the remaining DESIGN findings are also resolved, run `/approve-design DESIGN-NNNN` (the plain, full-approval form) to close Stage 3 normally — it will detect the Cross-Repo Contract is already approved and skip re-approving it (step 2 below).
 
@@ -116,6 +118,7 @@ Before committing:
 - [ ] *(repo_role: code)* Superseded patterns moved to `## Superseded Patterns` section and marked `(superseded by ..., YYYY-MM-DD)`
 - [ ] *(repo_role: code)* ARCH version incremented, changelog entry added
 - [ ] *(repo_role: coordination)* `cross_repo_contract.working.status: approved` and `approved` advanced to match, unless already set by a prior `interface-freeze` run
+- [ ] *(repo_role: coordination, Interface Freeze reached this run)* `SYSTEM-ARCH.md`'s Dependency Map regenerated wholesale from the current full set of `active` XDEPs (not incrementally patched); `dependency_map_generated_at` updated; file created lazily if it didn't exist. A regeneration failure was logged as a warning and did not block this approval.
 - [ ] *(repo_role: coordination)* Every participant repo whose ARCH.md needs a new pattern is named explicitly, with the update applied directly or handed off — never silently skipped
 
 **Self-check before proceeding:** Re-read each item above. Confirm each is complete, or state what was skipped and why before continuing to Handoff.
@@ -145,9 +148,10 @@ git commit -m "DESIGN-NNNN: approved — [N review rounds]"
 
 `repo_role: coordination` (this repo has no local, flat `sdlc/adr/` — any ADR this DESIGN authored is thread-scoped at `sdlc/THREAD-NNNN/adr/`; the top-level `sdlc/dependencies/` directory holds this thread's XDEP files, named `THREAD-NNNN-XDEP-NN.yml`):
 ```
-git add sdlc/THREAD-NNNN/DESIGN.md sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md sdlc/dependencies/THREAD-NNNN-XDEP-*.yml sdlc/registry/index.md
+git add sdlc/THREAD-NNNN/DESIGN.md sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md sdlc/dependencies/THREAD-NNNN-XDEP-*.yml sdlc/architecture/SYSTEM-ARCH.md sdlc/registry/index.md
 git commit -m "THREAD-NNNN: DESIGN approved — [N review rounds]"
 ```
+`sdlc/architecture/SYSTEM-ARCH.md` is only ever touched when an Interface Freeze happened this run (full approval's Step 2 coordination branch, or a standalone `interface-freeze` invocation) — omit it from `git add` on a run that never reached Interface Freeze (e.g. re-approving after a non-Cross-Repo-Contract finding was addressed).
 Then, for each participant repo whose ARCH.md was updated directly (per Step 3 above), commit that change separately in that repo — it is not part of this coordination-repo commit.
 
 **Push (only if user confirms team context):**

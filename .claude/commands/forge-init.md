@@ -4,10 +4,10 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: "1.4"
+version: "1.5"
 primary_role: lead-developer
 created: 2026-06-21
-updated: 2026-09-24
+updated: 2026-10-06
 ---
 
 # /forge-init
@@ -74,7 +74,7 @@ What would you like to update?
 
   a) Stack values (test runner, deploy command, lint, etc.)
   b) Artifact mode  (currently: [artifact_mode])
-  c) Project identity (name, description, team size)
+  c) Project identity (name, description, team size, coordination repo)
   d) Refresh command and role templates (new ForgeKit version)
   e) Full redo — re-answer everything; ARCH.md and sdlc/ preserved
   f) Cancel
@@ -132,15 +132,21 @@ Exit re-run mode without making any changes.
    >
    > **Team size?** (current: [team.size])
 
-2. If all values are unchanged: "No changes." Exit.
+2. **`repo_role: code` only** — also re-ask Phase 2b's coordination question, with the current value as context:
 
-3. Update `project.yml` project section with any changed values.
+   > **Coordination repo?** (current: [coordination_repo, or "not yet set" if absent]) — point at an existing one (`org/repo`), or "not yet" to defer/leave as-is.
 
-4. Regenerate the CLAUDE.md ForgeKit block (the `## Pipeline:` header and metadata lines). Preserve all content outside the block.
+   Apply the same `org/repo` validation and re-prompt-on-non-match as Phase 2b. Answering "not yet" when a value is already set does **not** clear it — Option C only adds or corrects a value, it never silently removes an existing `coordination_repo` (that would orphan `/promote-to-thread`'s "already set, reuse without re-asking" assumption for no stated reason). To actually unset it, the user must say so explicitly.
 
-5. Show a diff and confirm before writing.
+3. If all values (including the coordination answer) are unchanged: "No changes." Exit.
 
-6. If the project name changed, note:
+4. Update `project.yml` project section with any changed values; update top-level `coordination_repo` if that changed.
+
+5. Regenerate the CLAUDE.md ForgeKit block (the `## Pipeline:` header and metadata lines). Preserve all content outside the block.
+
+6. Show a diff and confirm before writing.
+
+7. If the project name changed, note:
 
    > ARCH.md references the project name in its heading and frontmatter. Update `sdlc/architecture/ARCH.md` manually if needed.
 
@@ -199,10 +205,11 @@ If the user does not type `REDO` exactly: "Full redo cancelled. No changes made.
 
 1. **Phase 1** — Re-ask project identity. Show current values as defaults; user presses enter to keep them.
 2. **Skip Phase 2** — project type (greenfield/brownfield) does not change on redo; preserve the value from `project.yml`.
-3. **Phase 3** — Re-ask artifact mode. Show current value as default.
-4. **Phase 4A (stack configuration)** — Re-ask all stack questions with current `project.yml` values as defaults. For brownfield projects, skip the Phase 4B automated scan — codebase discovery has already been done and captured in ARCH.md. Ask only the stack questions.
-5. **Skip ARCH.md generation** — do not generate, regenerate, or modify `sdlc/architecture/ARCH.md` under any circumstances.
-6. **Phase 5** — Regenerate all outputs (Steps 1 through 5b, including Step 4b's reference-doc copy). For Step 6 (sdlc/ directories): create any missing directories and add missing READMEs; do not overwrite existing directory contents.
+3. **Phase 2b** (`repo_role: code` only) — re-ask the coordination question, current `coordination_repo` (if any) as context. Same non-clearing rule as Option C: a "not yet" answer here does not erase an existing value.
+4. **Phase 3** — Re-ask artifact mode. Show current value as default.
+5. **Phase 4A (stack configuration)** — Re-ask all stack questions with current `project.yml` values as defaults. For brownfield projects, skip the Phase 4B automated scan — codebase discovery has already been done and captured in ARCH.md. Ask only the stack questions.
+6. **Skip ARCH.md generation** — do not generate, regenerate, or modify `sdlc/architecture/ARCH.md` under any circumstances.
+7. **Phase 5** — Regenerate all outputs (Steps 1 through 5b, including Step 4b's reference-doc copy). For Step 6 (sdlc/ directories): create any missing directories and add missing READMEs; do not overwrite existing directory contents.
 
 **Step E5 — Post-redo note:**
 
@@ -246,7 +253,26 @@ Ask:
 - Generate a different `sdlc/` layout: `sdlc/dependencies/` and `sdlc/scenarios/` at the top level (both empty until a thread creates content in them), with per-thread subdirectories (`sdlc/THREAD-NNNN/`) created on demand by `create-spec` — not the usual flat `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/` layout, since coordination artifacts are organized by thread first, not by artifact type.
 - Proceed directly to Phase 3 (artifact mode still applies — a coordination repo produces markdown artifacts the same way any project does) and Phase 5, skipping Phase 4 entirely.
 
-For every other selection (greenfield/brownfield), nothing changes — proceed as documented below. A code repo that will later participate in a cross-repo thread is initialized exactly like any other project; it becomes a "participant" only when a thread's `create-spec` declares it, never at `forge-init` time.
+For every other selection (greenfield/brownfield), proceed to Phase 2b below, then continue as documented.
+
+---
+
+## Phase 2b — Cross-repo coordination *(`repo_role: code` only — greenfield or brownfield; skipped entirely for a coordination repo itself)*
+
+Ask:
+
+> **Does this project participate — or is it expected to participate — in cross-repo coordination with other repos on your team?**
+>
+> A coordination repo is a dedicated, code-free repo that holds shared cross-repo context: SPEC/DESIGN/SECURITY-REVIEW/etc. for feature threads spanning more than one repo, a running list of which repos belong to the team and what environments exist (`known_participants`/`environments`), and a durable system-architecture view (`SYSTEM-ARCH.md`) of how the repos and their external dependencies fit together. Many teams already have a shared "platform," "infra," or "workspace" repo that could serve this role even if it wasn't originally built for it.
+>
+> - **Yes, point at an existing coordination repo** — if your team already has one (a shared context/platform repo, or one previously initialized with `/forge-init`'s "Coordination repo" option), name it now (`org/repo` shape).
+> - **Not yet** — defer this decision. You can answer it later via `/forge-init`'s Option C (re-run) or reactively, the first time `/promote-to-thread` needs it.
+
+**If an existing repo is named:** validate it against a safe `org/repo`-shaped pattern (`^[\w.-]+/[\w.-]+$`) before accepting it. On a non-match, explain why ("expected `org/repo`, e.g. `acme/platform-context` — got `[value]`") and re-prompt; do not write an unvalidated value to `project.yml`. On a match, record it as `coordination_repo` in this project's own `project.yml`.
+
+**If "Not yet":** leave `coordination_repo` unset entirely (no key, not an empty string or `null` placeholder) — `/promote-to-thread` treats its absence as the trigger to ask this same question reactively, and a present-but-empty value would be indistinguishable from "answered, no repo" rather than "never asked."
+
+This question is asked once per project, proactively, regardless of whether the project ever actually joins a thread — deferring it here just means it gets asked again, in the same shape, whenever `/promote-to-thread` first needs the answer.
 
 ---
 
@@ -653,6 +679,11 @@ project:
   initialized_at: {{today}}
   forgekit_version: "1.0"
 
+# [INCLUDE ONLY IF repo_role: code AND Phase 2b's answer named an existing coordination repo —
+#  omit this key entirely for "Not yet"; do not write an empty string or null placeholder]
+coordination_repo: "{{coordination_repo}}"   # org/repo — validated in Phase 2b; see /promote-to-thread for the reactive equivalent
+# [END INCLUDE]
+
 artifact_mode: {{artifact_mode}}   # markdown | hybrid | copy-paste
 
 # [INCLUDE ONLY IF artifact_mode: copy-paste OR hybrid]
@@ -829,6 +860,7 @@ Show the user a full summary of what was created:
 
 **First-run (`repo_role: code` — greenfield/brownfield):**
 - [ ] project.yml written with no TBD values for fields the user answered (TBD only for fields explicitly marked unknown)
+- [ ] Phase 2b's coordination question was asked; `coordination_repo` is either a validated `org/repo` value or entirely absent (never an empty string, never written unvalidated)
 - [ ] project.yml `external_tool:` block present if `artifact_mode` is `copy-paste` or `hybrid`; absent for markdown mode
 - [ ] CLAUDE.md ForgeKit block written or injected without losing existing content; no `<!-- IF ... -->` markers remain in the final file
 - [ ] PIPELINE.md copied to project root
@@ -855,6 +887,7 @@ Show the user a full summary of what was created:
 
 **Re-run mode — Option C (project identity):**
 - [ ] project.yml project section updated with changed values only
+- [ ] `repo_role: code` only: `coordination_repo` re-asked; any new value validated as `org/repo` before writing; a "not yet" answer never silently cleared an existing value
 - [ ] CLAUDE.md ForgeKit block regenerated with new values; no `<!-- IF ... -->` markers remain
 - [ ] No files outside project.yml and CLAUDE.md were modified
 
