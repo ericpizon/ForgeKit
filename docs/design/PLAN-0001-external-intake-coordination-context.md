@@ -288,10 +288,30 @@ Executed by: /execute-tests PLAN-0001 M5 TEST-0001
 
 ### M6 — Investigation / Decision Workflow (G5)
 **Tasks:** T11, T12, T18b
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC16, AC17 (full)
 **Depends on:** M1
 **Rollback:** Safe — both commands are wholly new; nothing existing changes.
+
+### Test Execution — Round 1
+Date: 2026-10-06
+Mode: local (scenario-based, per TEST-0001's own Test Strategy — scripted walkthroughs of `create-investigation.md`/`create-adr.md`'s actual text against a disposable fixture repo)
+Executed by: /execute-tests PLAN-0001 M6 TEST-0001
+
+**Completes `TC-SEC-SEC2-01`'s full scope:** its `/create-spec` portion was verified at M2; the `/create-investigation` and `/create-adr` portions (deferred at M2 since those commands didn't exist yet) are verified this round.
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-34 | P0 | PASS | `/create-investigation --from ADO:99001`: walked Question → Approach → Findings; `decision: no_action` → `status: concluded`, no further command invoked. |
+| TC-FUNC-35 | P0 | PASS | `decision: adr`: `/create-adr` actually produced `ADR-TC35`; `INV-TC35.linked_adr` set to that exact ID. |
+| TC-FUNC-36 | P1 | PASS | `decision: recommend_implementation`: recommendation is plain text in `INV-TC36` only — confirmed via a full fixture file listing that no SPEC or any other artifact was created as a side effect. |
+| TC-FUNC-37 | P2 | PASS | `decision: investigate_further`: `status: open`, `concluded_at: null`, with an explicit statement of what's needed before resuming. |
+| TC-FUNC-38 | P0 | PASS | `ADR-TC35`, authored with no parent DESIGN/SPEC: all five required sections present, no `target_design` field anywhere in frontmatter. |
+| TC-ADR-0003-01 | P2 | PASS | `INV-TC34`'s frontmatter `type: investigation` (not `bug`/`spec`), lives at `sdlc/investigations/`. |
+| TC-SEC-SEC2-01 | P1 | PASS *(now fully complete — M2 covered `/create-spec`, this completes `/create-investigation` + `/create-adr`)* | Path-traversal-crafted titles verified via direct shell transform to produce `../`-free slugs for both commands (`etcshadow-exfil-via-investigation`, `etcpasswd-handoff-feature`). |
+
+**P0 results:** 3 passed, 0 failed (TC-FUNC-34, 35, 38)
+**P1+ results:** 4 passed, 0 failed, 0 deferred-to-release
 
 ## Happy Path Trace
 
