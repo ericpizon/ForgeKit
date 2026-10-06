@@ -261,7 +261,7 @@ Executed by: /execute-tests PLAN-0001 M4 TEST-0001
 
 ### M5 — Proportional Environment Governance (G4)
 **Tasks:** T10
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC13, AC14, AC15 (full)
 **Depends on:** M1, M3 (reads the `environments` list, documented in M3's T3)
 **Rollback:** Safe — `governance: ci` has no command path at all; `governance: release` is untouched; only `governance: promotion` exercises new code.
