@@ -147,10 +147,20 @@ No database, no infrastructure — "sequencing" here means: shared mechanisms be
 
 ### M1 — Foundation: Shared Mechanics & Directory Scaffolding
 **Tasks:** T1, T2, T3
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** supports AC1, AC2, AC4, AC5, AC13–AC16 (no standalone AC — pure foundation)
 **Depends on:** —
 **Rollback:** Safe — no command behavior changes yet; this milestone only adds a new reference doc and two new directory READMEs.
+
+### Test Execution — Round 1
+Date: 2026-10-05
+Mode: N/A — no test cases scoped to this milestone
+Executed by: `/execute-tests PLAN-0001 M1 TEST-0001`
+
+TEST-0001's own AC Coverage Map states explicitly: "M1 — Foundation: No ACs of its own — T1/T2/T3 are infrastructure." This is the authoritative scoping (not this milestone's own looser "supports AC5" line, which `[QE-1]` from implementation review had flagged as a possible scheduling conflict with TEST-0001 assigning AC5's tests to M3) — resolved in practice: zero test cases, automated or manual, are scoped to M1. Nothing to execute; no CI/local path distinction applies.
+
+**P0 results:** 0 of 0 (vacuously passing — no P0 test case scoped to this milestone)
+**P1+ results:** 0 of 0
 
 ### M2 — External Work Intake (G1)
 **Tasks:** T4, T5, T13, T14, T15, T17, T18a
