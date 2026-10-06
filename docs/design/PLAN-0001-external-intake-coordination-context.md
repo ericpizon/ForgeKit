@@ -203,7 +203,7 @@ Executed by: /execute-tests PLAN-0001 M2 TEST-0001
 
 ### M3 — Durable Coordination-Repo Context (G2)
 **Tasks:** T6, T7, T19a
-**Implementation status:** tests_passed
+**Implementation status:** pr_merged
 **AC Coverage:** AC5, AC6, AC7 (full)
 **Depends on:** M1
 **Rollback:** Safe — the new `forge-init` question defaults to "not yet" (unset); `SYSTEM-ARCH.md` regeneration only fires when an XDEP reaches `active`, and its own failure mode is already fail-open by design.
