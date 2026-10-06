@@ -3,8 +3,8 @@ id: SEC-0001
 type: security-review
 schema_version: 1
 findings_status:
-  SEC-1: open
-  SEC-2: open
+  SEC-1: mitigated   # implemented in M2 (T17)
+  SEC-2: mitigated   # implemented in M2 (T18a)
   SEC-3: open
 trigger_source: ANALYSIS-0001
 target_design_version: 3

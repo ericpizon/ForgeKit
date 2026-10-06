@@ -71,3 +71,11 @@ Tagged `observability` for `/create-plan`.
 | `source_work.write_back_result` | Same approach on the write side — confirm `updated`, `copy_paste_fallback`, and `write_failed` each appear only for their actual trigger. |
 | `compliance_gate.outcome` | Confirm `captured` appears for a `compliance.frameworks: [none]` paste, `declined` appears when the user declines confirmation under a non-`[none]` framework, and `not_applicable` appears for a direct fetch. |
 | `promote_to_thread.outcome` | Run `/promote-to-thread` to completion once cleanly (confirm `completed`); interrupt a run, then re-invoke it (confirm `interrupted` is logged by the *resuming* invocation upon discovering `pending_promotion`, and `resumed_and_completed` is logged separately at that same invocation's own completion). |
+
+## Instrumentation Implementation Log
+
+| Task | Milestone | Status | Date |
+|---|---|---|---|
+| IT-1 — `source_work.intake_result` in `/create-spec` | M2 | implemented | 2026-10-05 |
+| IT-2 — `source_work.write_back_result` in `/approve-spec` | M2 | implemented | 2026-10-05 |
+| IT-3 — `compliance_gate.outcome` in `/create-spec` | M2 | implemented | 2026-10-05 |

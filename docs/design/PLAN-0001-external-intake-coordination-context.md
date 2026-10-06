@@ -164,7 +164,7 @@ TEST-0001's own AC Coverage Map states explicitly: "M1 — Foundation: No ACs of
 
 ### M2 — External Work Intake (G1)
 **Tasks:** T4, T5, T13, T14, T15, T17, T18a
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC1, AC2, AC3, AC4 (full)
 **Depends on:** M1
 **Rollback:** Safe — `--from` is a new optional argument; a SPEC created without it behaves exactly as today. No existing behavior changes.

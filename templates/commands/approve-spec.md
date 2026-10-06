@@ -4,10 +4,11 @@ type: command
 name: /approve-spec
 description: TPO command to close the spec phase — confirm review is ready, mark SPEC approved, commit all spec-phase artifacts
 status: active
-version: 3
+version: 4
 primary_role: tpo
 output_artifact_type: spec (approved)
 changelog:
+  - v4 — added write-back to the external work system named in `source_work` (if present): a confirmation-gated attempt to update the originating ADO/Confluence ticket with the approval decision, firing on every approval including re-approvals after `/reopen-spec`. Capability-check-then-attempt, any-non-confirmed-success-is-failure, sanitized failure categories — see [`templates/reference/external-work-intake.md`](../reference/external-work-intake.md). Built for SPEC-0001 (AC4).
   - v3 — coordination-repo commit now includes thread.yml, created by /create-spec but previously never added to any commit until caught by eye as an untracked file.
   - v2 — added the coordination-repo commit path: SPEC-NNNN and ANALYSIS-NNNN live at sdlc/THREAD-NNNN/SPEC.md and sdlc/THREAD-NNNN/ANALYSIS.md for a thread, not sdlc/specs/ and sdlc/analysis/.
 ---
@@ -96,6 +97,23 @@ Show the user the approved SPEC and ANALYSIS. Then ask:
 > If any answer reveals a gap: return to `/revise-spec SPEC-NNNN ANALYSIS-NNNN`.
 >
 > If all three check out: "Ready to commit and move to design. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
+
+**Write back to the source system (only if `source_work` is present in SPEC-NNNN frontmatter) — after the user confirms "ready to commit," before the commit itself:**
+
+This fires on *every* approval of this SPEC — including a re-approval after `/reopen-spec` — not only the first; if no `source_work` block is present, skip this entirely (AC4). It runs here, after the three-question gate has already passed and the user has already confirmed they're ready to commit — not earlier alongside Steps 1–4's local frontmatter bookkeeping — because a write here reaches a real external system of record other people rely on, and should never fire against a SPEC that the gate above could still send back to `/revise-spec`. Read [`templates/reference/external-work-intake.md`](../reference/external-work-intake.md) for the full rules; applied here with two distinct confirmations, since this write (unlike `/create-spec`'s read-only intake) must never happen without the human having seen and approved the exact content first:
+
+- **Ask first:** "This SPEC originated from `[source_work.system]:[source_work.id]`. Update that ticket with the approval decision?"
+  - **Declined:** generate a plain-text copy-paste summary for the human to apply manually. Record `write_back: {attempted: false, result: copy_paste_fallback}`. Skip the rest of this step.
+- **If yes:** check for working write access to `[source_work.system]`, the same capability-check-then-attempt way AC1 checks read access.
+  - **No working access:** fall back to the copy-paste summary. Record `write_back: {attempted: false, result: copy_paste_fallback}`.
+  - **Access exists:** show the human exactly what will be written and require their explicit confirmation of that exact content before writing anything.
+    - **Declined at this second confirmation:** fall back to the copy-paste summary — never write without this confirmation. Record `write_back: {attempted: false, result: copy_paste_fallback}`.
+    - **Confirmed:** attempt the write. **Any outcome short of a confirmed-complete write is treated as failure** — per D9, there is no partially-updated state; a write that updates some fields but not others is a failure, never a partial success:
+      - Confirmed-complete success → record `write_back: {attempted: true, result: updated, written_at: [today's date]}`.
+      - Failure (any reason, including partial, or the ticket having changed since it was last read): reduce it to a sanitized category (`authentication_failed` / `not_found` / `network_error`) before showing it to the human or recording it — **never raw connector output**, which can echo credential fragments (D11, extended here from its original fetch-failure scope to cover write-back failures too). Report clearly rather than failing silently. Fall back to the copy-paste summary as well. Record `write_back: {attempted: true, result: write_failed, failure_category: [category]}`.
+- A declined, inaccessible, or failed write-back **never blocks SPEC approval** — approval proceeds either way.
+- Emit `source_work.write_back_result` (`updated` / `copy_paste_fallback` / `write_failed`, per OBS-0001 IT-2) as a structured log field at the point this step resolves. Not emitted at all when no `source_work` exists.
+- `write_back` is recorded into SPEC-NNNN's own frontmatter, so it lands in the same commit below — it must be resolved before the `git add`/`git commit` lines run, not after.
 
 **Commit (after user confirms):**
 
