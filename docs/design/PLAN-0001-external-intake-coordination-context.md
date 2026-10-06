@@ -53,7 +53,7 @@ Add `sdlc/investigations/README.md` to `templates/sdlc/`; wire it into `forge-in
 **AC:** supports AC16
 
 **T3** | functional
-Add `sdlc/promotions/README.md` to `templates/sdlc/`; wire it into `forge-init.md`'s coordination-repo directory list (Phase 4B). Document in the README that `known_participants`/`environments` (AC5) are optional, directly-edited `project.yml` fields with no dedicated authoring command — consistent with how other durable config fields in ForgeKit already work — while `coordination_repo` (AC7/AC8) *is* command-populated.
+Add `sdlc/promotions/README.md` to `templates/sdlc/`; wire it into `forge-init.md`'s coordination-repo directory list (Phase 5 Step 6 — corrected from an earlier citation of "Phase 4B," a factual error caught during implementation). Document in the README that `known_participants`/`environments` (AC5) are optional, directly-edited `project.yml` fields with no dedicated authoring command — consistent with how other durable config fields in ForgeKit already work — while `coordination_repo` (AC7/AC8) *is* command-populated.
 **AC:** supports AC5, AC13–AC15
 
 **T4** | functional
@@ -147,7 +147,7 @@ No database, no infrastructure — "sequencing" here means: shared mechanisms be
 
 ### M1 — Foundation: Shared Mechanics & Directory Scaffolding
 **Tasks:** T1, T2, T3
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** supports AC1, AC2, AC4, AC5, AC13–AC16 (no standalone AC — pure foundation)
 **Depends on:** —
 **Rollback:** Safe — no command behavior changes yet; this milestone only adds a new reference doc and two new directory READMEs.

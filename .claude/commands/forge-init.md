@@ -763,6 +763,8 @@ Do not overwrite `.claude/commands/forge-init.md` if it already exists in the ta
 - `sdlc/architecture/` — ARCH.md only, per "ARCH.md generation (coordination repo)" above
 - `sdlc/dependencies/` — copy the README from `templates/sdlc/dependencies/`. XDEP records live here, one file per cross-repo dependency, empty until a thread creates one — see `templates/reference/xdep-schema.md` for the schema.
 - `sdlc/scenarios/` — copy the README from `templates/sdlc/scenarios/`. Cross-repo E2E scenario definitions live here, empty until a thread creates one — same reference doc covers the scenario schema.
+- `sdlc/investigations/` — copy the README from `templates/sdlc/investigations/`. Investigation/decision records (`/create-investigation`), empty until one is authored.
+- `sdlc/promotions/` — copy the README from `templates/sdlc/promotions/`. One append-only log file per `governance: promotion` environment (`/promote-to-environment`), empty until a promotion happens. Coordination-repo only — a `governance: promotion` environment's per-participant candidate map lives in the coordination repo, the same way `environments` itself is declared there (see `project.yml`'s own `environments` field).
 - `sdlc/registry/` — master artifact index, same as any project
 
 No `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, `sdlc/test-plans/`, `sdlc/adr/`, etc. — a coordination repo organizes artifacts by **thread**, not by artifact type. `create-spec` creates `sdlc/THREAD-NNNN/` on demand for each new thread, containing that thread's SPEC/ANALYSIS/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN together — there is no flat, cross-thread `specs/` directory to pre-create. Any ADR a thread's `create-design` authors is thread-scoped too: `sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md`, created on demand the same way — never the flat `sdlc/adr/` a `repo_role: code` project uses, since an ADR about one thread's cross-repo contract has no meaning outside that thread. `SYSTEM-TEST-PLAN.md` (if the thread needs one — see `templates/reference/xdep-schema.md`) is thread-scoped the same way: `sdlc/THREAD-NNNN/SYSTEM-TEST-PLAN.md`, authored by that thread's `create-test-plan` run, not present for a thread whose dependencies are fully covered by contract-level verification.
@@ -787,6 +789,7 @@ Create the following directories in the target project, copying the README.md fr
 - `sdlc/bugs/` — BUG artifacts
 - `sdlc/incidents/` — INCIDENT artifacts
 - `sdlc/postmortems/` — postmortem reports
+- `sdlc/investigations/` — Investigation/decision records (`/create-investigation`)
 - `sdlc/registry/` — master artifact index
 
 If a directory already exists in the target project (brownfield), do not overwrite existing files — only add missing READMEs.
