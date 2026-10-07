@@ -10,6 +10,8 @@
 
 | ID | Type | Status | Title |
 |---|---|---|---|
+| SPEC-0001 | spec | approved | ForgeKit Operator |
+| ANALYSIS-0001 | analysis | completed | ForgeKit Operator — Spec Analysis |
 
 ## Bug Artifacts
 
