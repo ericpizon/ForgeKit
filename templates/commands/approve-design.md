@@ -4,10 +4,11 @@ type: command
 name: /approve-design
 description: Architect command to close the design review loop — confirm all findings resolved, mark DESIGN approved, update ARCH, trigger Stage 4
 status: active
-version: 4
+version: 5
 primary_role: architect
 output_artifact_type: design (approved)
 changelog:
+  - v5 — `repo_role: coordination` now pulls/pushes `main`, not `thread/NNNN-slug` (Option C of a full-pipeline drift audit — see `create-spec.md`'s v5 note for the full reasoning). Applies to both the "Sync Your Branch" step and the shared commit/push block the Interface Freeze path reuses.
   - v4 — Interface Freeze now also regenerates the coordination repo's SYSTEM-ARCH.md Dependency Map wholesale from the current active-XDEP set (D1/ADR-0002), creating the file lazily if needed; a regeneration failure logs a warning and never blocks the Interface Freeze approval itself. Built for SPEC-0001 (AC6).
   - v3 — Interface Freeze Step 2 now points at cross-repo-resolution.md's self-referential-ref pattern for approved.ref instead of the unresolvable "advance approved.ref to match working" instruction (working carries no ref to copy).
   - v2 — added the coordination-repo Interface Freeze path (`/approve-design DESIGN-NNNN interface-freeze`): approves the Cross-Repo Contract sub-section independently of the rest of DESIGN, advancing its working/approved revision; full approval now updates each affected participant's own ARCH.md rather than a coordination repo's (which carries no cross-cutting patterns). Moved "Sync Your Branch" ahead of the Interface Freeze path so a team context pulls before reading review findings on that path too, not just the full-approval path.
@@ -31,9 +32,17 @@ Pass the DESIGN ID: `/approve-design DESIGN-NNNN`.
 ## Before Starting — Sync Your Branch
 
 **Team context:** Pull before reading — all reviewer sections must be on the branch.
+
+`repo_role: code`:
 ```
 git pull origin thread/NNNN-slug
 ```
+
+`repo_role: coordination` — there is no thread branch; everything lands on `main` directly (per `create-spec.md`'s `repo_role: coordination` Handoff):
+```
+git pull origin main
+```
+
 **Solo context:** Skip — already local.
 
 This applies to both paths below, including the Interface Freeze path — a coordination repo exists specifically to be shared across repos and people, so reading a stale local copy of the Cross-Repo Contract Review findings is exactly the kind of mistake this step exists to prevent.
@@ -155,8 +164,15 @@ git commit -m "THREAD-NNNN: DESIGN approved — [N review rounds]"
 Then, for each participant repo whose ARCH.md was updated directly (per Step 3 above), commit that change separately in that repo — it is not part of this coordination-repo commit.
 
 **Push (only if user confirms team context):**
+
+`repo_role: code`:
 ```
 git push origin thread/NNNN-slug
+```
+
+`repo_role: coordination`:
+```
+git push origin main
 ```
 
 **Trigger Stage 4 (both run in parallel):**

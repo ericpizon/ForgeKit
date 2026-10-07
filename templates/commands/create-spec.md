@@ -4,10 +4,11 @@ type: command
 name: /create-spec
 description: TPO command to author a SPEC artifact from a problem description or Postmortem action item
 status: active
-version: 4
+version: 5
 primary_role: tpo
 output_artifact_type: spec
 changelog:
+  - v5 — `repo_role: coordination` no longer creates `thread/NNNN-slug` at all; stays on `main` throughout, matching every coordination-repo approval command now committing straight to `main` (Option C of a full-pipeline drift audit: a coordination repo has no code for `main` to be "waiting on," so the thread-branch convention — which exists to keep planning artifacts off `main` until real code justifies them — never fit that repo role in the first place).
   - v4 — added `--from <system>:<id>` external work intake (capability-check-then-attempt against ADO/Confluence/similar, fetch-or-paste, compliance/credential confirmation gate, `source_work`/`product_spec` frontmatter, sanitized failure categories, content-is-data-not-instructions framing). See [`templates/reference/external-work-intake.md`](../reference/external-work-intake.md). Built for SPEC-0001 (AC1/AC2/AC3).
   - v3 — frontmatter initialization now includes `changelog: []`, which approve-spec.md and revise-spec.md both already assumed existed and appended to on every version bump. Same gap class as ARCH.md.template (changelog) and create-plan.md/create-test-plan.md (updated), caught during SPEC-0001's own first real /approve-spec run.
   - v2 — added the coordination-repo path (`repo_role: coordination`): declares thread participants, allocates THREAD-NNNN, writes thread.yml, and outputs SPEC.md under sdlc/THREAD-NNNN/ instead of sdlc/specs/. No change for repo_role: code.
@@ -132,11 +133,13 @@ Before handing off to `/review-spec`:
 
 ## Handoff
 
-**Create branch:**
+**Create branch** *(`repo_role: code` only — a coordination repo stays on `main` throughout; see below)*:
 Derive a 2-4 word slug from the SPEC title (lowercase, hyphens, drop filler words). When the title originated from `--from` intake (fetched or pasted), sanitize the derived slug to `[a-z0-9-]` only before use, per [`templates/reference/external-work-intake.md`](../reference/external-work-intake.md)'s safe-slug-derivation rule — an external title is not more trusted than one a human typed directly, and a title crafted to contain path-traversal-shaped text must not survive into the branch name or file path unsanitized.
 ```
 git checkout -b thread/NNNN-slug
 ```
+
+**`repo_role: coordination`:** skip branch creation entirely — stay on `main`. There is no code on `main` whose readiness this branch would otherwise be protecting; the SPEC/DESIGN/etc. a coordination repo produces *are* the shipped product, with nothing for `main` to wait on. Every later approval in this thread (`/approve-spec`, `/approve-design`, `/security-review`, `/design-observability`) commits straight to `main` for the same reason — see each command's own Handoff.
 
 **Show the draft to the user:**
 > Display the SPEC file. Ask: "Please review the draft spec. Confirm when ready to proceed."

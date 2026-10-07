@@ -4,12 +4,13 @@ type: command
 name: /design-observability
 description: SRE command to produce OBS-NNNN — signals, SLOs, dashboards, alerts, and instrumentation tasks — from an approved DESIGN
 status: active
-version: 4
+version: 5
 primary_role: sre
 reviewing_roles:
   - lead-developer
 output_artifact_type: observability-plan
 changelog:
+  - v5 — `repo_role: coordination` now pushes to `main`, not `thread/NNNN-slug` (Option C of a full-pipeline drift audit — see `create-spec.md`'s v5 note for the full reasoning).
   - v4 — added Step 2 ("Confirm the instrumentation mechanism"), reading ARCH.md's stack.observability before defining any signal, and branching to structured-log-field signals when no metrics library exists. Closes a gap where instrumentation tasks assumed a counter/histogram API the stack didn't have, previously only caught one stage downstream at /review-test-plan.
   - v3 — fixed the commit path for the coordination-repo case, which still hardcoded sdlc/observability/ — OBS-NNNN for a thread lives at sdlc/THREAD-NNNN/OBS.md.
   - v2 — added a coordination-repo path: reads ARCH.md from every thread participant, and tags each instrumentation task with the participant repo it belongs to so create-plan can pull only its own subset.
@@ -105,8 +106,15 @@ git commit -m "THREAD-NNNN: observability plan — LD approved"
 ```
 
 **Push (only if user confirms team context):**
+
+`repo_role: code`:
 ```
 git push origin thread/NNNN-slug
+```
+
+`repo_role: coordination` — there is no thread branch; this commit already landed on `main` (per `create-spec.md`'s `repo_role: coordination` Handoff):
+```
+git push origin main
 ```
 
 Lead Developer review must complete and findings resolved before OBS-NNNN instrumentation tasks are included in `/create-plan`.

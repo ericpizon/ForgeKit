@@ -4,10 +4,11 @@ type: command
 name: /approve-spec
 description: TPO command to close the spec phase — confirm review is ready, mark SPEC approved, commit all spec-phase artifacts
 status: active
-version: 4
+version: 5
 primary_role: tpo
 output_artifact_type: spec (approved)
 changelog:
+  - v5 — `repo_role: coordination` now pushes to `main`, not `thread/NNNN-slug` (Option C of a full-pipeline drift audit — see `create-spec.md`'s v5 note for the full reasoning).
   - v4 — added write-back to the external work system named in `source_work` (if present): a confirmation-gated attempt to update the originating ADO/Confluence ticket with the approval decision, firing on every approval including re-approvals after `/reopen-spec`. Capability-check-then-attempt, any-non-confirmed-success-is-failure, sanitized failure categories — see [`templates/reference/external-work-intake.md`](../reference/external-work-intake.md). Built for SPEC-0001 (AC4).
   - v3 — coordination-repo commit now includes thread.yml, created by /create-spec but previously never added to any commit until caught by eye as an untracked file.
   - v2 — added the coordination-repo commit path: SPEC-NNNN and ANALYSIS-NNNN live at sdlc/THREAD-NNNN/SPEC.md and sdlc/THREAD-NNNN/ANALYSIS.md for a thread, not sdlc/specs/ and sdlc/analysis/.
@@ -131,8 +132,15 @@ git commit -m "THREAD-NNNN: SPEC approved — [N review rounds]"
 `thread.yml` was created by `/create-spec` but never committed until now — always include it (an already-tracked, unchanged `thread.yml` on a later approval round of the same thread is a harmless no-op in `git add`).
 
 **Push (only if user confirms team context):**
+
+`repo_role: code`:
 ```
 git push -u origin thread/NNNN-slug
+```
+
+`repo_role: coordination` — this commit already landed on `main` (per `create-spec.md`'s own `repo_role: coordination` Handoff, which never creates a thread branch), so this is an ordinary push, not a feature-branch one:
+```
+git push origin main
 ```
 
 **Note `security_review_required` for the Architect:**

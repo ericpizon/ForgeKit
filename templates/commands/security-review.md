@@ -4,13 +4,14 @@ type: command
 name: /security-review
 description: Security role command to produce SEC-NNNN — a full threat model and findings report for a DESIGN; only invoked when ANALYSIS sets security_review_required yes
 status: active
-version: 5
+version: 6
 primary_role: security
 reviewing_roles:
   - lead-developer
   - architect
 output_artifact_type: security-review
 changelog:
+  - v6 — `repo_role: coordination` now pushes to `main`, not `thread/NNNN-slug` (Option C of a full-pipeline drift audit — see `create-spec.md`'s v5 note for the full reasoning).
   - v4 — added a coordination-repo path: reads ARCH.md from every thread participant, and tags each finding's mitigation task with the participant repo it belongs to so create-plan can pull only its own subset.
   - v5 — fixed the commit path for the coordination-repo case, which still hardcoded sdlc/security/ — SEC-NNNN for a thread lives at sdlc/THREAD-NNNN/SEC.md.
 ---
@@ -100,8 +101,15 @@ git commit -m "THREAD-NNNN: Security review complete — [N Critical/High open, 
 ```
 
 **Push (only if user confirms team context):**
+
+`repo_role: code`:
 ```
 git push origin thread/NNNN-slug
+```
+
+`repo_role: coordination` — there is no thread branch; this commit already landed on `main` (per `create-spec.md`'s `repo_role: coordination` Handoff):
+```
+git push origin main
 ```
 
 Open Critical/High findings that are not accepted-risk block PLAN-NNNN authorship.
