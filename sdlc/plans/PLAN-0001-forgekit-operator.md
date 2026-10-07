@@ -24,7 +24,7 @@ pipeline_status:
   obs: OBS-0001 approved
   sec: SEC-0001 completed
   plan: approved
-  test: pending
+  test: approved
 approval:
   mode: repo_only
   approved_by: "Eric Pizon"
