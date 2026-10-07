@@ -4,8 +4,10 @@ type: command
 name: /verify-bug
 description: Quality Engineer command to confirm a bug fix holds in production — executes the original reproduction steps against the live environment and closes or reopens BUG-NNNN
 status: active
-version: 1
+version: 2
 primary_role: quality-engineer
+changelog:
+  - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context.
 ---
 
 # /verify-bug
@@ -130,6 +132,14 @@ Commit the verification result:
 ```bash
 git add sdlc/bugs/BUG-NNNN.md
 git commit -m "bug(BUG-NNNN): [verified — fixed in production | reopened — fix did not hold]"
+```
+
+**Ask before pushing:**
+> "Solo project (commit only, no push) or team project (push too)?"
+
+```bash
+# team only:
+git push origin main
 ```
 
 - **Verified:** "BUG-NNNN is closed. Fix confirmed in production."

@@ -6,11 +6,11 @@ Command reference for the AI-SDLC pipeline installed in this project. Each comma
 
 | Stage | Step | Command | Primary role | Produces |
 |---|---|---|---|---|
-| **1 — Specification** | Write | `/create-spec` | TPO | SPEC-NNNN |
+| **1 — Specification** | Write | `/create-spec` (or `/create-spec --from <system>:<id>` to start from an external ticket — see External work intake below) | TPO | SPEC-NNNN |
 | | Review | `/review-spec SPEC-NNNN` | Lead Dev | feedback |
 | | Revise | `/revise-spec SPEC-NNNN` | TPO | — |
 | | Validate | `/validate-spec SPEC-NNNN` | TPO | product validation sign-off |
-| | Approve | `/approve-spec SPEC-NNNN` | TPO | SPEC → approved |
+| | Approve | `/approve-spec SPEC-NNNN` | TPO | SPEC → approved (also offers to write the decision back to the originating ticket, if the SPEC came from one) |
 | **2 — Spec review / Analysis** | *(runs during Stage 1 review)* | | Lead Dev | ANALYSIS-NNNN |
 | **3 — Architecture & Design** | Author | `/create-design SPEC-NNNN` | Architect | DESIGN-NNNN |
 | | Review | `/review-design DESIGN-NNNN` | Architect (multi-perspective) | feedback |
@@ -96,6 +96,42 @@ Key differences when a thread spans multiple repos:
 - **`/status` and `/sync-registry` gain a cross-repo view:** a thread participant's `/status` shows the Cross-Repo Contract's working/approved state and whether it's blocked on (or blocking) another participant; `/sync-registry` run from the coordination repo produces a thread-level portfolio across every participant.
 - **A back-cycle on a thread-wide artifact flags every participant:** `/reopen-spec` and `/reopen-design` update `pipeline_status` on every participant's own PLAN, not just one — silently leaving other participants building against an invalidated SPEC/DESIGN is exactly what a back-cycle exists to prevent.
 
+## External work intake
+
+A SPEC can originate from an existing ticket in an external system (ADO, Confluence, or similar) rather than a from-scratch conversation — `/create-spec --from <system>:<id>`. ForgeKit owns no API client for any external tool; it only checks whether the running environment already has working access (an MCP server, a configured CLI) and either fetches directly or falls back to pasting the content in, recording `source_work`/`product_spec` in the SPEC's frontmatter either way. On `/approve-spec`, if the SPEC carries a `source_work` block, you're offered to write the approval decision back to the originating ticket — confirmation-gated, never automatic, and never blocking approval if declined or unavailable.
+
+## Promotion: single-repo → cross-repo
+
+A SPEC authored as an ordinary single-repo feature sometimes turns out to need more than one repo partway through — discovered during ANALYSIS (before it's even approved) or during DESIGN (after). `/promote-to-thread SPEC-NNNN` converts it into a `THREAD-NNNN` in a coordination repo at that point, rather than requiring cross-repo scope to be known upfront:
+
+| When | Command | Primary role |
+|---|---|---|
+| Cross-repo scope discovered mid-flow | `/promote-to-thread SPEC-NNNN` | Any |
+| Check a SPEC's promotion state (works even before any PLAN exists) | `/status SPEC-NNNN` | Any |
+
+It's idempotent and safely resumable — interrupting it partway through and re-running never mints a duplicate `THREAD-NNNN` and never leaves the original SPEC ambiguous between promoted and not. The original SPEC is never deleted: it's marked `status: promoted`, `superseded_by: THREAD-NNNN`, and stays in place as a historical record.
+
+## Environment governance
+
+A coordination repo's `project.yml` may declare an `environments` list, each entry naming a `governance` level — `ci`, `promotion`, or `release` — never a hardcoded environment name like `dev`/`qa`/`production`:
+
+| Governance | What happens |
+|---|---|
+| `ci` | Nothing — stays outside ForgeKit's scope entirely, same as today. |
+| `promotion` | `/promote-to-environment <environment>` appends one lightweight, append-only row (candidate refs, who, when, smoke-test result) to `sdlc/promotions/{environment}.md` — no Gating-criteria table, no Rollback plan, no Validation Plan; those stay exclusive to `release`. |
+| `release` | The existing RELEASE-PLAN ceremony (Stage 9–10 below), unchanged. |
+
+## Investigation and decision records
+
+Spike or research work that may legitimately conclude without any implementation:
+
+| When | Command | Primary role | Produces |
+|---|---|---|---|
+| A question needs a structured answer before (or instead of) committing to a build | `/create-investigation` (or `--from <system>:<id>`) | Any | INV-NNNN |
+| A durable decision needs recording independent of any build | `/create-adr <slug>` | Any | ADR-NNNN (standalone — no parent DESIGN/SPEC) |
+
+`/create-investigation` walks Question → Approach → Findings → exactly one of four decisions: `no_action` (done, nothing to build), `adr` (hands off to `/create-adr`, linking the result), `recommend_implementation` (advisory text only — never auto-creates a SPEC or writes to any external ticket; a human decides separately whether to start `/create-spec`), or `investigate_further` (stays `open` for a follow-up round).
+
 ## Maintenance
 
 | When | Command |
@@ -133,7 +169,9 @@ In **markdown mode** (default), all artifacts are `.md` files in `sdlc/`. Comman
 | `sdlc/specs/` | Feature specifications | SPEC-NNNN |
 | `sdlc/analysis/` | Spec analysis | ANALYSIS-NNNN |
 | `sdlc/design/` | Architecture designs | DESIGN-NNNN |
-| `sdlc/adr/` | Architectural decision records | ADR-NNNN |
+| `sdlc/adr/` | Architectural decision records — from `/create-design` (nested in a feature's own design) or standalone from `/create-adr` | ADR-NNNN |
+| `sdlc/investigations/` | Investigation/decision records | INV-NNNN |
+| `sdlc/promotions/` | Append-only environment-promotion log, one file per `governance: promotion` environment *(coordination repos only)* | — |
 | `sdlc/plans/` | Implementation plans | PLAN-NNNN |
 | `sdlc/test-plans/` | Test plans | TEST-NNNN |
 | `sdlc/security/` | Security reviews | SEC-NNNN |

@@ -4,8 +4,10 @@ type: command
 name: /resolve-incident
 description: Mark an incident resolved, record the mitigation, determine postmortem requirement from severity threshold, and prompt for follow-up actions
 status: active
-version: 1
+version: 2
 primary_role: sre
+changelog:
+  - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context.
 links:
   - relation: follows
     target: update-incident
@@ -87,6 +89,14 @@ Check INC-NNNN frontmatter for `linked_bug`. If set:
 git add sdlc/incidents/INC-NNNN-[slug].md
 git add sdlc/bugs/BUG-NNNN-[slug].md   # only if linked_bug is set (Step 4)
 git commit -m "incident(INC-NNNN): resolved — [title] ([duration])"
+```
+
+**Ask before pushing:**
+> "Solo project (commit only, no push) or team project (push too)?"
+
+```bash
+# team only:
+git push origin main
 ```
 
 ## Step 6 — Next steps

@@ -173,6 +173,20 @@ The CLAUDE.md block installed by `/forge-init` carries the hybrid mode context �
 
 ---
 
+## When your feature spans more than one repo
+
+Everything above assumes one repo. You don't need to know upfront whether a feature will stay that way — most don't. If partway through ANALYSIS or DESIGN it turns out the feature actually needs a second repo (a shared event contract, a cross-service API), run `/promote-to-thread SPEC-NNNN`. It converts your repo-local SPEC into a `THREAD-NNNN` in a dedicated coordination repo (a repo with no application code, just shared cross-repo artifacts), re-running the cross-repo groundwork your SPEC would have gotten upfront had you known. The original SPEC stays in place, marked `promoted`, pointing at the thread — nothing is deleted.
+
+This applies the same way whether you're solo (you'll set up the coordination repo yourself, the first time any of your repos needs one — `/promote-to-thread` asks and remembers the answer) or on a team (the coordination repo is usually already set up by whoever first needed cross-repo coordination; your repo's `project.yml` just needs to point at it, which `/promote-to-thread` does reactively the first time it's needed).
+
+Once a thread exists, a coordination repo can also host:
+- **Routine environment promotions** (`/promote-to-environment`) — a lightweight, append-only record for a `governance: promotion` environment (a shared QA, say), proportional to how often it actually happens — not the full RELEASE-PLAN ceremony that's still exactly right for `governance: release`.
+- **Investigation records** (`/create-investigation`, `/create-adr`) — spike or research work that may conclude without any implementation, not forced through a SPEC template that presupposes a build is coming.
+
+See `PIPELINE.md`'s "Multi-repo coordination," "Promotion," "Environment governance," and "Investigation" sections for the full command reference — none of it changes how you work day to day in a normal, single-repo thread.
+
+---
+
 ## Quick reference — first week
 
 | Day | What you do | Command(s) |

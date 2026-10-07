@@ -5,7 +5,24 @@ project:
   repo_role: {{repo_role}}         # code | coordination — see the multi-repo coordination model
   team_size: {{team.size}}         # solo | small | enterprise
   initialized_at: {{today}}
-  forgekit_version: "1.0"
+  forgekit_version: "1.6"          # must match forge-init.md's own frontmatter version
+
+# [INCLUDE ONLY IF repo_role: code AND an existing coordination repo was named during
+#  Phase 2b — omit this key entirely for "not yet"; never write an empty string or null]
+coordination_repo: "{{coordination_repo}}"   # org/repo — the dedicated coordination repo this
+                                              # project participates in; set by /forge-init's
+                                              # Phase 2b or reactively by /promote-to-thread
+
+# [INCLUDE ONLY IF repo_role: coordination — both optional and additive, no dedicated
+#  authoring command; hand-edit directly. See sdlc/promotions/README.md.]
+known_participants:
+  - repo: "{{participant.repo}}"              # org/repo
+    purpose: "{{participant.purpose}}"
+environments:
+  - name: "{{environment.name}}"              # [a-z0-9-] only
+    purpose: "{{environment.purpose}}"
+    governance: {{environment.governance}}    # ci | promotion | release
+# [END INCLUDE]
 
 # How SDLC artifacts are stored and provided to pipeline commands.
 # markdown    — all artifacts are .md files in this repo; commands read/write directly

@@ -4,8 +4,10 @@ type: command
 name: /triage-bug
 description: Lead Developer command to accept or reject a filed bug — confirm it is a real defect, classify severity and priority, assign to a fix milestone, or close with a documented rejection reason
 status: active
-version: 1
+version: 2
 primary_role: lead-developer
+changelog:
+  - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context — in a team setting, these records were never reaching the shared remote via the documented flow.
 ---
 
 # /triage-bug
@@ -209,6 +211,14 @@ Commit BUG-NNNN — the triage decision is the first stable state worth persisti
 ```bash
 git add sdlc/bugs/BUG-NNNN.md
 git commit -m "bug(BUG-NNNN): triage — [accepted | rejected: reason] — [title]"
+```
+
+**Ask before pushing:**
+> "Solo project (commit only, no push) or team project (push too)?"
+
+```bash
+# team only:
+git push origin main
 ```
 
 ### Accepted — any priority

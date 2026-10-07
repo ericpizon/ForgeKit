@@ -4,7 +4,7 @@ type: command
 name: /sync-registry
 description: Scans all SDLC artifacts, groups them by Thread ID, and regenerates the global registry index and per-thread FEATURE dashboards
 status: active
-version: 2
+version: 3
 primary_role: tpo
 links:
   - relation: produces
@@ -12,6 +12,7 @@ links:
   - relation: produces
     target: features/FEATURE-NNNN.md
 changelog:
+  - v3 — added `sdlc/investigations/` to the single-repo scan table (INV-NNNN), and `sdlc/investigations/`/`sdlc/adr/`/`sdlc/promotions/` to the coordination-repo path. Found during a full-pipeline drift audit: these artifact types were completely invisible to the registry despite `forge-init.md` explicitly creating directories for them in both repo roles.
   - v2 — added a coordination-repo path producing a thread-level portfolio view across every participant, and a one-line thread pointer for a participant repo's own local registry.
 ---
 
@@ -50,7 +51,8 @@ Read `project.yml`'s `repo_role`. For `repo_role: code` (the default), continue 
 1. Scan `sdlc/THREAD-NNNN/` for each thread directory: read `thread.yml` (participants), `SPEC.md`, `DESIGN.md` (including its `cross_repo_contract` working/approved block), `SECURITY-REVIEW.md`/`OBSERVABILITY-PLAN.md` if present, any `RELEASE-PLAN-vX.Y.Z-{environment}.md` files, `SYSTEM-TEST-PLAN.md` if present, and any thread-scoped `adr/`.
 2. Scan the top-level `sdlc/dependencies/` and `sdlc/scenarios/` directories, associating each `THREAD-NNNN-XDEP-NN.yml` / `THREAD-NNNN-E2E-NN.yml` file with its thread by the `THREAD-NNNN` ID prefix in the filename.
 3. For each participant in `thread.yml`, resolve its PLAN-NNNN frontmatter (`pipeline_status`, milestone implementation statuses) via [`templates/reference/cross-repo-resolution.md`](../reference/cross-repo-resolution.md) — a lightweight read, frontmatter and milestone status lines only, the same discipline `/status` already applies locally.
-4. Skip Steps 1–3 below (they describe the flat single-repo scan and stage-precedence table) and proceed to the coordination-repo output format (below) instead of the single-repo FEATURE-NNNN.md format.
+4. Also scan the top-level `sdlc/investigations/` and `sdlc/adr/` directories — standalone ADRs and Investigations not tied to any one thread (per `forge-init.md`'s coordination-repo directory list) — and list them in the registry index as their own flat section, not folded into any thread's entry. Also scan `sdlc/promotions/`: for each `{environment}.md` file, surface its most recent row (candidate refs, promoted by, promoted at, smoke-test result) as a one-line "last promotion" summary per environment — this is a log to summarize, not an artifact to index by ID the way SPEC/DESIGN/etc. are.
+5. Skip Steps 1–3 below (they describe the flat single-repo scan and stage-precedence table) and proceed to the coordination-repo output format (below) instead of the single-repo FEATURE-NNNN.md format.
 
 ## Step 1 — Scan artifacts
 
@@ -71,6 +73,7 @@ Read the frontmatter of every artifact file in these directories:
 | `sdlc/releases/` | RELEASE-NOTES | `RELEASE-NOTES-vX.Y.Z` |
 | `sdlc/incidents/` | INCIDENT | `INC-NNNN` (independent) |
 | `sdlc/postmortems/` | POSTMORTEM | `PM-NNNN` (independent) |
+| `sdlc/investigations/` | INVESTIGATION | `INV-NNNN` (independent — not necessarily tied to any thread; `decision: adr` investigations link to their `linked_adr` via `links`) |
 
 For each file, collect: `id`, `type`, `status`, `updated`, and any `links` entries.
 

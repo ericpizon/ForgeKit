@@ -4,10 +4,11 @@ type: command
 name: /create-investigation
 description: Authors an Investigation record for spike/research work that may conclude without any implementation — Question, Approach, Findings, and exactly one of four decision outcomes
 status: active
-version: 1
+version: 2
 primary_role: any
 output_artifact_type: investigation
 changelog:
+  - v2 — two fixes from a full-pipeline drift audit: (1) Handoff now actually asks the solo-vs-team question before referencing "if user confirms team context" in the Commit step — it previously referenced a confirmation it never solicited; (2) clarified this command always writes to the flat `sdlc/investigations/`, identically in `repo_role: code` and `repo_role: coordination` (confirmed in `forge-init.md`'s own directory list for both).
   - v1 — initial authoring. Implements AC16 (Question → Approach → Findings → Decision, four outcomes), reusing T1's shared intake mechanism for `--from`. States inline: a `recommend_implementation` decision is advisory text only — this command never creates or writes to any external ticket (D12's containment principle, applied symmetrically on the output side). SEC-0001 SEC-2's slug-sanitization extension (T18b) applied to this command's own slug derivation.
 ---
 
@@ -57,6 +58,8 @@ The produced `INV-NNNN` must contain all of the following Required Sections: Que
 
 Frontmatter must include: `id`, `type: investigation`, `schema_version: 1`, `status: open | concluded`, `decision: no_action | adr | recommend_implementation | investigate_further | null` (`null` only while still genuinely undecided mid-authoring — never left `null` once Step 4 completes), `linked_adr: ADR-NNNN | null` (set only when `decision: adr`), `created`, `concluded_at` (`null` until `status: concluded`), `generation` block (`command: /create-investigation`, `command_version`, `model`, `generated_at`, `session_id: null`). When started via `--from`, also `source_work`/`product_spec` per the Pre-flight section above.
 
+**Output path — identical regardless of `repo_role`:** always the flat `sdlc/investigations/INV-NNNN-slug.md`, in both `repo_role: code` and `repo_role: coordination` — an Investigation is never tied to a particular `THREAD-NNNN`, so there is no thread-scoped variant to branch to.
+
 ## Quality Gate
 
 Before finalizing:
@@ -74,7 +77,7 @@ Before finalizing:
 ## Handoff
 
 **Show the user the draft before committing:**
-> Display the Investigation. Ask: "Review the draft. Confirm when ready — or if the Decision should change, say so now rather than after this commits."
+> Display the Investigation. Ask: "Review the draft. Confirm when ready — or if the Decision should change, say so now rather than after this commits. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Once confirmed — branch on the decision:**
 - `no_action` / `recommend_implementation`: proceed directly to commit below.

@@ -4,9 +4,10 @@ type: command
 name: /execute-release
 description: SRE command to apply production migrations, deploy to production, and create a release tag — the authorized production deployment step
 status: active
-version: 2
+version: 3
 primary_role: sre
 changelog:
+  - v3 — Step 6's deployment-record commit now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: this was the one command that pushed to `main` unconditionally with no question asked at all — inconsistent with every sibling approve-*/create-adr/promote-*/create-investigation command. The production deploy itself (Steps 3–5) is unaffected; only the tracking-record push gained the gate.
   - v2 — added an optional deployment-wave pre-flight check for a repo participating in a cross-repo thread release, for orgs with no existing cross-repo deployment orchestration. This repo's own readiness gate is otherwise unchanged — cross-repo sequencing is never a mandatory second gate on top of an org's own orchestration.
 ---
 
@@ -136,6 +137,13 @@ Commit the deployment record:
 git add sdlc/release-plans/RELEASE-PLAN-vX.Y.Z.md
 git add sdlc/bugs/BUG-NNNN.md   # only if linked_bug is set
 git commit -m "release(vX.Y.Z): deployed to production"
+```
+
+**Ask before pushing** — the deploy itself (Steps 3–5) already happened regardless; this is only the SDLC tracking record:
+> "Solo project (commit only, no push) or team project (push too)?"
+
+```bash
+# team only:
 git push origin main
 ```
 

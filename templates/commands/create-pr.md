@@ -2,13 +2,17 @@
 id: create-pr
 type: command
 name: /create-pr
-description: Developer command to open a GitHub PR for a completed milestone — generates PR description from PLAN, IMPL-REVIEW, and test results; sets implementation_status to pr_open
+description: Developer command to close out a completed milestone — opens a GitHub PR (team/remote) or fast-forward merges directly to main (solo/no remote), generating a PR description from PLAN, IMPL-REVIEW, and test results either way
 status: active
-version: 1
+version: 2
 primary_role: developer
+changelog:
+  - v2 — added the local-only path (no `gh`, no remote, or declined ceremony): fast-forward merge straight from `tests_passed` to `pr_merged`, skipping `pr_open` and `/close-milestone` entirely. Found during a full-pipeline drift audit — this command had no fallback at all, unlike its sibling `/close-milestone`'s documented "if `gh` isn't authenticated or there's no remote" escape hatch, despite this exact gap being worked around ad hoc (undocumented) on every solo ForgeKit milestone to date.
 links:
   - relation: follows
     target: execute-tests
+  - relation: precedes
+    target: close-milestone   # real-PR path only
   - relation: precedes
     target: implement-plan
 ---
@@ -17,9 +21,9 @@ links:
 
 ## Purpose
 
-Open a GitHub PR from the milestone's feature branch (`feature/PLAN-NNNN-MN`) to `main`. Generates the PR title and description from the PLAN task list, IMPL-REVIEW history, and test execution results so reviewers have full context without reading the raw artifacts. Sets `implementation_status: pr_open`.
+Close out a completed milestone, from its feature branch (`feature/PLAN-NNNN-MN`) to `main`. Generates a title and description from the PLAN task list, IMPL-REVIEW history, and test execution results either way. **Team/remote context:** opens a real GitHub PR and sets `implementation_status: pr_open`, pending a human merge on GitHub. **Solo or no-remote context:** fast-forward merges directly into `main` and sets `implementation_status: pr_merged` in one step — there's no PR to review asynchronously when one person wrote and is also closing the milestone.
 
-The next milestone cannot start until this PR is merged and the status advances to `pr_merged`. `/implement-plan` detects the merge automatically when it runs the pre-flight for the next milestone.
+The next milestone cannot start until MN reaches `pr_merged` — either via a merged PR (`/close-milestone` records it) or directly on the local-only path. `/implement-plan` detects a merged PR automatically when it runs the pre-flight for the next milestone; the local-only path sets `pr_merged` itself, so there's nothing further to detect.
 
 ## Usage
 
@@ -102,13 +106,13 @@ Present the generated title and description to the user:
 >
 > [full description as generated above]
 >
-> Confirm to create the PR?
+> Confirm: (1) proceed? (2) push and open a real GitHub PR, or local-only (no `gh`/no remote, or you simply don't want the ceremony) — fast-forward merge directly into `main` and skip straight to `pr_merged`?
 
-Wait for confirmation before creating.
+Wait for confirmation before proceeding. If `gh` is not authenticated or the repo has no remote at all, say so explicitly and default to recommending local-only rather than letting Step 4 fail opaquely.
 
-## Step 4 — Create the PR
+## Step 4 — Create the PR *(real-PR path only)*
 
-After user confirms:
+After the user confirms the real-PR path:
 
 ```bash
 gh pr create \
@@ -118,7 +122,7 @@ gh pr create \
   --head feature/PLAN-NNNN-MN
 ```
 
-## Step 5 — Update milestone status
+## Step 5 — Update milestone status *(real-PR path only)*
 
 Update PLAN-NNNN milestone MN:
 
@@ -134,23 +138,56 @@ git commit -m "chore(MN): PR open — implementation_status pr_open"
 git push origin feature/PLAN-NNNN-MN
 ```
 
+## Step 4b/5b — Local-only path (no `gh`, no remote, or declined ceremony)
+
+Skip Step 4/5 entirely — there is no PR to open, so `pr_open` is skipped too; go straight from `tests_passed` to `pr_merged` in one move, mirroring what the real-PR path accomplishes in two:
+
+```bash
+git checkout main
+git merge --ff-only feature/PLAN-NNNN-MN
+```
+
+If the merge isn't a clean fast-forward (main has diverged — unusual for a solo/local workflow but possible), stop and surface it rather than forcing a merge commit silently; ask the user how they want to reconcile it.
+
+Update PLAN-NNNN milestone MN directly to the final status:
+
+```
+**Implementation status:** pr_merged
+```
+
+Commit on `main` (no feature-branch status commit needed — there's no PR history to preserve it against):
+
+```bash
+git add sdlc/plans/PLAN-NNNN-[slug].md
+git commit -m "chore(MN): mark pr_merged - no remote PR ceremony (local-only, no push)"
+```
+
+Skip straight to Step 6's Handoff below — there is no `/close-milestone` step on this path either (that command verifies a *merged PR*, which doesn't exist here); this single commit *is* the milestone's closure.
+
 ## Step 6 — Handoff
 
-Output the PR URL returned by `gh pr create`, then:
+**Real-PR path:** output the PR URL returned by `gh pr create`, then:
 
 > **MN PR is open:** [PR URL]
 >
-> Merge the PR on GitHub when ready.
->
+> Merge the PR on GitHub when ready, then run `/close-milestone PLAN-NNNN MN` to record it and advance.
+
+**Local-only path:**
+
+> **MN is merged into `main` and closed** — `pr_merged`, no remote PR ceremony.
+
+**Either path, once MN is `pr_merged`:**
+
 > [If more milestones remain:]
-> Once merged, run `/implement-plan PLAN-NNNN M(N+1)` — it will detect the merge and update MN's status to `pr_merged` automatically.
+> Run `/implement-plan PLAN-NNNN M(N+1)` — it will detect MN's `pr_merged` status automatically.
 >
 > [If this is the last milestone:]
-> Once merged, all milestones are complete. The feature is ready for Release Planning — SRE runs `/create-release-plan vX.Y.Z`.
+> All milestones are complete. The feature is ready for Release Planning — SRE runs `/create-release-plan vX.Y.Z`.
 
 ## Notes
 
-- Do not create the PR until the milestone is `tests_passed` — reviewers should see a diff that is already verified
-- The PR branch is `feature/PLAN-NNNN-MN` — never a generic `feature/PLAN-NNNN` branch; one PR per milestone keeps diffs small and reviewable
-- GitHub PR reviewers see the code diff; the PR description gives them the "why" without needing to read the SDLC artifacts directly
-- The PR description's test results and review round count give reviewers confidence the code has already been rigorously reviewed by four role perspectives
+- Do not proceed (either path) until the milestone is `tests_passed` — a diff that hasn't passed its own tests shouldn't be merged, reviewed or not
+- The milestone branch is `feature/PLAN-NNNN-MN` — never a generic `feature/PLAN-NNNN` branch; one PR (or one local merge) per milestone keeps diffs small and reviewable
+- **Real-PR path:** GitHub PR reviewers see the code diff; the PR description gives them the "why" without needing to read the SDLC artifacts directly. The test results and review round count give reviewers confidence the code has already been rigorously reviewed by four role perspectives.
+- **Local-only path:** the same generated description is still worth showing the user before merging, even with no external reviewer — it's the last checkpoint before the milestone's diff becomes part of `main`'s permanent history.
+- Ask explicitly rather than assuming: a repo with a configured remote and working `gh` auth might still be a solo project where the user prefers the lighter local-only path (no PR ceremony for its own sake); don't force the real-PR path just because it's technically possible.

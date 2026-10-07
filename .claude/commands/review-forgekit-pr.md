@@ -4,8 +4,10 @@ type: command
 name: /review-forgekit-pr
 description: ForgeKit maintainer command to review changes to the ForgeKit repo itself — checks that new or modified commands, templates, and docs stay within the established design direction before merging
 status: active
-version: "1.0"
+version: "1.1"
 primary_role: lead-developer
+changelog:
+  - "1.1 — A1's permitted primary_role list now includes `any`, already legitimately used by 5 command files (`status.md` plus the M4-M6 cross-repo/governance commands). Found during a full-pipeline drift audit: this rule would have false-flagged all 5 as blocking violations if ever run."
 ---
 
 # /review-forgekit-pr
@@ -67,7 +69,7 @@ For each new or significantly modified command file:
 Required fields: `id`, `type: command`, `name`, `description`, `status`, `version`, `primary_role`.
 - `status` must be `active` or `placeholder` — no other values
 - `version` must be `"1.0"` or higher (quoted string format matching forge-init version convention)
-- `primary_role` must be exactly one of: `tpo`, `lead-developer`, `developer`, `quality-engineer`, `architect`, `security`, `sre`, `dba`
+- `primary_role` must be exactly one of: `tpo`, `lead-developer`, `developer`, `quality-engineer`, `architect`, `security`, `sre`, `dba`, `any` (for a command with no single natural owner — e.g. `/status`, `/promote-to-thread`, `/promote-to-environment`, `/create-investigation`, `/create-adr`)
 
 **A2. Required sections** *(blocking if any section missing)*
 Every active command must have:

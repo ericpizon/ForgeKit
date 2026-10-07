@@ -4,8 +4,10 @@ type: command
 name: /create-postmortem
 description: SRE command to author a postmortem for a resolved incident — root cause, contributing factors, and structured action items; offers to create BUG-NNNN inline for code-fix items
 status: active
-version: 1
+version: 2
 primary_role: sre
+changelog:
+  - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context.
 links:
   - relation: follows
     target: resolve-incident
@@ -205,6 +207,14 @@ git add sdlc/postmortems/PM-NNNN-[slug].md
 git add sdlc/incidents/INC-NNNN-[slug].md
 git add sdlc/bugs/        # only if BUG-NNNNs were created in Step 5
 git commit -m "postmortem(PM-NNNN): [title] — N action item(s)"
+```
+
+**Ask before pushing:**
+> "Solo project (commit only, no push) or team project (push too)?"
+
+```bash
+# team only:
+git push origin main
 ```
 
 ## Step 9 — Summary

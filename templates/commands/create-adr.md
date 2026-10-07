@@ -4,10 +4,11 @@ type: command
 name: /create-adr
 description: Authors a standalone Architectural Decision Record — no parent DESIGN or SPEC required, reusable anywhere a durable decision needs recording independent of a specific build
 status: active
-version: 1
+version: 2
 primary_role: any
 output_artifact_type: adr
 changelog:
+  - v2 — clarified: this command always writes to the flat `sdlc/adr/`, identically in `repo_role: code` and `repo_role: coordination` (the coordination-repo directory list now includes `sdlc/adr/` for exactly this case). This is a genuinely different location from `create-design.md`'s thread-scoped nested ADRs (`sdlc/THREAD-NNNN/adr/`), which remain unchanged — a standalone ADR has no thread to scope to in the first place. Found during a full-pipeline drift audit: this command had no `repo_role` branch at all despite `/create-investigation` (one of its two callers) being explicitly usable from a coordination repo.
   - v1 — initial authoring. Implements AC17 (standalone ADR authorship, same required sections as a DESIGN-nested ADR, no `target_design` pointer). SEC-0001 SEC-2's slug-sanitization extension (T18b) applied to this command's own slug derivation.
 ---
 
@@ -50,6 +51,8 @@ Frontmatter must include: `id`, `type: adr`, `schema_version: 1`, `status: accep
 
 Body: the five required sections above, in order: Context, Decision, Alternatives Considered, Consequences, Status Rationale, Revisit Triggers — identical heading set to a DESIGN-nested ADR, so nothing downstream that reads an ADR (e.g. a future `/review-design`'s Options Analysis Review, which checks for "Alternatives Considered" explicitly) needs to special-case a standalone one.
 
+**Output path — identical regardless of `repo_role`:** always `sdlc/adr/ADR-NNNN-slug.md`, the flat location, never `sdlc/THREAD-NNNN/adr/`. The thread-scoped path is exclusively `/create-design`'s — a standalone ADR has no thread to scope to, by definition, whether authored in a `repo_role: code` project or a `repo_role: coordination` one.
+
 ## Quality Gate
 
 Before finalizing:
@@ -65,7 +68,7 @@ Before finalizing:
 ## Handoff
 
 **Show the user the draft before committing:**
-> Display the ADR. Ask: "Review the draft ADR. Confirm when ready."
+> Display the ADR. Ask: "Review the draft ADR. Confirm when ready. Confirm: (1) proceed with the commit? (2) solo project (no push) or team project (push too)?"
 
 **Commit (after user confirms):**
 ```bash

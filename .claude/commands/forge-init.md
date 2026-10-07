@@ -4,7 +4,7 @@ type: command
 name: /forge-init
 description: ForgeKit initialization command — on first run detects greenfield vs brownfield, configures artifact mode, builds ARCH.md, and generates all pipeline files; on re-run detects existing configuration and routes to targeted update options without touching ARCH.md or sdlc/ artifacts
 status: active
-version: "1.5"
+version: "1.6"
 primary_role: lead-developer
 created: 2026-06-21
 updated: 2026-10-06
@@ -677,7 +677,7 @@ project:
   repo_role: {{repo_role}}         # code | coordination — see the multi-repo coordination model
   team_size: {{team.size}}         # solo | small | enterprise
   initialized_at: {{today}}
-  forgekit_version: "1.0"
+  forgekit_version: "1.6"   # must match this command's own frontmatter version — see review-forgekit-pr.md E1
 
 # [INCLUDE ONLY IF repo_role: code AND Phase 2b's answer named an existing coordination repo —
 #  omit this key entirely for "Not yet"; do not write an empty string or null placeholder]
@@ -796,9 +796,10 @@ Do not overwrite `.claude/commands/forge-init.md` if it already exists in the ta
 - `sdlc/scenarios/` — copy the README from `templates/sdlc/scenarios/`. Cross-repo E2E scenario definitions live here, empty until a thread creates one — same reference doc covers the scenario schema.
 - `sdlc/investigations/` — copy the README from `templates/sdlc/investigations/`. Investigation/decision records (`/create-investigation`), empty until one is authored.
 - `sdlc/promotions/` — copy the README from `templates/sdlc/promotions/`. One append-only log file per `governance: promotion` environment (`/promote-to-environment`), empty until a promotion happens. Coordination-repo only — a `governance: promotion` environment's per-participant candidate map lives in the coordination repo, the same way `environments` itself is declared there (see `project.yml`'s own `environments` field).
+- `sdlc/adr/` — copy the README from `templates/sdlc/adr/`. **Standalone ADRs only** (`/create-adr`, invoked directly or via `/create-investigation`'s `decision: adr` hand-off) — a decision not tied to any particular thread's cross-repo contract (e.g. a coordination-repo-wide governance choice). This is the one artifact-type-organized exception alongside `sdlc/investigations/` to the "a coordination repo organizes by thread" rule below, for the same reason: neither an Investigation nor the standalone ADR it might produce is necessarily about any one `THREAD-NNNN`.
 - `sdlc/registry/` — master artifact index, same as any project
 
-No `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, `sdlc/test-plans/`, `sdlc/adr/`, etc. — a coordination repo organizes artifacts by **thread**, not by artifact type. `create-spec` creates `sdlc/THREAD-NNNN/` on demand for each new thread, containing that thread's SPEC/ANALYSIS/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN together — there is no flat, cross-thread `specs/` directory to pre-create. Any ADR a thread's `create-design` authors is thread-scoped too: `sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md`, created on demand the same way — never the flat `sdlc/adr/` a `repo_role: code` project uses, since an ADR about one thread's cross-repo contract has no meaning outside that thread. `SYSTEM-TEST-PLAN.md` (if the thread needs one — see `templates/reference/xdep-schema.md`) is thread-scoped the same way: `sdlc/THREAD-NNNN/SYSTEM-TEST-PLAN.md`, authored by that thread's `create-test-plan` run, not present for a thread whose dependencies are fully covered by contract-level verification.
+No `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, `sdlc/test-plans/`, etc. — a coordination repo organizes most artifacts by **thread**, not by artifact type. `create-spec` creates `sdlc/THREAD-NNNN/` on demand for each new thread, containing that thread's SPEC/ANALYSIS/DESIGN/SECURITY-REVIEW/OBSERVABILITY-PLAN/RELEASE-PLAN together — there is no flat, cross-thread `specs/` directory to pre-create. Any ADR a thread's `create-design` authors is thread-scoped too: `sdlc/THREAD-NNNN/adr/ADR-NNNN-slug.md`, created on demand the same way — **distinct from the flat `sdlc/adr/` above**, which holds only standalone ADRs with no parent thread. `SYSTEM-TEST-PLAN.md` (if the thread needs one — see `templates/reference/xdep-schema.md`) is thread-scoped the same way: `sdlc/THREAD-NNNN/SYSTEM-TEST-PLAN.md`, authored by that thread's `create-test-plan` run, not present for a thread whose dependencies are fully covered by contract-level verification.
 
 **For `repo_role: code` (greenfield/brownfield), proceed as below, unchanged:**
 
@@ -868,7 +869,7 @@ Show the user a full summary of what was created:
 - [ ] All role files copied
 - [ ] All reference docs copied to `.claude/reference/` — every command's `../reference/*.md` link depends on this, regardless of `repo_role`
 - [ ] All command files generated with stack values substituted (no unreplaced `{{placeholders}}` remaining)
-- [ ] All 17 `sdlc/` directories created with READMEs
+- [ ] All 18 `sdlc/` directories created with READMEs
 - [ ] Security findings (brownfield) recorded in ARCH.md
 - [ ] No existing files overwritten without user confirmation
 - [ ] If run bootstrap-style (target directory ≠ session's working directory), the directory-switch reminder was shown before the Next step message
@@ -876,7 +877,7 @@ Show the user a full summary of what was created:
 **First-run (`repo_role: coordination`):**
 - [ ] project.yml written with `repo_role: coordination` and no `stack:`/`compliance:` block present
 - [ ] ARCH.md generated per "ARCH.md generation (coordination repo)" — no Tech stack/Module layout/Data layer/Deployment/Authentication sections — and explicitly approved by the user
-- [ ] `sdlc/dependencies/`, `sdlc/scenarios/`, `sdlc/registry/`, `sdlc/architecture/` created — no `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, or other per-artifact-type directories
+- [ ] `sdlc/dependencies/`, `sdlc/scenarios/`, `sdlc/investigations/`, `sdlc/promotions/`, `sdlc/adr/`, `sdlc/registry/`, `sdlc/architecture/` all created — no `sdlc/specs/`, `sdlc/analysis/`, `sdlc/design/`, `sdlc/plans/`, `sdlc/test-plans/`, or other per-thread-artifact-type directories (those live under `sdlc/THREAD-NNNN/` on demand instead)
 - [ ] All role files and command files still copied — a coordination repo runs the full pipeline for its own SPEC/DESIGN/etc. authorship, it just has no stack to substitute into implementation-phase commands
 - [ ] All reference docs copied to `.claude/reference/` — `sdlc/dependencies/README.md` and `sdlc/scenarios/README.md` both link to them
 
