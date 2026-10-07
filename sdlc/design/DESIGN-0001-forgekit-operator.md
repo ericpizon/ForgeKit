@@ -4,16 +4,16 @@ type: design
 schema_version: 1
 title: "ForgeKit Operator — Technical Design"
 status: approved
-version: 4
+version: 6
 updated: 2026-10-07
-current_review_round: 3
+current_review_round: 4
 target_spec_version: 3
 approval:
   mode: repo_only
   approved_by: "Eric Pizon"
   approved_role: architect
   approved_at: "2026-10-07"
-  decision_summary: "DESIGN-0001 (ForgeKit Operator) approved for Stage 4 — Option A (Interpretive Autonomy Overlay) confirmed; 3 ADRs accompany it."
+  decision_summary: "DESIGN-0001 (ForgeKit Operator) re-approved after a Stage-4-discovered back-cycle (SEC-0001/OBS-0001 findings resolved); Option A (Interpretive Autonomy Overlay) confirmed; 3 ADRs accompany it."
   external_event_id: null
   external_event_uri: null
 policy_evaluation:
@@ -25,6 +25,9 @@ changelog:
   - "v3 — Corrected Key Decision 5's outcome count from 11 to the schema's actual 12, explicitly separating the one active/non-stopping `in_progress` value from the 11 true stopping outcomes. Addresses Design Review Round 2's 1 blocking finding (DBA-3); DBA-4 accepted as-is."
   - "v4 — Fixed §3.6's opening sentence, which still described `OPRUN-NNNN.status` as having 11 total values after v3 corrected that count to 12. Wording-only; no functional change. Addresses Design Review Round 3's 1 non-blocking finding (DBA-5), fixed directly as a clear factual correction per address-design-review's own rule for such findings."
   - "v4 — approved after 3 review rounds"
+  - "v5 — revision_requested 2026-10-07 — discovery: SEC-0001 found security-review.md's Handoff lacks a mechanically-distinguishable sub-step for an accepted_risk disposition, contradicting §3.3/ADR-0003's per-step classification claim, and that the resumption read-path needs an explicit containment restatement; OBS-0001 found OPRUN-NNNN's schema is missing fields SPEC §34's metrics require."
+  - "v6 — Resolved the Discovery: §3.2's Autonomy Overlay Rule gained a findings_status content-check special case for security-review.md (any accepted_risk entry, old or new, forces a hard stop — deliberately not trying to diff 'new this round' given findings_status has no per-entry round data); §3.3's table updated to match; §3.4 gained the SEC-3 resumption-containment rule and the oprun_lookup_result/recovery_event logging points; §3.5 gained the ambiguous_cause distinction; §4 formalized the history: entry schema (actor/oprun_lookup_result/recovery_event) and changed escalation.reason from free text to an enum; §8 moved security-review.md into 'requires modification' with the rationale for choosing the lighter-weight content-check fix over SEC-0001's suggested Handoff restructuring. ADR-0002 updated with the ambiguous_cause field. No Goal, Non-Goal, or AC changed — all additive refinements within the already-approved architecture."
+  - "v6 — approved after 4 review rounds"
 generation:
   command: /create-design
   command_version: 3
@@ -111,6 +114,7 @@ SPEC-0001 §15 states the cycle abstractly (resolve → determine → verify pol
 
 > **The Autonomy Overlay Rule:** when a sub-command's Handoff reaches a point that asks the user to confirm an action, first classify that specific pause:
 > - If it is a formal `/approve-*` or `/reopen-*` gate, or matches anything named in SPEC-0001 §16 (Human Decision Boundaries) or §32 (Safety Invariants) — **always stop** and record a `HUMAN_DECISION_REQUIRED` escalation in the current `OPRUN-NNNN`, regardless of policy.
+> - **Special case — a draft that itself carries a formal-gate disposition:** before self-answering `security-review.md`'s routine pause specifically, first scan the draft's own `findings_status` map for *any* entry whose value is `accepted_risk` — not only ones changed this round; `findings_status` has no reliable per-entry round/timestamp to diff against within an uncommitted review cycle, so deliberately erring toward the simpler, stricter rule. If any such entry exists, this pause is *not* routine — treat it as a formal gate (per the bullet above), regardless of the `create_artifacts` policy key. In practice this means any SEC-NNNN artifact carrying a standing accepted-risk entry (common — see SEC-0001's own `RET-1`/`RET-2`) always requires human confirmation to commit, for the life of that artifact; this is an acceptable cost, since SEC-NNNN commits are infrequent, high-stakes events, not a routine autonomous action. This is the one place a command's own draft *content*, not just its Handoff wording, determines the classification — because, unlike `execute-release.md` or `promote-to-environment.md`, `security-review.md`'s Handoff text has only one combined pause with no separate step to key off of (§3.3's table note; added during a Design Review Round 2 downstream discovery, SEC-0001 `[SEC-2]`).
 > - Otherwise (a routine "please review this draft before I commit" pause) — look up the invoking command in the categorization table below. If the corresponding `operator.allow.*` key in `project.yml` is `true`, answer the pause as "yes, proceed" on the human's behalf, and record that this confirmation was given autonomously (which command, which pause, under which policy key) in the current run's history. If the key is `false` or absent, **stop** with `HUMAN_DECISION_REQUIRED`.
 
 ### 3.3 Command → Autonomy Policy category table
@@ -119,7 +123,7 @@ SPEC-0001 §15 states the cycle abstractly (resolve → determine → verify pol
 |---|---|---|
 | `create-spec`, `revise-spec` | `create_artifacts` / `revise_artifacts` | `validate-spec` is excluded below — see note |
 | `create-design`, `address-design-review` | `create_artifacts` / `revise_artifacts` | |
-| `security-review` | `create_artifacts` (drafting pause only) | its `accepted_risk` disposition is a formal gate (AC-27) regardless of policy — classified per-step, not per-command |
+| `security-review` | `create_artifacts` — **with a special-case content check** (§3.2): any `accepted_risk` entry in `findings_status`, old or new, forces a hard stop | its `accepted_risk` disposition is a formal gate (AC-27) regardless of policy. Resolved via a `findings_status` content scan rather than a separate Handoff step — `security-review.md`'s own text has only one combined pause, unlike `execute-release.md`/`promote-to-environment.md`/`execute-tests.md`, which do separate their formal-gate case into a distinct step (corrected during a Design Review Round 2 downstream discovery, SEC-0001 `[SEC-2]`) |
 | `design-observability` | `create_artifacts` | |
 | `create-plan`, `address-plan-review` | `create_artifacts` / `revise_artifacts` | |
 | `create-test-plan`, `address-test-plan-review` | `create_artifacts` / `revise_artifacts` | |
@@ -140,13 +144,19 @@ This table is the one artifact Option A asks a future command author to remember
 
 One file per run, `sdlc/operator-runs/OPRUN-NNNN.md` — a plain ForgeKit artifact like any other, so it's committed, diffable, and durable across sessions without inventing a new storage mechanism. See §4 for the full field list. Per SPEC §6, when this record's own understanding of state ever conflicts with the authoritative artifacts it was derived from, the artifacts win — `OPRUN-NNNN` is a convenience/history record, never itself a second source of truth. A fresh `/operate` invocation on an existing `OPRUN-NNNN` with a non-terminal `status` resumes it after re-resolving state from scratch; it never trusts its own prior `last_checkpoint` without re-verifying it.
 
-**Lookup-before-create (resolves Design Review Round 1 `[DBA-1]`):** before creating a new `OPRUN-NNNN`, `/operate` scans `sdlc/operator-runs/` frontmatter for an existing record whose `work_unit` matches the one just invoked and whose `status` is in the **non-terminal** set (§4 defines terminal vs. non-terminal explicitly) — if found, that run is resumed, never duplicated. Only when no non-terminal record exists for this `work_unit` does `/operate` create a new `OPRUN-NNNN`. This is the mechanism that makes AC-11's idempotency guarantee apply to `OPRUN-NNNN` itself, not only to the artifacts the sub-commands it invokes produce.
+**Lookup-before-create (resolves Design Review Round 1 `[DBA-1]`):** before creating a new `OPRUN-NNNN`, `/operate` scans `sdlc/operator-runs/` frontmatter for an existing record whose `work_unit` matches the one just invoked and whose `status` is in the **non-terminal** set (§4 defines terminal vs. non-terminal explicitly) — if found, that run is resumed, never duplicated. Only when no non-terminal record exists for this `work_unit` does `/operate` create a new `OPRUN-NNNN`. This is the mechanism that makes AC-11's idempotency guarantee apply to `OPRUN-NNNN` itself, not only to the artifacts the sub-commands it invokes produce. The outcome of this lookup (`resumed_existing` or `created_new`) is logged into the first `history:` entry of the invocation (§4's `history:` schema) — this is what makes the idempotency guarantee itself auditable rather than merely asserted (OBS-0001 `S7`).
+
+**Resumption containment (resolves Design Review Round 2 downstream discovery, SEC-0001 `[SEC-3]`):** `OPRUN-NNNN` is a first-party ForgeKit artifact, the same structural trust tier as a SPEC or DESIGN file — but its body may contain previously-quoted external content (from an earlier Human Decision Package). Every re-read of an `OPRUN-NNNN`'s `history:` list or decision-package body on resumption — including content Operator itself previously wrote — is subject to the exact same data-not-instruction containment as a first-time external read (SPEC §49, ARCH.md's standing convention). No content earns elevated trust by virtue of being self-authored or previously processed; a resumed run must never let anything in its own prior body alter its policy or advance it past an escalation it was already on.
+
+**Interrupted-implementation recovery logging (OBS-0001 `S9`):** on the resume path, immediately upon re-resolving state and discovering `implementation_execution.state: started` with no `completed_at` for the milestone about to be acted on (SPEC §12/§37), `/operate` appends a `recovery_event: interrupted_implementation_detected` entry to `history:` *before* invoking the implementation recovery path, never after — this is what makes Safety Invariant #16 (never send partial work to review) independently auditable rather than only behaviorally true.
 
 ### 3.5 `/status` extension
 
 `/status` gains the general pre-PLAN form (reading SPEC/ANALYSIS/DESIGN/OBS/SEC frontmatter directly, the same way its existing PLAN-and-later form already reads PLAN/TEST/milestone frontmatter), a corrected milestone branch in its Next Action Inference (explicit handling for `test_failed`/`tests_passed`/`pr_open`, which it previously had no branch for at all), and a new `resolved_state` structured block appended to its existing human-readable output (schema in §4, decision in ADR-0002). None of this changes `/status`'s existing output for a human reading it directly — it's additive.
 
 **Pre-existing-artifact fallback (resolves Design Review Round 1 `[DBA-2]`):** when `/status` needs a structured field this feature adds (`latest_round`, `implementation_execution`, etc.) to compute `resolved_state`, and the artifact it's reading predates this feature and lacks that field entirely, `/status` must **not** fall back to parsing the artifact's prose — doing so would defeat AC-06's "never parse prose" guarantee for exactly the artifacts where it matters most (the ones Operator is most likely to encounter first, from before this feature shipped). Instead, the absence of a required structured field forces `resolved_state.gate: ambiguous`, the same outcome as any other case `/status` cannot resolve cleanly. A human can then either run the normal `/review-*` command for that stage once (which backfills the field as a side effect, per §4) or manually add the field, after which a re-run resolves normally. This is a one-time cost per pre-existing artifact, not a standing limitation.
+
+`resolved_state` distinguishes *why* `gate` came back `ambiguous` via a new `status_resolver.ambiguous_cause` field (added per a Design Review Round 2 downstream discovery, OBS-0001 `S8` / ADR-0002): `missing_structured_field` for exactly the one-time, self-healing case above, versus `unrecognized_state_combination` for every other case `/status` cannot resolve. This split matters operationally — the first is an expected migration cost, the second is a genuine resolver gap worth filing a BUG against (ADR-0002 updated accordingly).
 
 ### 3.6 Gate-to-outcome resolution procedure
 
@@ -196,7 +206,10 @@ last_checkpoint:
 review_loop_counts:
   <ARTIFACT-NNNN>: {round: <int>, count: <int>}
 escalation:
-  reason: <string> | null
+  reason: non_convergence | test_classification | security_policy_exception |
+          dependency_cycle | other | null   # enum, not free text — resolves a
+                                              # Design Review Round 2 downstream
+                                              # discovery, OBS-0001 S3
   decision_package:
     capture_status: captured | redacted_on_decline   # see compliance-gate note below
 generation:
@@ -211,7 +224,23 @@ generation:
 - **Terminal** (a finished run; a fresh `/operate` invocation on the same `work_unit` starts a *new* `OPRUN-NNNN`, never resumes this one): `complete`, `terminal_error`, `not_found`, `already_complete`.
 - **Non-terminal** (a paused run; a fresh `/operate` invocation on the same `work_unit` resumes this record): `in_progress`, `human_decision_required`, `external_action_required`, `blocked_environment`, `blocked_dependency`, `retryable_error`, `ambiguous_state`, `action_limit_reached`.
 
-Body: an append-only `history:` list (one entry per Command Execution Cycle step — action invoked, resulting `resolved_state` snapshot) and, when stopped, a rendered Human Decision Package (SPEC §17 fields). This body is where SPEC §49's compliance-gate extension applies (§6, Key Decision 7) — any quoted artifact content in a decision package is scanned the same way `external-work-intake.md` already scans pasted ticket content.
+**`history:` entry schema** *(formalized during a Design Review Round 2 downstream discovery — OBS-0001 needed a concrete shape to instrument against; previously stated only loosely as "one entry per Command Execution Cycle step"):*
+```yaml
+history:
+  - at: <timestamp>
+    action: <string>                       # exact command invocation
+    actor: operator_autonomous | human_confirmed | null   # set only when this
+                                            # action passed through a Handoff pause
+                                            # (§3.2) — null for a step with no pause
+                                            # to classify (OBS-0001 S2)
+    oprun_lookup_result: resumed_existing | created_new   # present only on the
+                                            # first entry of an invocation (§3.4,
+                                            # resolves [DBA-1]; OBS-0001 S7)
+    recovery_event: interrupted_implementation_detected    # present only when
+                                            # applicable (§3.4; OBS-0001 S9)
+    resolved_state: <resolved_state snapshot, per ADR-0002>
+```
+Fields marked "present only when applicable" are omitted entirely otherwise — they are not written as `null` on every entry, to keep the common-case entry small. Body also holds, when stopped, a rendered Human Decision Package (SPEC §17 fields). This is where SPEC §49's compliance-gate extension applies (§6, Key Decision 7) — any quoted artifact content in a decision package is scanned the same way `external-work-intake.md` already scans pasted ticket content.
 
 **Compliance-gate decline handling (resolves Design Review Round 1 `[SEC-1]`):** unlike `external-work-intake.md`'s original use (where declining just skips an optional companion-file capture while the main artifact proceeds unaffected), here the gated content *is* the reason Operator stopped — AC-27/§17 require the human deciding right now to actually see it. So on a compliance-gate trigger: the full, unredacted content is still shown live, in-session, to the human making the decision; only the **persisted** copy written into `OPRUN-NNNN`'s body is affected — if the human declines the capture confirmation, the persisted decision package replaces the sensitive portion with a placeholder (`[redacted — shown live in session; not persisted per compliance-gate decline]`) and `escalation.decision_package.capture_status` is set to `redacted_on_decline` rather than `captured`. The live decision is never blocked by this; only what survives into git history is affected.
 
@@ -302,7 +331,8 @@ Covered in full in §1 (Design Options) and carried forward into **ADR-0001**: O
 ## 8. Impact on Existing Systems
 
 **Commands requiring modification:**
-- `status.md` — pre-PLAN general form, corrected milestone branch, `resolved_state` output block.
+- `status.md` — pre-PLAN general form, corrected milestone branch, `resolved_state` output block, now including `status_resolver.ambiguous_cause` (§3.5, ADR-0002).
+- `security-review.md` — **moved here from "no modification" after a Design Review Round 2 downstream discovery (SEC-0001 `[SEC-2]`)**: this DESIGN resolves the finding via a `findings_status` content-check in `operate.md`'s own overlay (§3.2) rather than SEC-0001's suggested alternative of also adding a separately-labeled Handoff sub-step to `security-review.md` itself — the content-check achieves the same safety property with no change to this command's actual text, consistent with Option A's minimal-footprint principle. Listed here anyway (not "no modification") because this command's `findings_status` map must remain reliably readable by that check — a future edit to this command's output shape would silently break the special case.
 - `review-design.md`, `review-plan.md`, `review-test-plan.md`, `review-implementation.md`, `review-release-plan.md` — `latest_round` field.
 - `address-design-review.md`, `address-plan-review.md`, `address-test-plan-review.md`, `address-implementation-review.md`, `address-release-plan-review.md` — `recurs_from` finding-lineage convention.
 - `implement-plan.md` — writes `implementation_execution`.
@@ -419,6 +449,53 @@ None.
 
 ### Not Addressed
 - `[DBA-4]` — **accepted** — a real completeness nit (what `capture_status`/`decision_package` presence means in the non-triggered case), but it requires a judgment call rather than being a clear factual error, so per the default rule it's accepted as-is rather than addressed this round; will be stated explicitly in `operate.md`'s own text at implementation time (absent entirely when no Human Decision Package was ever produced).
+
+## Design Review — Round 4
+
+**Date:** 2026-10-07
+**Status:** Changes requested — 0 blocking, 2 non-blocking
+
+This round re-examines only what the discovery-driven revision touched: §3.2/§3.3/§8 (the `security-review.md` fix) and §3.4/§3.5/§4 plus ADR-0002 (the schema additions). Confirmed resolved on substance: `[SEC-2]` (the `findings_status` content-check correctly fires regardless of whether the risk-acceptance entry is new or carried forward — a deliberately conservative choice given the data has no per-entry round tracking) and `[SEC-3]` (the resumption-containment rule is now stated directly in §3.4, not deferred to prose).
+
+**Options Analysis, SRE:** no new findings — domain unaffected by this revision (neither the Design Options/Recommended Option nor any SRE-domain section from prior rounds was touched).
+
+### DBA Findings
+
+- [DBA-6] **non-blocking** — `escalation.reason`'s 5-value enum has no value for §3.6 Stage B.2's "autonomous correction loop the policy does not permit" case — likely one of the *more* common stopping reasons in practice (any project with conservative `operator.allow.*` defaults hits this constantly), and it currently falls under `other`, which undermines the Human Escalation Reason metric (SPEC §34) this enum exists to support if `other` ends up the dominant bucket. Separately, the new §3.2 special case (an `accepted_risk` entry forcing a stop) never states which `escalation.reason` value it sets — `security_policy_exception` is the obvious fit, but it's not cross-referenced. Recommend: add a sixth value (e.g. `policy_denied_autonomy`) for Stage B.2, and state explicitly, next to each Stage B/C branch in §3.6, which `escalation.reason` value it produces — the same traceability §3.6 already gives for `status` values.
+
+### Lead Developer Findings
+
+- [LD-3] **non-blocking** — SEC-0001 verified the single-combined-pause pattern against exactly four commands (`security-review`, `execute-release`, `promote-to-environment`, `execute-tests`) and found `security-review.md` to be the outlier. That's a real, verified fix for the instance found — but it leaves open whether any of the other ~46 commands with a Handoff confirmation step share the same shape (a draft that can carry a formal-gate-worthy disposition behind one undifferentiated pause). Recommend a PLAN/TEST-PLAN task auditing the remaining commands for this pattern rather than assuming `security-review.md` is the only instance; not blocking, since nothing claims otherwise today.
+
+**Clean perspectives:** Security (`[SEC-2]`/`[SEC-3]` confirmed resolved on substance; no new findings).
+
+### Contradictions Requiring Arbitration
+
+None.
+
+## Discovery — 2026-10-07
+
+**Discovered by:** Eric Pizon — Architect (via Security and SRE review findings on SEC-0001/OBS-0001)
+**Stage triggered:** design
+**Generated with:** claude-sonnet-5
+
+**What was discovered:**
+
+`SEC-0001`'s security review (Stage 4b) found that `security-review.md`'s single, undifferentiated Handoff pause gives `operate.md` no mechanically-distinguishable sub-step to recognize an `accepted_risk` disposition, contradicting this DESIGN's own §3.3/ADR-0003 claim that formal-gate/routine-confirmation classification happens "per Handoff step" for every command — verified directly against `security-review.md`'s actual text, which has exactly one combined confirmation. Separately, `SEC-0001` found the `OPRUN-NNNN` resumption read-path lacks an explicit restatement of the data-not-instruction containment rule (`[SEC-3]`, following up on Design Review Round 1's `[SEC-2]`, which had been deferred to informal implementation-time prose). `OBS-0001` (Stage 4a) independently found that computing SPEC §34's required Operator metrics needs four fields never specified in `OPRUN-NNNN`'s schema (`history[].actor`, `oprun_lookup.result`, `status_resolver.ambiguous_cause`, `recovery_event`), plus formalizing `escalation.reason` as a literal enum instead of free text.
+
+**Why this invalidates the DESIGN:**
+
+§3.2 (Autonomy Overlay Rule) needs an explicit check against a draft's `findings_status` map before self-answering `security-review.md`'s commit pause. §3.3 (categorization table) needs a note on `security-review.md`'s new sub-step. §3.4 (`OPRUN-NNNN` record) needs the resumption containment rule stated directly, plus the `oprun_lookup.result`/`recovery_event` logging points. §4 (`OPRUN-NNNN` schema) needs the four new fields and the `escalation.reason` enum. §8 (Impact on Existing Systems) incorrectly lists `security-review.md` under "Commands requiring no modification" and needs `status.md` noted for the `status_resolver.ambiguous_cause` field.
+
+**Blast radius:**
+- OBS-0001: affected — drafted, uncommitted; its instrumentation tasks reference fields that must now actually exist in this DESIGN for the OBS plan to be accurate against it. Will be re-confirmed once this revision lands, not redrafted from scratch.
+- SEC-0001: affected — drafted, uncommitted; `findings_status` for `SEC-2`/`SEC-3` should move toward `mitigated` once this revision lands — a follow-up re-assessment, not performed by this command.
+- PLAN-0001: not affected — does not exist yet.
+- TEST-0001: not affected — does not exist yet.
+- M1 in_progress: not affected — no milestones exist yet; this is the earliest possible point to catch this.
+- Open PRs: none found.
+
+**Status change:** DESIGN-0001 `approved` → `revision_requested`
 
 ## Design Review — Round 3
 

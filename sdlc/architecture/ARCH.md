@@ -2,11 +2,12 @@
 type: architecture
 project: "ForgeKit"
 status: approved
-version: 2
+version: 3
 approved_by: human
 initialized_at: 2026-10-07
 changelog:
   - "v2 — DESIGN-0001 (ForgeKit Operator) approved: added /operate to the primary_role: any precedent; noted templates/sdlc/operator-runs/ as a forthcoming new artifact-type subdirectory; extended the Testing Strategy's Tier 2 description with Operator-specific scenario classes. All additive — no existing pattern superseded."
+  - "v3 — DESIGN-0001 re-approved after a Stage-4-discovered back-cycle: added the 'content-check classification' technique as a named architectural decision, generalizing the fix for a command whose single Handoff pause can cover both a routine and a formal-gate-worthy case. Additive."
 ---
 
 # ForgeKit — System Architecture
@@ -82,6 +83,7 @@ No automated test runner exists or is warranted — there is no compiler, no uni
 - **The git log is the audit trail** — each phase accumulates in the working tree until a single `approve-*` command commits it as one record (all review rounds, address summaries, and the approval itself).
 - **Two independent axes every command must compose correctly across:** `repo_role` (`code` vs. `coordination`) and team size (solo/no-push vs. team/push). A coordination repo commits straight to `main`, never a thread branch — it has no code for `main` to be "waiting on," unlike `repo_role: code`'s `thread/NNNN-slug` convention, which exists specifically to keep planning artifacts off `main` until real code justifies them.
 - **Back-cycles are first-class** — `/reopen-spec`, `/reopen-design`, `/reopen-plan` capture a structured discovery record and assess blast radius before touching any file; a controlled back-cycle is correct behavior, not a failure state.
+- **Content-check classification, not just Handoff-text classification** (added: 2026-10-07, DESIGN-0001 v6) — when a command's single Handoff pause can cover both a routine action and a formal-gate-worthy one (e.g. `security-review.md`'s draft committing both routine findings and, sometimes, a new `accepted_risk` disposition), the correct classification signal is the draft's own structured content (its `findings_status` map), not an attempt to add a second Handoff step for every such command. Established while resolving a security-review finding (SEC-0001 `[SEC-2]`) against the Operator feature; worth checking for before assuming any other command with a similar shape needs new Handoff text.
 
 ---
 

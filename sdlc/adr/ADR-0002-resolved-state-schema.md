@@ -31,6 +31,11 @@ resolved_state:
   blocking_count: <int>
   stale: <bool>
   next_command: "<exact command invocation string>"
+  ambiguous_cause: missing_structured_field | unrecognized_state_combination   # present
+                    # only when gate: ambiguous (added per a Design Review Round 2
+                    # downstream discovery, OBS-0001 S8 — distinguishes the expected,
+                    # self-healing pre-existing-artifact case, DESIGN-0001 §3.5, from
+                    # a genuine resolver gap worth filing a BUG against)
 ```
 
 `/status` is extended, not replaced, to emit this alongside its existing output, and to cover the full lifecycle: a new general pre-PLAN form (reading SPEC/ANALYSIS/DESIGN/OBS/SEC frontmatter directly, the same way its existing PLAN-and-later form reads PLAN/TEST/milestone frontmatter), and a corrected milestone branch in its Next Action Inference — closing the gap where it previously had no branch at all for `test_failed`/`tests_passed`/`pr_open`.
