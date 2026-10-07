@@ -18,6 +18,7 @@
 | ADR-0003 | adr | accepted | Autonomy Policy Fail-Closed Defaults |
 | OBS-0001 | observability-plan | not_yet_validated | ForgeKit Operator |
 | SEC-0001 | security-review | completed | ForgeKit Operator — Security Review |
+| PLAN-0001 | plan | approved | ForgeKit Operator — Implementation Plan (5 milestones) |
 
 ## Bug Artifacts
 
