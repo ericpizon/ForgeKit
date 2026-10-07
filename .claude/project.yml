@@ -1,0 +1,51 @@
+project:
+  name: "ForgeKit"
+  description: "A governed, evidenced, artifact-driven delivery pipeline for AI-native software teams."
+  type: brownfield           # greenfield | brownfield | coordination
+  repo_role: code            # code | coordination — see the multi-repo coordination model
+  team_size: solo            # solo | small | enterprise
+  initialized_at: 2026-10-07
+  forgekit_version: "1.6"   # must match forge-init.md's own frontmatter version
+
+# coordination_repo intentionally absent — "not yet" (ForgeKit doesn't participate in any
+# cross-repo thread). /promote-to-thread would ask reactively if this ever changes.
+
+artifact_mode: markdown   # markdown | hybrid | copy-paste
+
+# No stack in the traditional sense — ForgeKit has no language runtime, framework, database,
+# or deploy target; its "code" is markdown command templates an AI agent interprets. Every
+# field below is genuinely "none," not an unanswered placeholder — see ARCH.md's "What this
+# repo actually is." Kept present (not omitted) because other command templates substitute
+# {{stack.*}} tokens directly into their own text; omitting this block would leave those
+# tokens unsubstituted rather than resolved to "none".
+stack:
+  language: "Markdown (interpreted by an AI agent, not compiled or executed)"
+  framework: none
+  database: none
+  migration_tool: none
+  lint: "none"
+  test:
+    unit: "none"             # see ARCH.md's Testing strategy — scenario-based fixture testing, not scripted
+    e2e: "none"
+  deploy:
+    command: "none"
+    env_pull: "none"
+    migration_command: "none"
+  ci: none
+  ci_trigger_command: "none"
+  observability: none
+  auth: none
+  llm_agent_framework: none            # ForgeKit's own text has no code that calls an LLM/agent API;
+                                        # it is itself consumed by one (Claude Code) — a different relationship
+  llm_agent_untrusted_input: n/a
+
+compliance:
+  frameworks: [none]
+  pci_scope: n/a
+  notes: ""
+
+pipeline:
+  security_review: conditional
+  observability: true
+  postmortem: SEV-2
+  evidence_mode: repo_only
