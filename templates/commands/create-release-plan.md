@@ -4,7 +4,7 @@ type: command
 name: /create-release-plan
 description: SRE command to assess release readiness and author the RELEASE-PLAN — gating criteria, rollback plan, migration steps, and open risk acknowledgment including postmortem action items
 status: active
-version: 4
+version: 5
 primary_role: sre
 links:
   - relation: produces
@@ -12,6 +12,7 @@ links:
   - relation: precedes
     target: execute-release
 changelog:
+  - v5 — noted that the release candidate (`candidate_ref`) is deliberately not bound at draft time — `/approve-release-plan` captures it at approval, so a later code or plan change invalidates the approval rather than going unnoticed. Built for the ForgeKit Operator feature (PLAN-0001 T18).
   - v4 — added Step 3b and a Validation Plan section (both template variants) covering smoke test steps, deferred test case handling, and OBS verification — review-release-plan.md's Quality Engineer Perspective already checked for this section, which this command's own template never produced.
   - v3 — added the coordination-repo thread-release path: authors RELEASE-PLAN-vX.Y.Z-{environment}.md, resolving every participant's PLAN, tracking per-participant vs system-level state, and deriving deployment wave order from deployment-kind XDEPs.
 ---
@@ -56,6 +57,8 @@ Ask:
 > **What is the target release date?** (or "as soon as ready")
 
 For each referenced PLAN-NNNN, read its milestone statuses to confirm all milestones are `pr_merged`.
+
+The specific commit this release will deploy (`candidate_ref`) is not bound here — code may still land on `main` between drafting and approval. `/approve-release-plan` captures it at the moment of approval, alongside `release_plan_revision` (this artifact's own `version`), so a later change to either invalidates the approval rather than silently going stale (per DESIGN-0001 §4/Key Decision 6).
 
 ## Step 2 — Gating criteria assessment
 

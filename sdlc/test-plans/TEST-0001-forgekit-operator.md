@@ -4,8 +4,8 @@ type: test-plan
 schema_version: 1
 title: "ForgeKit Operator — Test Plan"
 status: approved
-version: 4
-updated: 2026-10-07
+version: 5
+updated: 2026-10-08
 target_plan_version: 2
 execution_date: null
 execution_summary: null
@@ -23,6 +23,7 @@ policy_evaluation:
   policy_pack: null
   result: null
 changelog:
+  - "v5 — Added TC-FUNC-44 (AC-14) covering a RELEASE-PLAN approved before candidate_ref/release_plan_revision existed (both fields absent, not stale). Added during M3's /address-implementation-review (QE-1) after review found [SRE-1]'s fix in execute-release.md — the absent-field fallback, as opposed to the mismatch path TC-FUNC-12/TC-FUNC-13 already covered — had no test case verifying it."
   - "v4 — Scoped TC-FUNC-10 (AC-12) down to the reachable reported→accepted/rejected/needs_info portion of the BUG lifecycle; added TC-FUNC-10b covering the one genuinely reachable pending_verification transition (via execute-release.md). Added during M2's /address-implementation-review (QE-1) after review found the original TC-FUNC-10 cited a verified/closed continuation no command in this pipeline can ever complete."
   - "v3 — Added TC-FUNC-43 (AC-04) covering the draft-SPEC-with-no-ANALYSIS-yet scenario, added during M1's /address-implementation-review (QE-1) after review found the gap [SRE-1] fixed in status.md had no test case verifying it."
   - "v2 — Addressed Test Plan Review Round 1: re-cited the Happy Path Coverage's autonomy-eligibility row to the actual happy-path test case (LD-1); added TC-FUNC-42 asserting the Human Decision Package body contains finding lineage, not just the escalation.reason value (LD-2); tightened TC-SEC-SEC3-1's and TC-OBS-escalation_reason-1's Then clauses (SEC-1, SRE-2)."
@@ -181,7 +182,7 @@ And this value is readable without parsing the Notes prose column
 
 | AC | Test Case(s) |
 |---|---|
-| AC-14 | TC-FUNC-12, TC-FUNC-13 |
+| AC-14 | TC-FUNC-12, TC-FUNC-13, TC-FUNC-44 |
 | AC-21 | TC-FUNC-14 |
 
 **TC-FUNC-12** | integration | automated | P0
@@ -199,6 +200,14 @@ Given RELEASE-PLAN-v1.0.0 approved with candidate_ref == "abc123"
 And the candidate branch is force-pushed to a new SHA "def456" with no re-approval
 When the binding check runs
 Then it fails — approval.candidate_ref ("abc123") != the current candidate ref ("def456")
+```
+
+**TC-FUNC-44** | integration | automated | P1
+```gherkin
+Given RELEASE-PLAN-v1.0.0 is approved by a version of /approve-release-plan predating candidate_ref/release_plan_revision — both fields are absent from approval entirely, not just stale
+When /execute-release RELEASE-PLAN-v1.0.0 is invoked
+Then it does not report a commit/revision mismatch (there is nothing to compare against)
+And it stops with a message distinct from TC-FUNC-12/TC-FUNC-13's mismatch message, directing the user to re-run /approve-release-plan to establish binding before deploying
 ```
 
 **TC-FUNC-14** | integration | automated | P0

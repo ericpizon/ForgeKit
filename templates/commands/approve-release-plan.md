@@ -4,9 +4,10 @@ type: command
 name: /approve-release-plan
 description: SRE command to approve the RELEASE-PLAN — zero blocking findings gate, commits the release planning phase, authorizes production deployment via /execute-release
 status: active
-version: 3
+version: 4
 primary_role: sre
 changelog:
+  - v4 — the single-repo approval: block now binds candidate_ref and release_plan_revision, the same guarantee the coordination-repo approval model already had via approvals.participants.<repo>.candidate_ref — a later change to either the deployed commit or the RELEASE-PLAN's own content now invalidates the approval instead of going unnoticed. Built for the ForgeKit Operator feature (PLAN-0001 T18).
   - v3 — release_plan_ref now uses the documented self-referential-ref pattern (PENDING_SELF_COMMIT sentinel + immediate follow-up commit) instead of silently expecting the field to contain its own containing commit's SHA.
   - v2 — added the coordination-repo approval model: per-participant sign-off bound to the exact candidate/environment, plus a separate thread-level coordination approval — not one blanket approver and not a pure rollup.
 ---
@@ -83,11 +84,15 @@ approval:
   decision_summary: "RELEASE-PLAN-vX.Y.Z approved — production deployment authorized"
   external_event_id: null
   external_event_uri: null
+  candidate_ref: "[current HEAD of the branch this release deploys from, captured now]"
+  release_plan_revision: [this RELEASE-PLAN's own `version` field, captured now]
 policy_evaluation:
   evaluated: null
   policy_pack: null
   result: null
 ```
+
+`candidate_ref`/`release_plan_revision` close a gap the multi-repo coordination model already closed (its `approvals.participants.<repo>.candidate_ref` binding) but the single-repo path never had: without them, nothing here records *which* commit or *which* revision of this RELEASE-PLAN was actually approved, so a later change to either would go unnoticed rather than invalidating the approval. `execute-release.md` checks both before deploying (per DESIGN-0001 §4/Key Decision 6) — never execute against an approval bound to a different candidate or a stale RELEASE-PLAN revision.
 
 **`repo_role: coordination`:** write the `approvals` block from above into `RELEASE-PLAN-vX.Y.Z-{environment}.md` frontmatter, with every participant row `approved: true` and `coordination.approved: true`, then set `approvals.overall: true` and top-level `status: approved`.
 
