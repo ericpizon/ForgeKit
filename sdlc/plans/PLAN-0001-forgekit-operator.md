@@ -294,7 +294,7 @@ This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC
 
 ### M4 — Operator Core: Command Execution Cycle & Safety Mechanisms
 **Tasks:** T20, T21, T22, T23, T24, T25
-**Implementation status:** tests_passed
+**Implementation status:** pr_merged
 **AC Coverage:** AC-01, AC-02, AC-07, AC-08, AC-09, AC-10, AC-11, AC-13, AC-15 (+ AC-15a–e), AC-16, AC-17, AC-18, AC-19, AC-20, AC-23, AC-25, AC-26, AC-27
 **Depends on:** M1, M2, M3 (reads `resolved_state`, `implementation_execution`, BUG vocabulary, `classification`, and the release-approval binding fields each of those milestones produces)
 **Rollback:** Safe but higher-impact than M1–M3 — `operate.md` and the `operator:` policy block are both new; rolling back means simply not shipping/enabling `/operate` (every `allow.*` key already defaults to `false`), with zero effect on any existing command's behavior when invoked directly by a human.
