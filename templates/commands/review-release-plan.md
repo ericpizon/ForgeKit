@@ -4,12 +4,13 @@ type: command
 name: /review-release-plan
 description: Lead Developer + Security + QE inline review of RELEASE-PLAN — scope accuracy, security resolution, and validation readiness; appends review round directly to RELEASE-PLAN
 status: active
-version: 3
+version: 4
 primary_role: lead-developer
 reviewing_roles:
   - security
   - quality-engineer
 changelog:
+  - v4 — added a structured `latest_round` frontmatter field (round/blocking/non_blocking/verdict), written alongside the existing bare `**N blocking, M non-blocking findings.**` prose line every round. Built for the ForgeKit Operator feature (PLAN-0001 T5).
   - v3 — added a coordination-repo path: reads every participant's PLAN/TEST-NNNN, and validates or overrides the proposed deployment/rollback wave ordering per participant/XDEP rather than accepting the derived order automatically.
 ---
 
@@ -96,6 +97,8 @@ Append to `RELEASE-PLAN-vX.Y.Z.md`:
 ### Next Step
 [/address-release-plan-review RELEASE-PLAN-vX.Y.Z | /approve-release-plan RELEASE-PLAN-vX.Y.Z]
 ```
+
+Also set RELEASE-PLAN-vX.Y.Z.md's frontmatter `latest_round: {round: N, blocking: N, non_blocking: N, verdict: ready | needs_revision}` matching the Summary line exactly (`verdict: ready` when blocking is 0, `needs_revision` otherwise) — the structured counterpart to that prose line, written every round alongside it.
 
 Each finding:
 

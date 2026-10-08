@@ -4,7 +4,7 @@ type: test-plan
 schema_version: 1
 title: "ForgeKit Operator — Test Plan"
 status: approved
-version: 2
+version: 3
 updated: 2026-10-07
 target_plan_version: 2
 execution_date: null
@@ -23,6 +23,7 @@ policy_evaluation:
   policy_pack: null
   result: null
 changelog:
+  - "v3 — Added TC-FUNC-43 (AC-04) covering the draft-SPEC-with-no-ANALYSIS-yet scenario, added during M1's /address-implementation-review (QE-1) after review found the gap [SRE-1] fixed in status.md had no test case verifying it."
   - "v2 — Addressed Test Plan Review Round 1: re-cited the Happy Path Coverage's autonomy-eligibility row to the actual happy-path test case (LD-1); added TC-FUNC-42 asserting the Human Decision Package body contains finding lineage, not just the escalation.reason value (LD-2); tightened TC-SEC-SEC3-1's and TC-OBS-escalation_reason-1's Then clauses (SEC-1, SRE-2)."
   - "v2 — approved after 2 review rounds"
 generation:
@@ -54,7 +55,7 @@ Mapped to this plan's milestones: M1–M3 test cases are single-command, integra
 | AC | Test Case(s) |
 |---|---|
 | AC-03 | TC-FUNC-1 |
-| AC-04 | TC-FUNC-2 |
+| AC-04 | TC-FUNC-2, TC-FUNC-43 |
 | AC-05 | TC-FUNC-3 |
 | AC-06 | TC-FUNC-4, TC-FUNC-5 |
 | AC-08 *(lineage convention only — full loop behavior tested under M4)* | TC-FUNC-6 |
@@ -107,6 +108,14 @@ And Round 2's address summary states the same underlying issue recurred
 When Round 2's disposition for the recurring item is written
 Then it carries recurs_from: {round: 1, finding: LD-1}
 And a reader can distinguish this from a genuinely new Round-2-only finding with no recurs_from field
+```
+
+**TC-FUNC-43** | integration | automated | P1
+```gherkin
+Given a fixture repo with a freshly-drafted SPEC-0042 (status: draft) and no ANALYSIS-0042 file at all (the normal state immediately after /create-spec, before /review-spec has ever run)
+When /status SPEC-0042 is run
+Then it does not attempt to read a non-existent ANALYSIS-0042
+And the next action reported is /review-spec SPEC-0042
 ```
 
 **TC-FUNC-7** | integration | automated | P0

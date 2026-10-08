@@ -213,7 +213,7 @@ Document `/operate` in the pipeline overview, per DESIGN-0001 §8.
 
 ### M1 — Structured Review Outcomes & Status Resolver
 **Tasks:** T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC-03, AC-04, AC-05, AC-06, AC-08 (partial — lineage convention only; full AC-08 behavior lands at M4), AC-22
 **Depends on:** —
 **Rollback:** Safe — every change is an additive frontmatter field or an additive output block; no existing field is removed or renamed, no existing command behavior changes for a human invoking these commands directly.

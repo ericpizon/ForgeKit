@@ -4,10 +4,11 @@ type: command
 name: /review-plan
 description: Lead Developer command to run all Stage 5 plan perspectives in one pass — SRE, Developer, QE, Security, Architect
 status: active
-version: 3
+version: 4
 primary_role: lead-developer
 output_artifact_type: plan (reviewed)
 changelog:
+  - v4 — added a structured `latest_round` frontmatter field (round/blocking/non_blocking/verdict), written alongside the existing `**Status:**` prose line every round. Built for the ForgeKit Operator feature (PLAN-0001 T2).
   - v3 — added a staleness pre-check for PLANs with an inputs.cross_repo_contract block, and an Architect Perspective check that satisfies_xdeps resolves cross-repo dependencies directly rather than through acceptance_criteria.
 ---
 
@@ -123,6 +124,8 @@ Adopt the Architect role. Review PLAN-NNNN for fidelity to DESIGN-NNNN. Assess:
 ## Output
 
 Append a `## Plan Review — Round N` section to PLAN-NNNN. Then update `current_review_round` in PLAN-NNNN frontmatter to the round number just appended.
+
+Also set a `latest_round: {round: N, blocking: N, non_blocking: N, verdict: ready | needs_revision}` frontmatter field matching the round section's own `**Status:**` line (`verdict: ready` when blocking is 0, `needs_revision` otherwise) — the structured counterpart to that prose line, written every round alongside it.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List all clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 

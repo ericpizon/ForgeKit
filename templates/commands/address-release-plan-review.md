@@ -4,13 +4,15 @@ type: command
 name: /address-release-plan-review
 description: SRE command to address findings from a RELEASE-PLAN review round — updates the plan, appends address summary, re-enters review cycle
 status: active
-version: 1
+version: 2
 primary_role: sre
 links:
   - relation: follows
     target: review-release-plan
   - relation: precedes
     target: review-release-plan
+changelog:
+  - v2 — added the `recurs_from: {round, finding}` finding-lineage convention for a fix that resolves the same underlying issue as a prior round's finding. Built for the ForgeKit Operator feature (PLAN-0001 T10).
 ---
 
 # /address-release-plan-review
@@ -39,6 +41,8 @@ For each blocking finding, update the relevant section of the RELEASE-PLAN:
 - Risk level corrections — update the risk assessment to reflect the actual change set
 - SEC finding documentation — add named approver and revisit condition for `accepted_risk` findings
 
+**If a finding is the same underlying issue as one from a prior round** (your own judgment — a finding ID is round-scoped and does not persist automatically), note `recurs_from: {round: [prior round], finding: [prior finding ID]}` in this finding's Address Summary table row.
+
 For non-blocking findings: fix if straightforward and in-scope; if deferring, document the reason.
 
 ### Step 3 — Append address summary
@@ -51,7 +55,7 @@ Date: [today]
 
 | Finding | Resolution |
 |---|---|
-| [ROLE-N] | Fixed: [one-line description of what changed] |
+| [ROLE-N] | Fixed: [one-line description of what changed] (+ `recurs_from: {round, finding}` if this recurs a prior round's finding) |
 | [ROLE-N] | Deferred: [reason] |
 
 **Not addressed:** [any explicitly deferred findings with reason — or "None."]

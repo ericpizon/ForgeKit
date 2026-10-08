@@ -4,10 +4,11 @@ type: command
 name: /review-design
 description: Architect command to run all Stage 3 design perspectives in one pass — Options Analysis, DBA, Security, SRE, Lead Developer, plus Cross-Repo Contract Review for coordination-repo threads
 status: active
-version: 4
+version: 5
 primary_role: architect
 output_artifact_type: design (reviewed)
 changelog:
+  - v5 — added a structured `latest_round` frontmatter field (round/blocking/non_blocking/verdict), written alongside the existing `**Status:**` prose line every round, so gate results are readable without parsing prose. Built for the ForgeKit Operator feature (PLAN-0001 T1), closing a gap the Operator gap-analysis identified across every review-*.md command.
   - v4 — added the Cross-Repo Contract Review step for coordination-repo threads: checks XDEP verification appropriateness and cross-side symmetry, and deployment-ordering cycles, ahead of Interface Freeze in approve-design.
 ---
 
@@ -122,6 +123,8 @@ After completing all four perspectives:
 ## Output
 
 Append a `## Design Review — Round N` section to DESIGN-NNNN. Then update `current_review_round` in DESIGN-NNNN frontmatter to the round number just appended.
+
+Also set a `latest_round: {round: N, blocking: N, non_blocking: N, verdict: ready | needs_revision}` frontmatter field to the same values the round section's own `**Status:**` line states (`verdict: ready` when blocking is 0, `needs_revision` otherwise). This is the structured counterpart to that prose line — written every round alongside it, never instead of it, so a reader or an automated resolver can determine the gate result without parsing the `**Status:**` sentence.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. Instead, list all clean perspectives in a single `**Clean perspectives:** [list]` line placed before `### Contradictions Requiring Arbitration`. A fully clean review needs only Date, Status, the clean-perspectives line, and `Contradictions: None.`
 

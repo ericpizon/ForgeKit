@@ -4,7 +4,7 @@ type: command
 name: /address-design-review
 description: Architect command to address findings from DESIGN review sections and prepare the DESIGN for re-review or approval
 status: active
-version: 3
+version: 4
 primary_role: architect
 output_artifact_type: design (revised)
 links:
@@ -15,6 +15,7 @@ links:
   - relation: relates_to
     target: approve-design
 changelog:
+  - v4 — added the `recurs_from: {round, finding}` finding-lineage convention: when a disposition addresses the same underlying issue as a prior round's finding, record the link explicitly rather than leaving recurrence to be re-derived from prose. Built for the ForgeKit Operator feature (PLAN-0001 T6).
   - v3 — finding list, Address Summary example, and Handoff text now account for Options Analysis Review (runs every round, not just coordination threads) and Cross-Repo Contract Review, which review-design.md had grown to include but this command's own text still only named the original four perspectives.
 ---
 
@@ -54,6 +55,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
    - Revise that specific section — do not rewrite sections the finding does not reference
    - If a revision creates a contradiction in another section, resolve both before moving on
    - If a fix requires a new ADR, author it now
+   - **If this finding is the same underlying issue as one from a prior round** (the Architect's own judgment — a finding ID is round-scoped and does not persist automatically), record `recurs_from: {round: [prior round], finding: [prior finding ID]}` on this round's disposition entry for it. This is what lets a later reader (or an automated resolver) detect recurrence without re-deriving it from prose.
    - **If the finding is that a name doesn't match what the thing actually measures or represents, resolve it by renaming — including a `/reopen-spec` back-cycle if the name originates in SPEC-NNNN — not by adding a clarifying caveat while keeping the misleading name.** A caveat that documents a semantic mismatch without correcting it is not a resolution: it leaves the wrong name in place for the next reader — including a future reviewer — to be misled by again. If renaming is genuinely infeasible this round, the finding must be marked **accepted risk** in the Address Summary, with rationale and a revisit condition — never marked **Addressed**.
 
 5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
@@ -66,7 +68,7 @@ Pass the DESIGN ID: `/address-design-review DESIGN-0001`.
    **Date:** YYYY-MM-DD
 
    ### Addressed
-   - [DBA-1] — [what was changed in DESIGN to resolve this]
+   - [DBA-1] — [what was changed in DESIGN to resolve this] (add `recurs_from: {round, finding}` here if this is a recurrence of a prior round's finding)
    - [SEC-1] — [what was changed]
    - [OPT-1] — [what was changed, e.g. a different option adopted or the recommendation re-justified]
    - [XDEP-1] — [what was changed in the Cross-Repo Contract, coordination-repo threads only]

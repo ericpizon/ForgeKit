@@ -4,10 +4,11 @@ type: command
 name: /address-test-plan-review
 description: Quality Engineer command to address findings from TEST-PLAN review sections and prepare for re-review or approval
 status: active
-version: 2
+version: 3
 primary_role: quality-engineer
 output_artifact_type: test-plan (revised)
 changelog:
+  - v3 — added the `recurs_from: {round, finding}` finding-lineage convention for a disposition that resolves the same underlying issue as a prior round's finding. Built for the ForgeKit Operator feature (PLAN-0001 T8).
   - v2 — the zero-blocking exit path no longer bypasses disposition of a new non-blocking finding from a re-review round; it now appends a minimal Address Summary before handing off to /approve-test-plan, which already required every non-blocking finding to carry a documented disposition. Same gap class, and same fix, as address-plan-review.md v2 and address-design-review.md's non-blocking handling — found when TEST-0001's own Round 2 actually hit it.
 links:
   - relation: relates_to
@@ -58,6 +59,7 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
    - Revise only the test cases the finding references
    - If a test case needs to be added, add it in the appropriate section
    - If fixing the finding requires a scope change beyond the SPEC or SEC, surface to the appropriate role (a missing AC goes back to TPO; a missing SEC finding goes back to Security), document the escalation in the Address Summary, and continue addressing the remaining findings. Do not block the address cycle on upstream resolution.
+   - **If this finding is the same underlying issue as one from a prior round** (the QE's own judgment — a finding ID is round-scoped and does not persist automatically), record `recurs_from: {round: [prior round], finding: [prior finding ID]}` on this round's disposition entry for it.
 
 5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
 
@@ -71,7 +73,7 @@ Adopt the Quality Engineer role. Apply the perspective and stack knowledge from 
    **Date:** YYYY-MM-DD
 
    ### Addressed
-   - [SEC-1] — [what was changed and where]
+   - [SEC-1] — [what was changed and where] (add `recurs_from: {round, finding}` here if this is a recurrence of a prior round's finding)
    - [SRE-2] — [what was changed and where]
 
    ### Not Addressed

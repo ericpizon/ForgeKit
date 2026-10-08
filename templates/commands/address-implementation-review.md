@@ -4,13 +4,15 @@ type: command
 name: /address-implementation-review
 description: Developer command to address findings from an implementation review round — fixes code/tests, appends address summary to IMPL-REVIEW file, re-enters review cycle
 status: active
-version: 1
+version: 2
 primary_role: developer
 links:
   - relation: follows
     target: review-implementation
   - relation: precedes
     target: review-implementation
+changelog:
+  - v2 — added the `recurs_from: {round, finding}` finding-lineage convention for a fix that resolves the same underlying issue as a prior round's finding. Built for the ForgeKit Operator feature (PLAN-0001 T9).
 ---
 
 # /address-implementation-review
@@ -49,6 +51,7 @@ For each blocking finding:
 2. Read the current file content
 3. Make the fix — code or test as appropriate
 4. Do not change scope beyond what the finding requires
+5. **If this finding is the same underlying issue as one from a prior round** (your own judgment — a finding ID is round-scoped and does not persist automatically), note `recurs_from: {round: [prior round], finding: [prior finding ID]}` in this finding's Address Summary table row.
 
 For each non-blocking finding:
 - Fix it if the fix is straightforward and scoped
@@ -75,7 +78,7 @@ Date: [today]
 
 | Finding | Resolution |
 |---|---|
-| [ROLE-N] | Fixed: [one-line description of what changed] |
+| [ROLE-N] | Fixed: [one-line description of what changed] (+ `recurs_from: {round, finding}` if this recurs a prior round's finding) |
 | [ROLE-N] | Deferred: [reason] |
 
 **Not addressed:** [any finding explicitly deferred, with reason — or "None."]
