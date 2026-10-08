@@ -242,7 +242,7 @@ Executed by: /execute-tests PLAN-0001 M1 TEST-0001
 
 ### M2 — Implementation Tracking, BUG Canonicalization & Test Classification
 **Tasks:** T14, T15, T16, T17
-**Implementation status:** pending
+**Implementation status:** approved
 **AC Coverage:** AC-10, AC-12
 **Depends on:** —
 **Rollback:** Safe — additive fields and a vocabulary reconciliation (correcting which values are written, not changing the field itself); no schema removal.

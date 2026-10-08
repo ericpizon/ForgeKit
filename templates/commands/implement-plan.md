@@ -4,10 +4,11 @@ type: command
 name: /implement-plan
 description: Developer command to implement all tasks in one PLAN milestone — generating code, tests, and migrations, then prompting for local verification before review
 status: active
-version: 2
+version: 3
 primary_role: developer
 output_artifact_type: source-code
 changelog:
+  - v3 — added `implementation_execution: {state, attempt, started_at, completed_at}` writes on the milestone entry — `state: started` when generation begins, `state: completed` only once all Pre-verification Checks pass — so a resumed session can distinguish genuinely interrupted implementation from implementation that finished and is just waiting on review, which `**Implementation status:** in_progress` alone can't do. Built for the ForgeKit Operator feature (PLAN-0001 T14).
   - v2 — added a staleness pre-flight check for PLANs with an inputs.cross_repo_contract block, alongside the existing TEST-NNNN/PLAN-NNNN approval checks.
 ---
 
@@ -87,6 +88,8 @@ Before generating any code, update PLAN-NNNN milestone MN:
 ```
 **Implementation status:** in_progress
 ```
+
+Also write `implementation_execution: {state: started, attempt: N, started_at: [now]}` on the same milestone entry (per DESIGN-0001 §4) — `attempt` is `1` on the first invocation, incremented on any subsequent invocation of this same milestone (e.g. after an interruption). This is what lets a resumed Operator — or a human returning after a break — distinguish "implementation genuinely never finished" from "implementation finished and is just waiting on review," which the `**Implementation status:** in_progress` field alone cannot do, since it reads the same whether code generation crashed five minutes in or completed cleanly an hour ago.
 
 **If PLAN-NNNN has `linked_bug` set** (this is a bug fix plan): also update `sdlc/bugs/BUG-NNNN.md` frontmatter:
 
@@ -169,6 +172,8 @@ After generating all code, run locally before showing the diff. Use the commands
 ```
 
 If `stack.lint` is `none`, skip the lint step. All checks must pass. Fix any failures before proceeding.
+
+**Once all checks pass**, update the same milestone entry's `implementation_execution` to `{state: completed, completed_at: [now]}` — leave `attempt`/`started_at` untouched. This is the one point where generation is genuinely done; writing it here, not any earlier, is what keeps the field honest if a session is interrupted partway through this very step.
 
 ## Local Verification Prompt
 

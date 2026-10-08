@@ -4,7 +4,7 @@ type: command
 name: /escalate-to-incident
 description: Convert an existing BUG-NNNN to an active incident when the defect is causing active production impact that warrants incident response
 status: active
-version: 1
+version: 2
 primary_role: sre
 links:
   - relation: follows
@@ -13,6 +13,8 @@ links:
     target: incidents/INC-NNNN.md
   - relation: precedes
     target: resolve-incident
+changelog:
+  - v2 — reconciled against create-bug.md's newly canonical status vocabulary (no drift found; incident_active, and the fix_deployed/closed pre-flight check, already matched). Built for the ForgeKit Operator feature (PLAN-0001 T16).
 ---
 
 # /escalate-to-incident
@@ -102,7 +104,7 @@ linked_postmortem: ~
 
 ## Step 3 — Update BUG-NNNN
 
-Update `sdlc/bugs/BUG-NNNN-[slug].md` frontmatter:
+Update `sdlc/bugs/BUG-NNNN-[slug].md` frontmatter (`incident_active` is create-bug.md's canonical vocabulary; the pre-flight check above against `fix_deployed`/`closed` is also consistent with it — reconciled, no drift found):
 
 ```yaml
 status: incident_active

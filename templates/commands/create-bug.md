@@ -4,10 +4,11 @@ type: command
 name: /create-bug
 description: Quality Engineer command to file a defect report — capture reproduction steps, severity estimate, affected version, and linked artifacts; creates BUG-NNNN in reported status
 status: active
-version: 2
+version: 3
 primary_role: quality-engineer
 output_artifact_type: bug
 changelog:
+  - v3 — declared the canonical `status` vocabulary once, in one place, since it was previously inconsistent across every command that touches it (`resolve-incident.md` wrote a value, `open`, that wasn't in anyone's enum; `verified`/`closed` were checked for but never written by anything). Built for the ForgeKit Operator feature (PLAN-0001 T15).
   - v2 — added an optional related_xdep field for a bug that's actually a cross-repo contract violation rather than a defect local to one repo.
 ---
 
@@ -99,6 +100,24 @@ generation:
   generated_at: "[today's date]"
   session_id: null
 ---
+
+## Canonical `status` vocabulary
+
+Declared once here — every command that reads or writes BUG-NNNN's `status` field (`/triage-bug`, `/escalate-to-incident`, `/resolve-incident`, `/execute-release`) must use exactly these values, never a similarly-worded substitute:
+
+```
+reported → accepted | rejected | needs_info
+accepted → pending_verification                  (fix deployed via the normal PLAN/release pipeline)
+pending_verification → verified | reopened
+reopened → accepted                               (loops back for a new fix attempt)
+(any non-terminal status) → incident_active       (production impact warrants incident response)
+incident_active → accepted | fix_deployed          (fix still needed, vs. the incident's own mitigation is permanent)
+fix_deployed → verified                            (same confirmation step pending_verification leads to)
+rejected → closed                                  (terminal, no fix — `rejection_reason` names why)
+verified → closed                                  (terminal)
+```
+
+`rejected` and `closed` are terminal — no command transitions out of them. `verified` and `closed` currently have no command that writes them (no `/verify-bug-fix`-shaped command exists yet in this pipeline) — this is a known, explicitly-acknowledged gap, not silently hidden; `/triage-bug`, `/escalate-to-incident`, and `/resolve-incident` are reconciled against this list as written (see each command's own changelog), but creating the missing verification step is out of scope for this reconciliation.
 
 # BUG-NNNN — [title]
 

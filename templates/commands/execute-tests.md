@@ -4,9 +4,10 @@ type: command
 name: /execute-tests
 description: QE command to run automated tests for a milestone's test cases — CI-first with local fallback; records results in PLAN-NNNN; QE classifies failures and routes to QE fix path (test code) or developer path (production code)
 status: active
-version: 4
+version: 5
 primary_role: quality-engineer
 changelog:
+  - v5 — the test-execution table gained a standing `Classification` column (always present, not an ad-hoc Notes addition on failure) using the exact literal values QE's own classification prompt produces (`production_bug`/`test_bug`) — resolves a gap where this decision was readable only as free-text prose. Built for the ForgeKit Operator feature (PLAN-0001 T17).
   - v4 — Test Case Identification now also pulls in TC-OBS-*/TC-SEC-*/TC-ADR-* cases by cross-referencing MN's observability/security tasks against the signal/finding ID each test case names, since these carry no AC at all and filtering only by the AC Coverage Map silently never executed them at any milestone; and now also pulls in Edge/Alternate-path cases that cite an in-scope AC only in prose, with no row in the formal table. Caught running `/execute-tests PLAN-0001 M2 TEST-0001` — M2 has OBS/SEC tasks (T13-T15, T17-T18a) and TEST-0001 has a `TC-EDGE-1` citing AC2 only in prose, both of which the old table-only filter would have skipped entirely at every milestone.
   - v2 — failure routing redesigned: QE classifies each failure as production code bug (test_failed → developer) or test code bug (QE fixes and reruns, no review cycle); mixed failures handled as a batch
   - v3 — CI detection generalized from a hardcoded `.github/workflows/` check to `stack.ci_trigger_command`, a plain runnable command — the old check silently ran tests locally for any non-GitHub-Actions CI system instead of triggering it
@@ -89,12 +90,12 @@ Date: [today]
 Mode: local | CI
 Executed by: /execute-tests PLAN-NNNN MN TEST-NNNN
 
-| Test Case ID | Priority | Status | Notes |
-|---|---|---|---|
-| TC-AC1-1 | P0 | PASS | |
-| TC-AC2-1 | P0 | PASS | |
-| TC-AC11-2 | P0 | FAIL | Expected 401, got 404 |
-| TC-OBS-counter-1 | P1 | deferred-to-release | Requires production deployment + telemetry backend |
+| Test Case ID | Priority | Status | Classification | Notes |
+|---|---|---|---|---|
+| TC-AC1-1 | P0 | PASS | — | |
+| TC-AC2-1 | P0 | PASS | — | |
+| TC-AC11-2 | P0 | FAIL | production_bug | Expected 401, got 404 |
+| TC-OBS-counter-1 | P1 | deferred-to-release | — | Requires production deployment + telemetry backend |
 
 **P0 results:** N passed, M failed
 **P1+ results:** X passed, Y failed, Z deferred-to-release
@@ -166,9 +167,9 @@ The new round records the corrected results. No review cycle is required — QE 
 
 ### Path B — Any failures are production code bugs (developer path)
 
-1. Record the classification in the test execution table — add a `Classification` column or note in the Notes field for each failure:
-   - `production code bug` — developer must fix
-   - `test code bug` — QE will fix
+1. Record the classification in the test execution table's `Classification` column (now a standing column on every round, not an ad-hoc addition — resolves a gap where this decision previously lived only in free-text Notes, unreadable without parsing prose) using exactly the same literal values QE just chose from above:
+   - `production_bug` — developer must fix
+   - `test_bug` — QE will fix
 
 2. **If the round includes test code bugs (mixed or test-only within Path B context):** QE fixes and commits those test files **now**, before setting `test_failed`. This way the developer pulls a branch that already has the test code corrections and only needs to address production code. For each fix, confirm it passes by targeting the specific file (syntax varies by runner — see ARCH.md), then confirm no regressions:
    ```bash

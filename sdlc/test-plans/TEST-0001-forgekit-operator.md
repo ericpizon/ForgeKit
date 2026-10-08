@@ -4,7 +4,7 @@ type: test-plan
 schema_version: 1
 title: "ForgeKit Operator — Test Plan"
 status: approved
-version: 3
+version: 4
 updated: 2026-10-07
 target_plan_version: 2
 execution_date: null
@@ -23,6 +23,7 @@ policy_evaluation:
   policy_pack: null
   result: null
 changelog:
+  - "v4 — Scoped TC-FUNC-10 (AC-12) down to the reachable reported→accepted/rejected/needs_info portion of the BUG lifecycle; added TC-FUNC-10b covering the one genuinely reachable pending_verification transition (via execute-release.md). Added during M2's /address-implementation-review (QE-1) after review found the original TC-FUNC-10 cited a verified/closed continuation no command in this pipeline can ever complete."
   - "v3 — Added TC-FUNC-43 (AC-04) covering the draft-SPEC-with-no-ANALYSIS-yet scenario, added during M1's /address-implementation-review (QE-1) after review found the gap [SRE-1] fixed in status.md had no test case verifying it."
   - "v2 — Addressed Test Plan Review Round 1: re-cited the Happy Path Coverage's autonomy-eligibility row to the actual happy-path test case (LD-1); added TC-FUNC-42 asserting the Human Decision Package body contains finding lineage, not just the escalation.reason value (LD-2); tightened TC-SEC-SEC3-1's and TC-OBS-escalation_reason-1's Then clauses (SEC-1, SRE-2)."
   - "v2 — approved after 2 review rounds"
@@ -132,7 +133,7 @@ And no prose-parsing fallback of the "**Status:**" line occurs
 | AC | Test Case(s) |
 |---|---|
 | AC-10 *(write side)* | TC-FUNC-8, TC-FUNC-9 |
-| AC-12 | TC-FUNC-10, TC-FUNC-11 |
+| AC-12 | TC-FUNC-10, TC-FUNC-10b, TC-FUNC-11 |
 
 **TC-FUNC-8** | integration | automated | P0
 ```gherkin
@@ -153,11 +154,20 @@ And state remains distinguishable from a first-time invocation
 
 **TC-FUNC-10** | integration | automated | P0
 ```gherkin
-Given a BUG-0042 fixture moving through reported -> accepted -> pending_verification -> verified -> closed
+Given a BUG-0042 fixture moving through reported -> accepted (via /triage-bug) and, separately, reported -> rejected and reported -> needs_info
 When each transition is applied by its owning command
 Then every status value written matches the canonical vocabulary exactly
 And no command writes a value outside {reported, accepted, rejected, needs_info, pending_verification, verified, reopened, incident_active, fix_deployed, closed}
 ```
+*(Scoped during M2's own `/address-implementation-review` — `[QE-1]` — to the portion of the lifecycle `/triage-bug` actually drives. The original `Given` cited `pending_verification -> verified -> closed`, a path no command in this pipeline can complete: `pending_verification` requires `execute-release.md` with `linked_bug` set — a separate, reachable scenario, see `TC-FUNC-10b` below — while `verified`/`closed` have no writer anywhere in this feature's scope, an explicitly acknowledged gap in `create-bug.md`'s own vocabulary declaration.)*
+
+**TC-FUNC-10b** | integration | automated | P1
+```gherkin
+Given a BUG-0042 fixture with status: accepted, linked to RELEASE-PLAN-v1.0.0 via linked_bug
+When /execute-release deploys the release
+Then BUG-0042's status becomes pending_verification
+```
+*(New — covers the one `pending_verification` transition that genuinely is reachable, via `execute-release.md`, distinct from the unreachable `verified`/`closed` continuation `[QE-1]` removed from `TC-FUNC-10` above.)*
 
 **TC-FUNC-11** | integration | automated | P0
 ```gherkin
