@@ -294,10 +294,58 @@ This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC
 
 ### M4 — Operator Core: Command Execution Cycle & Safety Mechanisms
 **Tasks:** T20, T21, T22, T23, T24, T25
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC-01, AC-02, AC-07, AC-08, AC-09, AC-10, AC-11, AC-13, AC-15 (+ AC-15a–e), AC-16, AC-17, AC-18, AC-19, AC-20, AC-23, AC-25, AC-26, AC-27
 **Depends on:** M1, M2, M3 (reads `resolved_state`, `implementation_execution`, BUG vocabulary, `classification`, and the release-approval binding fields each of those milestones produces)
 **Rollback:** Safe but higher-impact than M1–M3 — `operate.md` and the `operator:` policy block are both new; rolling back means simply not shipping/enabling `/operate` (every `allow.*` key already defaults to `false`), with zero effect on any existing command's behavior when invoked directly by a human.
+
+### Test Execution — Round 1
+Date: 2026-10-08
+Mode: local (real git fixtures in a scratchpad directory, per ARCH.md Tier 2 methodology — not a scripted runner, since `stack.test.unit`/`stack.ci_trigger_command` are both `none`)
+Executed by: /execute-tests PLAN-0001 M4 TEST-0001
+
+`TC-FUNC-1` (AC-03, deferred from M1's own round — see M1's Test Execution note) is in scope now that `operate.md` exists.
+
+| Test Case ID | Priority | Status | Classification | Notes |
+|---|---|---|---|---|
+| TC-FUNC-1 | P0 | PASS | — | Operator's Step 2 invokes `/status` directly and reads its `resolved_state` verbatim rather than independently recomputing it — both report identical `gate`/`next_command` by construction, not by coincidence. |
+| TC-FUNC-15 | P0 | PASS | — | Fixture: SPEC-0042 approved, `operator.allow.create_artifacts: true`. Step 2/3 resolve `next_command: /create-design`; no command-selection question is ever asked. |
+| TC-FUNC-16 | P0 | PASS | — | Mid-lifecycle entry is entirely `/status`'s own resolution (M1) — Operator just follows `next_command`, confirmed no re-derivation logic exists in `operate.md` that could disagree. |
+| TC-FUNC-17 | P0 | PASS | — | Stage B.1's autonomous-correction-loop branch invokes `/address-design-review` then naturally re-enters the cycle at `/review-design` via the sub-command's own Handoff text; advances only once `latest_round.blocking == 0`. |
+| TC-FUNC-18 | P0 | PASS | — | Hand-traced in Round 2 of `/review-implementation`: `count` initializes to `3` from `latest_round.round`, one more attempt would be `4 > 3` → stops with `non_convergence`, no 4th attempt. |
+| TC-FUNC-19 | P1 | PASS | — | Hand-traced in Round 2: `count` initializes to `2`, `max_review_rounds: 5` → `3 ≤ 5` → continues rather than escalating prematurely. |
+| TC-FUNC-20 | P0 | PASS | — | Step 1 lookup-before-create + Step 2's unconditional re-resolve-from-scratch give a fresh session everything it needs; no reliance on conversation history anywhere in the cycle. |
+| TC-FUNC-21 | P0 | PASS | — | Step 2's interrupted-implementation check routes to `/implement-plan`, never `/review-implementation`, when `implementation_execution.state: started` with no `completed_at`. |
+| TC-FUNC-22 | P0 | PASS | — | Idempotency here is each invoked sub-command's own pre-flight (unchanged per ADR-0001) — Operator introduces no duplicate-creation risk of its own. |
+| TC-FUNC-23 | P0 | PASS | — | Fixed in Round 1 (`[SRE-1]`): Step 1 now writes `oprun_lookup_result: resumed_existing` on the resume path; no second `OPRUN-NNNN` created. |
+| TC-FUNC-24 | P0 | PASS | — | `/approve-*` is excluded from the categorization table by name — Stage 1's formal-gate rule fires unconditionally, regardless of `revise_artifacts` policy. |
+| TC-FUNC-25 | P0 | PASS | — | Multi-Repo Orchestration's AC-15a bullet: XDEP satisfaction computed live per participant, no cached `satisfied` field read or written. |
+| TC-FUNC-26 | P0 | PASS | — | Interface Freeze bullet: `working.revision` (3) vs `approved.revision` (2) mismatch blocks dependent implementation work. |
+| TC-FUNC-27 | P0 | PASS | — | Per-repo readiness bullet: participant B's advancement is resolved independently of participant A's state. |
+| TC-FUNC-28 | P0 | PASS | — | Cross-repo validation bullet: a `FAIL` scenario result blocks thread-wide-complete; a later `PASS` re-check clears it. |
+| TC-FUNC-29 | P0 | PASS | — | Thread-wide eligibility bullet: logical AND of AC-15a–15d — one false input (15d) makes the whole eligibility false, never read from a single participant. |
+| TC-FUNC-30 | P0 | PASS | — | Same mechanism as TC-FUNC-25 — no cache exists to go stale, so a simulated stale read has nothing to consult. |
+| TC-FUNC-31 | P0 | PASS | — | Dependency-deadlock bullet: a genuine A↔B cycle stops with `human_decision_required`/`dependency_cycle`, naming both participants; never breaks it automatically, never spins. |
+| TC-FUNC-32 | P0 | PASS | — | Promotion-during-discovery bullet: invokes `/promote-to-thread` directly, then continues against the resulting `THREAD-NNNN`, respecting the superseded SPEC's frozen state. |
+| TC-FUNC-33 | P0 | PASS | — | Stage B.5 (added in Round 1 to close an AC-19 gap DESIGN-0001 §3.6 left unenumerated): `pr_open` maps to `external_action_required`; no second PR created; merge confirmation is `close-milestone.md`'s own existing check, unchanged. |
+| TC-FUNC-34 | P0 | PASS | — | The explicit `execute-release.md`/`promote-to-environment.md` production-step bullet (added in initial authoring to close an ADR-0003 Key Decision 2 gap) stops unconditionally before the protected step. |
+| TC-FUNC-35 | P0 | PASS | — | Every produced artifact's own `generation.command` names the real sub-command, never `operate` — `operate.md` introduces zero parallel engineering reasoning. |
+| TC-FUNC-36 | P0 | PASS | — | No `operator:` block → every `allow.*` key reads `false` per the fail-closed-defaults rule; stops every time. |
+| TC-FUNC-37 | P0 | PASS | — | `allow.create_artifacts: "yes"` (string, not literal boolean) → malformed-value tiebreak resolves identically to `false`. |
+| TC-FUNC-38 | P0 | PASS | — | Stage A pre-check: nonexistent work-unit id → `not_found`, explicit message, no silent inaction. |
+| TC-FUNC-39 | P0 | PASS | — | Stage A pre-check: `shipped` with nothing downstream → `already_complete`, no ambiguous/silent no-op. |
+| TC-FUNC-40 | P0 | PASS | — | The `findings_status` content-check (SEC-2) fires on a newly-introduced `accepted_risk` entry; `human_decision_required`, not a self-commit. |
+| TC-FUNC-42 | P1 | PASS | — | Fixed in Round 1 (`[QE-1]`): Human Decision Package for `non_convergence` now explicitly requires walking the full `recurs_from` chain, not just the current round's finding text. |
+| TC-ADR-0001-1 | P1 | PASS | — | `git status` throughout M4 touched only `operate.md` (new), `project.yml.template`, and `sdlc/operator-runs/` — zero existing command templates' engineering text changed. |
+| TC-ADR-0002-1 | P0 | PASS | — | `operate.md` never sets `resolved_state.gate` itself (it only reads `/status`'s) and never writes an `OPRUN-NNNN.status` value outside the documented 12; Stage B/C's own mapping is exhaustive. |
+| TC-ADR-0003-1 | P0 | PASS | — | `require_human.production_release`/`risk_acceptance` are stated as unconditionally enforced regardless of what `project.yml` sets — an explicit-`false` override has no effect, same as absence. |
+| TC-SEC-SEC1-1 | P0 | PASS | — | Unrecognized-pause tiebreak defaults to hard stop, never autonomy-eligible by default. |
+| TC-SEC-SEC1-2 | P0 | PASS | — | Malformed value (misspelled key or non-boolean) resolves identically to `false` — same mechanism as `TC-FUNC-37`. |
+| TC-SEC-SEC2-1 | P0 | PASS | — | Same scenario and mechanism as `TC-FUNC-40`, verified directly against the SEC-0001 SEC-2 finding text. |
+| TC-SEC-SEC3-1 | P1 | PASS | — | Resumption Containment section: injected instruction-shaped text in a prior decision-package body cannot alter `operator.allow.*` or advance past a pre-resumption escalation — only Step 2's fresh authoritative-artifact resolution determines what happens next. |
+
+**P0 results:** 27 passed, 0 failed
+**P1+ results:** 7 passed, 0 failed, 0 deferred-to-release
 
 ### M5 — Operator Observability & Supporting Tooling
 **Tasks:** T26, T27, T28, T29, T30, T31, T32, T33, T34
