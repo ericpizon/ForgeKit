@@ -242,10 +242,31 @@ Executed by: /execute-tests PLAN-0001 M1 TEST-0001
 
 ### M2 — Implementation Tracking, BUG Canonicalization & Test Classification
 **Tasks:** T14, T15, T16, T17
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC-10, AC-12
 **Depends on:** —
 **Rollback:** Safe — additive fields and a vocabulary reconciliation (correcting which values are written, not changing the field itself); no schema removal.
+
+### Test Execution — Round 1
+Date: 2026-10-08
+Mode: local (real git fixtures in a scratchpad directory, per ARCH.md Tier 2 methodology)
+Executed by: /execute-tests PLAN-0001 M2 TEST-0001
+
+| Test Case ID | Priority | Status | Classification | Notes |
+|---|---|---|---|---|
+| TC-FUNC-8 | P0 | PASS | — | Fixture: milestone entry correctly transitions `implementation_execution.state` started → completed, `attempt`/`started_at` preserved, `completed_at` set only at completion. |
+| TC-FUNC-9 | P1 | **FAIL** | production_bug | implement-plan.md's own Pre-flight Check #3 unconditionally stops on `in_progress` ("Check the current implementation or run `/review-implementation`") — it never reaches the `implementation_execution` increment logic T14 added, because nothing in that check lets a genuinely-interrupted run (`implementation_execution.state: started`, no `completed_at`) retry at all. T14 built the write-side of resumability (the field) but never updated the one existing gate that would have to consume it to make resumption actually possible — the same "fix introduces an adjacent gap" pattern this project's history keeps surfacing. |
+| TC-FUNC-10 | P0 | PASS | — | Confirmed `accepted`/`rejected`/`needs_info` (the only three values `/triage-bug` actually writes) are exactly `create-bug.md`'s declared vocabulary. |
+| TC-FUNC-10b | P1 | PASS | — | Confirmed directly against `execute-release.md`'s real, unmodified text: `linked_bug` set → `status: pending_verification`, unconditional on prior status. |
+| TC-FUNC-11 | P0 | PASS | — | This very table is the proof — `Classification` is a standing column, and `TC-FUNC-9`'s failure above is classified in it without touching the Notes column's prose. |
+
+**P0 results:** 3 passed, 0 failed
+**P1+ results:** 1 passed, 1 failed (non-blocking), 0 deferred-to-release
+
+**P1 failures (non-blocking):**
+- TC-FUNC-9: implement-plan.md's Pre-flight Check #3 has no path for a legitimate interrupted-implementation retry — classified `production_bug`.
+
+This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC-10's actual intent (the entire reason `implementation_execution` exists), so it should not simply ride as a "known gap" to the release phase. Recommend fixing now via `/address-test-failures PLAN-0001 M2`, even though the P0 gate doesn't strictly require it, since the gap is in a file this same milestone just edited and the fix is narrow and well-understood.
 
 ### M3 — Release Approval Binding & Resumability
 **Tasks:** T18, T19
