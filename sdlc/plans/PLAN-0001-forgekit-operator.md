@@ -131,6 +131,21 @@ Extend the existing `approval:` block with `candidate_ref`/`release_plan_revisio
 Write `deployment_progress: {migrations_applied, deployed, tagged, updated_at}` incrementally after each existing numbered step, not only at the end, per DESIGN-0001 §4/Key Decision 7.
 **AC:** AC-21
 
+### Test Execution — Round 1
+Date: 2026-10-08
+Mode: local (fixture trace — no test runner exists for this project; per ARCH.md Tier 2, each case is a concrete frontmatter fixture traced against the actual committed `execute-release.md` Pre-flight Check text)
+Executed by: /execute-tests PLAN-0001 M3 TEST-0001
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-12 | P0 | PASS | Stale `release_plan_revision` correctly stops execution |
+| TC-FUNC-14 | P0 | PASS | Resume correctly skips Step 3, resumes at Step 4 |
+| TC-FUNC-13 | P1 | PASS | Stale `candidate_ref` correctly stops execution |
+| TC-FUNC-44 | P1 | PASS | Absent fields correctly produce the distinct re-approval message, not a false mismatch |
+
+**P0 results:** 2 passed, 0 failed
+**P1+ results:** 2 passed, 0 failed, 0 deferred-to-release
+
 ### M4 — Operator Core: Command Execution Cycle & Safety Mechanisms
 
 **T20** | functional | `templates/project.yml.template`
@@ -272,7 +287,7 @@ This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC
 
 ### M3 — Release Approval Binding & Resumability
 **Tasks:** T18, T19
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC-14, AC-21
 **Depends on:** —
 **Rollback:** Safe — additive fields on the existing `approval:` block and a new `deployment_progress` field; `execute-release.md`'s actual production-deploy steps are unchanged.
