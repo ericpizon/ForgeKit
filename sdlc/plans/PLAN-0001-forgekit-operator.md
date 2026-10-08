@@ -287,7 +287,7 @@ This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC
 
 ### M3 — Release Approval Binding & Resumability
 **Tasks:** T18, T19
-**Implementation status:** tests_passed
+**Implementation status:** pr_merged
 **AC Coverage:** AC-14, AC-21
 **Depends on:** —
 **Rollback:** Safe — additive fields on the existing `approval:` block and a new `deployment_progress` field; `execute-release.md`'s actual production-deploy steps are unchanged.
