@@ -266,7 +266,9 @@ Executed by: /execute-tests PLAN-0001 M2 TEST-0001
 **P1 failures (non-blocking):**
 - TC-FUNC-9: implement-plan.md's Pre-flight Check #3 has no path for a legitimate interrupted-implementation retry — classified `production_bug`.
 
-This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC-10's actual intent (the entire reason `implementation_execution` exists), so it should not simply ride as a "known gap" to the release phase. Recommend fixing now via `/address-test-failures PLAN-0001 M2`, even though the P0 gate doesn't strictly require it, since the gap is in a file this same milestone just edited and the fix is narrow and well-understood.
+This does not block `tests_passed` (P1, not P0) — but it directly undercuts AC-10's actual intent (the entire reason `implementation_execution` exists), so it should not simply ride as a "known gap" to the release phase.
+
+**Fix applied directly (not via `/address-test-failures`, which gates on `test_failed` — P1 never sets that):** `implement-plan.md`'s Pre-flight Check #3 now checks `implementation_execution.state` before choosing its `in_progress` message, offering an explicit, confirmation-gated retry path when a run looks interrupted. Verified against the fixed text: `TC-FUNC-9`'s scenario now reaches `attempt: 2` via a legitimate, explicit-confirmation path rather than being unconditionally blocked. `TC-FUNC-9` now **PASS**. Proceeding to `/review-implementation PLAN-0001 M2` to cover this change, per "any code change, however small, goes through review."
 
 ### M3 — Release Approval Binding & Resumability
 **Tasks:** T18, T19

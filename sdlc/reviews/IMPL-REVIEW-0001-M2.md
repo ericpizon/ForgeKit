@@ -4,18 +4,18 @@ type: impl-review
 schema_version: 1
 plan: PLAN-0001
 milestone: M2
-current_review_round: 2
+current_review_round: 3
 latest_round:
-  round: 2
+  round: 3
   blocking: 0
-  non_blocking: 0
+  non_blocking: 2
   verdict: ready
 approval:
   mode: repo_only
   approved_by: "Eric Pizon"
   approved_role: lead-developer
   approved_at: "2026-10-08"
-  decision_summary: "M2 (Implementation Tracking, BUG Canonicalization & Test Classification) approved for merge after 2 review rounds — all findings resolved, zero remaining."
+  decision_summary: "M2 approved for merge after 2 review rounds (013c2d1, committed). Round 3 covers a post-tests_passed fix for TC-FUNC-9 (P1) — re-approved for inclusion in the same milestone without regressing implementation_status, which correctly remains tests_passed throughout."
   external_event_id: null
   external_event_uri: null
 policy_evaluation:
@@ -93,6 +93,32 @@ One observation, not a new finding: `execute-release.md`'s `pending_verification
 
 ### Summary
 **0 blocking, 0 non-blocking findings.**
+
+### Next Step
+`/approve-implementation PLAN-0001 M2`
+
+## Round 3 — 2026-10-08
+
+Scoped to a code change made *after* M2's initial approval and commit (`013c2d1`): `/execute-tests` found `TC-FUNC-9` (P1) failing — `implement-plan.md`'s Pre-flight Check had no legitimate retry path for a genuinely interrupted implementation run, despite T14 adding the `implementation_execution` field specifically to support that. `/address-test-failures` didn't apply (it gates on `test_failed`, which a P1-only failure never sets), so the fix was made directly as a normal correction and is reviewed here before it's folded into the milestone.
+
+### Lead Developer Findings
+
+- **[LD-2] non-blocking — the new retry-confirmation pause should be confirmed as falling under `implement-plan.md`'s existing `implement_code` Autonomy Policy category once `operate.md` (M4) exists, not given its own special categorization**
+This new pause is low-risk to treat the same as the rest of `implement-plan.md`'s autonomy-eligible surface — retrying makes no claim about reusing partial output (it explicitly regenerates from scratch), so there's no safety property an autonomous "yes, retry" would violate that a fresh implementation attempt wouldn't also risk. Worth an explicit one-line confirmation when M4 actually builds the categorization table (§3.3), not a blocker now — DESIGN-0001's own table predates this pause by construction (it didn't exist when §3.3 was authored).
+
+### QE Findings
+
+- **[QE-2] non-blocking — `TC-FUNC-9`'s own `Given`/`When` doesn't mention the new required confirmation step**
+The test's `Then` clause ("attempt increments to 2") is still correct, but the fix now requires an explicit human confirmation before that happens, and the test's scenario text doesn't capture that — a future reader could mistake this for an unconditional retry. Recommend adding "And the user confirms the retry" to `TC-FUNC-9`'s `When` clause in TEST-0001.
+
+**Clean perspectives:** Security, SRE.
+
+### Contradictions Requiring Arbitration
+
+None.
+
+### Summary
+**0 blocking, 2 non-blocking findings.**
 
 ### Next Step
 `/approve-implementation PLAN-0001 M2`

@@ -4,10 +4,11 @@ type: command
 name: /implement-plan
 description: Developer command to implement all tasks in one PLAN milestone — generating code, tests, and migrations, then prompting for local verification before review
 status: active
-version: 3
+version: 4
 primary_role: developer
 output_artifact_type: source-code
 changelog:
+  - v4 — Pre-flight Check #3's `in_progress` branch now checks `implementation_execution.state` before choosing a message, and offers an explicit, confirmation-gated retry path when it's `started` with no `completed_at` — v3 added the field but left this check's single unconditional message in place, so an interrupted run had no legitimate way back in at all (found as a P1 test failure, `TC-FUNC-9`, during M2's own `/execute-tests` — this is the fix for it).
   - v3 — added `implementation_execution: {state, attempt, started_at, completed_at}` writes on the milestone entry — `state: started` when generation begins, `state: completed` only once all Pre-verification Checks pass — so a resumed session can distinguish genuinely interrupted implementation from implementation that finished and is just waiting on review, which `**Implementation status:** in_progress` alone can't do. Built for the ForgeKit Operator feature (PLAN-0001 T14).
   - v2 — added a staleness pre-flight check for PLANs with an inputs.cross_repo_contract block, alongside the existing TEST-NNNN/PLAN-NNNN approval checks.
 ---
@@ -33,7 +34,9 @@ Before generating any code, verify all of the following. Surface a blocker and s
 1. **TEST-NNNN is `approved`** — the test contract must exist before code is written. If `revision_requested`: "TEST-NNNN is under revision due to a plan back-cycle. Wait until the test plan revision cycle completes before implementing."
 2. **PLAN-NNNN is `approved`**. If `revision_requested`: "PLAN-NNNN is under revision due to a back-cycle. Wait until the plan revision cycle completes before implementing."
 3. **Milestone `implementation_status` is `pending`** — read PLAN-NNNN milestone MN's `**Implementation status:**` field. Stop with a specific message for each non-pending state:
-   - `in_progress` → "MN is already in progress. Check the current implementation or run `/review-implementation PLAN-NNNN MN`."
+   - `in_progress` — **check `implementation_execution.state` before choosing a message** (fixed here — the single unconditional message below previously gave no path to a legitimate retry, leaving the `implementation_execution` field with no gate that actually consumed it):
+     - `implementation_execution.state: completed` → "MN is already in progress with implementation complete. Run `/review-implementation PLAN-NNNN MN`."
+     - `implementation_execution.state: started` (no `completed_at`) → "MN looks interrupted — a prior `/implement-plan` run started but never recorded completion. If code generation is genuinely still underway in another session, do nothing. If it was interrupted, confirm explicitly to retry: this will increment `attempt` and regenerate MN's tasks from scratch — it will **not** silently assume prior partial output is safe to build on." Only proceed past this stop with the user's explicit confirmation to retry.
    - `approved` → "MN implementation is approved. Run `/execute-tests PLAN-NNNN MN TEST-NNNN` to begin the testing phase."
    - `test_failed` → "MN has P0 test failures. Run `/address-test-failures PLAN-NNNN MN` to address them — do not re-implement."
    - `tests_passed` → "MN tests are passing but no PR has been created. Run `/create-pr PLAN-NNNN MN`."
