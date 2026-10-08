@@ -213,10 +213,32 @@ Document `/operate` in the pipeline overview, per DESIGN-0001 §8.
 
 ### M1 — Structured Review Outcomes & Status Resolver
 **Tasks:** T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **AC Coverage:** AC-03, AC-04, AC-05, AC-06, AC-08 (partial — lineage convention only; full AC-08 behavior lands at M4), AC-22
 **Depends on:** —
 **Rollback:** Safe — every change is an additive frontmatter field or an additive output block; no existing field is removed or renamed, no existing command behavior changes for a human invoking these commands directly.
+
+### Test Execution — Round 1
+Date: 2026-10-08
+Mode: local (real git fixtures in a scratchpad directory, per ARCH.md Tier 2 methodology — not a scripted runner, since `stack.test.unit`/`stack.ci_trigger_command` are both `none`)
+Executed by: /execute-tests PLAN-0001 M1 TEST-0001
+
+`TC-FUNC-1` (AC-03) excluded from this round's scope — it requires `/operate` to exist for the cross-check it performs, and M1's tasks don't touch `operate.md` at all (M4). Deferred to M4's own test round, per Test Case Identification's "a test case naming a command MN's tasks don't touch is out of scope for MN" rule, not treated as a failure.
+
+| Test Case ID | Priority | Status | Notes |
+|---|---|---|---|
+| TC-FUNC-2 | P0 | PASS | Fixture: SPEC-0042 approved, no DESIGN yet. `resolved_state.stage: design`, next action `/create-design` — correct, no PLAN required. |
+| TC-FUNC-3 | P0 | PASS | Verified by inspection: status.md's rewritten milestone branch gives each of the 7 states (`pending` through `pr_merged`) its own distinct, non-overlapping output. |
+| TC-FUNC-4 | P0 | PASS | Fixture: DESIGN-0042 with `latest_round: {blocking: 2, ...}`. Confirmed readable directly from frontmatter alone, no `**Status:**` prose parse needed. |
+| TC-FUNC-7 | P0 | PASS | Fixture: DESIGN-0044 predating `latest_round` entirely (genuinely absent, confirmed via grep). Correctly resolves `gate: ambiguous` / `ambiguous_cause: missing_structured_field` rather than falling back to parsing the prose `**Status:**` line that was present and would have given a different, unearned answer. |
+| TC-FUNC-5 | P1 | PASS | Fixtures for DESIGN/PLAN/TEST-PLAN/RELEASE-PLAN, plus the real `IMPL-REVIEW-0001-M1.md` from this session, all expose `{round, blocking, non_blocking, verdict}` with no missing field. |
+| TC-FUNC-6 | P1 | PASS | Fixture: DESIGN-0043, Round 2 finding `[LD-1]` carries `recurs_from: {round: 1, finding: LD-1}`; unrelated Round-2 finding `[LD-2]` does not. Cleanly distinguishable. |
+| TC-FUNC-43 | P1 | PASS | Fixture: SPEC-0042 draft, `ANALYSIS-0042` genuinely absent (confirmed empty directory). Next action correctly reported as `/review-spec SPEC-0042`, no attempt to read the missing file. |
+
+**P0 results:** 4 passed, 0 failed
+**P1+ results:** 3 passed, 0 failed, 0 deferred-to-release
+
+**Observation (not a failure — noted for future clarity):** TC-FUNC-2 surfaced a latent ambiguity in `resolved_state.stage`'s own semantics (ADR-0002, pre-existing — not introduced by M1): the schema never states whether `stage` means "last completed stage" or "the stage now being entered." Both produced the same test outcome here (`design` is a member of the expected set either way), so this doesn't block anything, but worth a one-line clarification in ADR-0002 if it ever becomes ambiguous in practice at M4.
 
 ### M2 — Implementation Tracking, BUG Canonicalization & Test Classification
 **Tasks:** T14, T15, T16, T17
