@@ -9,13 +9,13 @@ design_id: DESIGN-0001
 trigger_source: ANALYSIS-0001
 target_design_version: 6
 findings_status:
-  SEC-1: open
+  SEC-1: mitigated
   SEC-2: mitigated
   SEC-3: mitigated
   RET-1: accepted_risk
   RET-2: accepted_risk
 created: 2026-10-07
-updated: 2026-10-07
+updated: 2026-10-08
 owner: Eric Pizon
 stakeholders:
   - Eric Pizon (Security / Lead Developer / Architect)
@@ -84,7 +84,9 @@ ANALYSIS-0001's Security Perspective (Round 1, reaffirmed Rounds 2–3) frames i
 
 ## Findings
 
-### SEC-1 — Fail-closed tiebreak for unrecognized Handoff phrasing is deferred to not-yet-written implementation text, with no AC or test obligation verifying it (High, open)
+### SEC-1 — Fail-closed tiebreak for unrecognized Handoff phrasing is deferred to not-yet-written implementation text, with no AC or test obligation verifying it (High, **mitigated** — PLAN-0001 M4)
+
+**Mitigation confirmed:** `templates/commands/operate.md` (PLAN-0001 T23, M4) states both tiebreaks as explicit, literal rules inside its own Autonomy Overlay Rule section — the unrecognized-pause tiebreak and the malformed-`operator.allow.*`-value tiebreak, both resolving identically to a hard stop. `TC-SEC-SEC1-1`/`TC-SEC-SEC1-2` in TEST-0001 verify both directly; `IMPL-REVIEW-0001-M4.md` confirms the implementation matches this finding's exact recommended wording.
 
 **Description:** The Autonomy Overlay Rule (DESIGN §3.2) requires the agent to recognize whether a given Handoff pause is a formal gate or a routine confirmation. For the ~15 commands in §3.3's table this is enumerated explicitly. For anything the table doesn't cleanly cover — an unusually worded future Handoff, or any Handoff that doesn't match the table's assumptions — Design Review Round 1's `[LD-1]` correctly recommended a fail-closed tiebreak: default to treating an unclear pause as a hard stop, never as autonomy-eligible by default. That finding was marked **accepted, not addressed in DESIGN** — "will be stated directly in `operate.md`'s own text... rather than requiring a DESIGN revision now." `operate.md` does not exist yet (DESIGN §5 lists it as new, undelivered command surface). The same applies to Safety Invariant #18's "malformed" clause specifically: DESIGN §4's `operator:` block documents the *absent*-key default (`false`) explicitly, but does not state that a *malformed* value (a typo'd key, a non-boolean value) is treated identically — only the SPEC's invariant text covers that case today.
 
@@ -157,7 +159,7 @@ Operator is explicitly designed to run against other adopting projects whose `co
 ## Quality Gate Self-Check
 
 - [x] Every ANALYSIS Risk Flag is addressed (mitigated, accepted, or escalated) — see ANALYSIS-0001 Risk Flag Disposition table above; all six rows dispositioned.
-- [x] Every Critical/High finding either has a concrete mitigation task or an explicitly accepted-risk entry with a named approver — SEC-1 (High, open) carries a concrete, file-specific mitigation task; SEC-2 (High) was escalated per the Lead Developer Review and is now confirmed mitigated by DESIGN-0001 v6.
+- [x] Every Critical/High finding either has a concrete mitigation task or an explicitly accepted-risk entry with a named approver — SEC-1 (High) is now confirmed mitigated by PLAN-0001 M4's implementation; SEC-2 (High) was escalated per the Lead Developer Review and is now confirmed mitigated by DESIGN-0001 v6.
 - [x] No finding mitigation says "consider" — all three findings name exact files (`templates/commands/operate.md`, `.claude/commands/security-review.md`, `DESIGN-0001 §3.4`/`§8`) and exact required text/behavior changes.
 - [x] Accepted-risk entries have a revisit condition, not just "v2 will fix this" — RET-1 and RET-2 each state concrete, checkable revisit triggers.
 - [x] `compliance.frameworks` is `[none]` — the Compliance Considerations section states that explicitly rather than being empty, and additionally addresses the cross-project variability this feature introduces.

@@ -79,3 +79,22 @@ pipeline:
   postmortem: SEV-2              # severity threshold: postmortem required for incidents at this level or higher
                                  # SEV-1 | SEV-2 | SEV-3 | SEV-4 | always | never
   evidence_mode: repo_only       # repo_only | hybrid
+
+# Autonomy policy for /operate (DESIGN-0001 §4, ADR-0003). Every allow.* key defaults to
+# false — absence of this entire block, or absence of a specific key within it, both mean
+# "false," never implicitly "true." require_human.* keys are shown for legibility only;
+# /operate always enforces both true regardless of what is written here or whether this
+# block exists at all — a project cannot configure around Safety Invariants #11/#20.
+operator:
+  max_review_rounds: 3
+  max_actions_per_run: 25
+  allow:
+    create_artifacts: false
+    revise_artifacts: false
+    implement_code: false
+    run_tests: false
+    create_pr: false
+    nonproduction_promotion: false
+  require_human:
+    risk_acceptance: true        # always enforced true regardless of this value
+    production_release: true     # always enforced true regardless of this value
