@@ -10,6 +10,18 @@ latest_round:
   blocking: 0
   non_blocking: 0
   verdict: ready
+approval:
+  mode: repo_only
+  approved_by: "Eric Pizon"
+  approved_role: lead-developer
+  approved_at: "2026-10-08"
+  decision_summary: "M4 approved for merge after 2 review rounds — both Round 1 findings (LD-1, SRE-1) verified resolved in Round 2 with zero new findings."
+  external_event_id: null
+  external_event_uri: null
+policy_evaluation:
+  evaluated: null
+  policy_pack: null
+  result: null
 generation:
   command: /review-implementation
   command_version: "5"
