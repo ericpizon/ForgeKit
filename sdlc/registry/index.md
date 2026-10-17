@@ -20,6 +20,14 @@
 | SEC-0001 | security-review | completed | ForgeKit Operator — Security Review |
 | PLAN-0001 | plan | approved | ForgeKit Operator — Implementation Plan (5 milestones) |
 | TEST-0001 | test-plan | approved | ForgeKit Operator — Test Plan |
+| SPEC-0002 | spec | approved | Configurable Post-Merge Test Gate |
+| ANALYSIS-0002 | analysis | completed | Configurable Post-Merge Test Gate — Spec Analysis |
+
+## Investigation Artifacts
+
+| ID | Type | Status | Decision | Title |
+|---|---|---|---|---|
+| INV-0001 | investigation | concluded | recommend_implementation | Should ForgeKit support a configurable post-merge test gate? |
 
 ## Bug Artifacts
 
