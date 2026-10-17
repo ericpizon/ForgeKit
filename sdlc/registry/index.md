@@ -22,6 +22,8 @@
 | TEST-0001 | test-plan | approved | ForgeKit Operator — Test Plan |
 | SPEC-0002 | spec | approved | Configurable Post-Merge Test Gate |
 | ANALYSIS-0002 | analysis | completed | Configurable Post-Merge Test Gate — Spec Analysis |
+| DESIGN-0002 | design | approved | Configurable Post-Merge Test Gate — Technical Design |
+| ADR-0004 | adr | accepted | Post-Merge Immediate-Merge Mechanism |
 
 ## Investigation Artifacts
 
