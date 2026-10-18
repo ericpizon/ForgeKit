@@ -87,11 +87,50 @@ Add the post-merge validation branch (DESIGN-0002 §3.4/§3.5/§3.6):
 
 ### M1 — Configurable Post-Merge Test Gate
 **Tasks:** T1, T2, T3, T4, T5
-**Implementation status:** approved
+**Implementation status:** tests_passed
 **implementation_execution:** {state: completed, attempt: 1, started_at: "2026-10-18", completed_at: "2026-10-18"}
 **AC Coverage:** AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07 (no task — see Definition of Done), AC-08
 **Depends on:** —
 **Rollback:** Safe — every task's change is additive and conditional on `pipeline.test_gate: post_merge`; the `pre_merge` path (today's only behavior, and the default) is never touched by any task's own bullets, confirmed individually in T1/T3/T5's text. Rolling back means simply not shipping/enabling the `post_merge` branch, with zero effect on any project that hasn't opted in.
+
+### Test Execution — Round 1
+Date: 2026-10-18
+Mode: local (fixture trace — no test runner exists for this project; `stack.test.unit`/`stack.ci_trigger_command` are both `none`. Per ARCH.md Tier 2, each case is traced directly against the actual committed command text in `dd1acdc`, with git-state cases — `TC-FUNC-13`'s `implement-plan.md` non-change — confirmed via `git diff` rather than by inspection alone.)
+Executed by: /execute-tests PLAN-0002 M1 TEST-0002
+
+| Test Case ID | Priority | Status | Classification | Notes |
+|---|---|---|---|---|
+| TC-FUNC-1 | P0 | PASS | — | Step 9's `post_merge` branch offers the merge, never mentions `/execute-tests` first; solo confirm runs the fast-forward mechanics exactly as specified. |
+| TC-FUNC-2 | P0 | PASS | — | Declined offer leaves `**Implementation status:**` at `approved`; same offer re-made next Handoff — confirmed verbatim in Step 9. |
+| TC-FUNC-3 | P0 | PASS | — | `qa_trigger_command` configured → run directly, per Validation Target's first branch. |
+| TC-FUNC-4 | P0 | PASS | — | Team path local fallback: `git checkout main && git pull` runs before the test commands. |
+| TC-FUNC-5 | P0 | PASS | — | Solo path local fallback: `git checkout main` only, no pull — text explicitly states why (already current, no remote guaranteed). |
+| TC-FUNC-6 | P0 | PASS | — | Non-shared/blocking P0 failure routes to `/create-bug`, never `test_failed`. |
+| TC-FUNC-7 | P0 | PASS | — | Shared/blocking P0 failure routes to `/escalate-to-incident` instead. |
+| TC-FUNC-8 | P0 | PASS | — | Confirmed via `git diff dd1acdc~1 dd1acdc` — the `pre_merge` branch's message text, CI Detection, Results Recording, and pass/fail sections are all byte-unchanged; only new sections were inserted. |
+| TC-FUNC-9 | P0 | PASS | — | Phase 4C: "Before merging *(default)*" — no-preference path writes `pre_merge`. |
+| TC-FUNC-10 | P1 | deferred-to-release | — | Manual — requires reading the actual rendered question text for plain-language clarity; not mechanically checkable (per its own `Reason:` line). |
+| TC-FUNC-11 | P0 | PASS | — | Solo: `pr_merged` set directly in the merge step; `/create-pr` never invoked. |
+| TC-FUNC-12 | P0 | PASS | — | Team: same, plus `/close-milestone` also confirmed never invoked. |
+| TC-FUNC-13 | P0 | PASS | — | `git diff dd1acdc~1 dd1acdc -- templates/commands/implement-plan.md` returns empty — zero lines changed, confirming the "no change required" claim directly rather than assuming it. |
+| TC-FUNC-14 | P0 | PASS | — | `**Implementation status:** pr_merged` and `post_merge_test: {status: pending, ...}` written together under "Once the merge is confirmed." |
+| TC-FUNC-15 | P0 | PASS | — | All-P0-pass sets `status: passed`, per Writing `post_merge_test`. |
+| TC-FUNC-16 | P0 | PASS | — | P1-only failure leaves `status: passed`; a P0 failure sets `status: failed` — both stated explicitly. |
+| TC-FUNC-17 | P0 | PASS | — | Pre-flight Check stops re-entry once `post_merge_test.status` is no longer `pending`. |
+| TC-FUNC-18 | P0 | PASS | — | Both `project.yml.template`'s field comment and Step 9's branch condition state the fail-closed default for absent/malformed values. |
+| TC-FUNC-19 | P0 | PASS | — | Pre-flight Check routes on MN's own `post_merge_test` presence, checked ahead of the project's current `pipeline.test_gate` value — per-milestone authority holds by construction. |
+| TC-FUNC-20 | P0 | PASS | — | Phase 4C's "After merging" branch is selectable and recorded as `pipeline.test_gate: post_merge`. |
+| TC-ADR-0004-1 | P0 | PASS | — | Merge verification via `gh pr view --json state`; a non-`MERGED` result leaves `**Implementation status:**` at `approved` with the PR open — `post_merge_test` is never reached in this branch. |
+| TC-ADR-0004-2 | P0 | PASS | — | `gh pr list` lookup runs before any `gh pr create` call; an existing open PR is reused, never duplicated. |
+| TC-ADR-0004-3 | P0 | PASS | — | `blocked_reason` is one of three named sanitized categories, explicitly never `gh`'s raw CLI text — stated identically in both `approve-implementation.md` (T3) and the OBS task (T4). |
+| TC-OBS-pipeline_test_gate-1 | P1 | PASS | — | The two modes' exact branch behaviors are both named explicitly in Step 9 and the Pre-flight Check, not merely asserted as "consistent." |
+| TC-OBS-post_merge_test_status-1 | P1 | PASS | — | All three values (`pending`/`passed`/`failed`) confirmed via `TC-FUNC-14`/`15`/`16` above. |
+| TC-OBS-post_merge_test_updated_at-1 | P2 | PASS | — | Set at both the `pending` write (Step 9) and the terminal write (execute-tests.md) — two real, distinct timestamps by construction. |
+| TC-OBS-merge_attempt-1 | P1 | PASS | — | Shape confirmed via `TC-ADR-0004-1`/`-3`; superseded (no separate cleanup write) once a retry succeeds, per Step 9's own note. |
+| TC-OBS-qa_trigger_infra_failure-1 | P1 | PASS | — | Infra-failure distinction stops before writing `post_merge_test.status`, surfacing the problem directly instead. |
+
+**P0 results:** 22 passed, 0 failed
+**P1+ results:** 5 passed, 0 failed, 1 deferred-to-release
 
 ## Sequencing & Dependencies
 
