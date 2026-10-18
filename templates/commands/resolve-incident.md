@@ -4,9 +4,10 @@ type: command
 name: /resolve-incident
 description: Mark an incident resolved, record the mitigation, determine postmortem requirement from severity threshold, and prompt for follow-up actions
 status: active
-version: 2
+version: 3
 primary_role: sre
 changelog:
+  - v3 — Step 4's "permanent fix still needed" path now reverts BUG-NNNN to `accepted`, not `open` — `open` was never part of the canonical BUG status vocabulary `create-bug.md` declares, and nothing else in the pipeline ever wrote or read it. Built for the ForgeKit Operator feature (PLAN-0001 T16).
   - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context.
 links:
   - relation: follows
@@ -80,7 +81,7 @@ Determine outcome: **required** / **optional** / **not needed**
 
 Check INC-NNNN frontmatter for `linked_bug`. If set:
 
-- If permanent fix still needed: update `sdlc/bugs/BUG-NNNN-[slug].md` status back to `open` — the defect still needs to go through the pipeline.
+- If permanent fix still needed: update `sdlc/bugs/BUG-NNNN-[slug].md` status back to `accepted` — the defect still needs to go through the pipeline, the same status it already carried before escalation (not `open`, which isn't part of the canonical vocabulary `create-bug.md` declares — fixed here, since nothing else in the pipeline ever wrote or read `open`).
 - If mitigation is permanent (no further fix needed): update `sdlc/bugs/BUG-NNNN-[slug].md` status to `fix_deployed`.
 
 ## Step 5 — Commit

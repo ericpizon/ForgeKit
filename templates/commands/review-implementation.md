@@ -4,7 +4,7 @@ type: command
 name: /review-implementation
 description: Multi-role review of a milestone's implementation — Lead Developer, Security, SRE, QE perspectives in one pass; produces IMPL-REVIEW artifact
 status: active
-version: 4
+version: 5
 primary_role: lead-developer
 reviewing_roles:
   - security
@@ -12,6 +12,7 @@ reviewing_roles:
   - quality-engineer
 output_artifact_type: impl-review
 changelog:
+  - v5 — added a structured `latest_round` frontmatter field (round/blocking/non_blocking/verdict), written alongside the existing `**Summary:**` prose line every round. Built for the ForgeKit Operator feature (PLAN-0001 T4).
   - v4 — added a staleness check for PLANs with an inputs.cross_repo_contract block, the last of the five gate points from templates/reference/cross-repo-resolution.md's staleness rule.
 ---
 
@@ -69,6 +70,11 @@ schema_version: 1
 plan: PLAN-NNNN
 milestone: MN
 current_review_round: 1
+latest_round:
+  round: 1
+  blocking: N
+  non_blocking: N
+  verdict: ready | needs_revision
 generation:
   command: /review-implementation
   command_version: "[use version from this command's frontmatter]"
@@ -201,6 +207,8 @@ After completing all perspectives:
 ```
 **Summary:** N blocking, M non-blocking findings.
 ```
+
+Update frontmatter's `latest_round` field to `{round: [this round's number], blocking: N, non_blocking: M, verdict: ready | needs_revision}` matching this line exactly (`verdict: ready` when blocking is 0, `needs_revision` otherwise) — the structured counterpart to this prose summary, written every round alongside it.
 
 ## Next Step
 

@@ -4,10 +4,11 @@ type: command
 name: /address-plan-review
 description: Lead Developer command to address findings from PLAN review sections and prepare the PLAN for re-review or approval
 status: active
-version: 2
+version: 3
 primary_role: lead-developer
 output_artifact_type: plan (revised)
 changelog:
+  - v3 — added the `recurs_from: {round, finding}` finding-lineage convention for a disposition that resolves the same underlying issue as a prior round's finding. Built for the ForgeKit Operator feature (PLAN-0001 T7).
   - v2 — the zero-blocking exit path no longer bypasses disposition of a new non-blocking finding from a re-review round; it now appends a minimal Address Summary before handing off to /approve-plan, which already required every non-blocking finding to carry a documented disposition.
 links:
   - relation: relates_to
@@ -57,6 +58,7 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
    - If a task needs to be split, split only that task; maintain all other task ordering
    - If the fix requires a new task (e.g., a missing security mitigation task), add it in the correct phase position
    - If a fix requires a design decision not yet in DESIGN-NNNN: stop — see Blocker Protocol
+   - **If this finding is the same underlying issue as one from a prior round** (the Lead Developer's own judgment — a finding ID is round-scoped and does not persist automatically), record `recurs_from: {round: [prior round], finding: [prior finding ID]}` on this round's disposition entry for it.
 
 5. **Non-blocking findings:** Accept as-is by default — list them in the Not Addressed section as `accepted`. Only address a non-blocking finding if the user has explicitly requested it, or if it is a correction of a clear factual error or typo with no judgment involved.
 
@@ -74,7 +76,7 @@ Pass the PLAN ID: `/address-plan-review PLAN-0001`.
    **Date:** YYYY-MM-DD
 
    ### Addressed
-   - [SRE-1] — [what was changed and where]
+   - [SRE-1] — [what was changed and where] (add `recurs_from: {round, finding}` here if this is a recurrence of a prior round's finding)
    - [QE-2] — [what was changed and where]
 
    ### Not Addressed

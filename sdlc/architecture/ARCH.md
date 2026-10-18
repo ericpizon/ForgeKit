@@ -2,10 +2,12 @@
 type: architecture
 project: "ForgeKit"
 status: approved
-version: 1
+version: 3
 approved_by: human
 initialized_at: 2026-10-07
-changelog: []
+changelog:
+  - "v2 — DESIGN-0001 (ForgeKit Operator) approved: added /operate to the primary_role: any precedent; noted templates/sdlc/operator-runs/ as a forthcoming new artifact-type subdirectory; extended the Testing Strategy's Tier 2 description with Operator-specific scenario classes. All additive — no existing pattern superseded."
+  - "v3 — DESIGN-0001 re-approved after a Stage-4-discovered back-cycle: added the 'content-check classification' technique as a named architectural decision, generalizing the fix for a command whose single Handoff pause can cover both a routine and a formal-gate-worthy case. Additive."
 ---
 
 # ForgeKit — System Architecture
@@ -28,7 +30,7 @@ ForgeKit/
 │   ├── forge-init.md        ← this command
 │   └── review-forgekit-pr.md ← maintainer design-direction review for changes to this repo
 ├── templates/
-│   ├── commands/            ← 58 pipeline command templates — the product's actual command surface
+│   ├── commands/            ← 59 pipeline command templates — the product's actual command surface
 │   ├── roles/               ← 8 role persona files (tpo, architect, lead-developer, developer,
 │   │                            quality-engineer, security, sre, dba)
 │   ├── sdlc/                ← one subdirectory per artifact type, each with its own README
@@ -49,6 +51,8 @@ ForgeKit/
 └── sdlc/                    ← this init's own output, going forward
 ```
 
+`/operate` is implemented (`templates/commands/operate.md`, added 2026-10-08, PLAN-0001 M4) — `OPRUN-NNNN` run records live in `sdlc/operator-runs/`. Note: `templates/sdlc/operator-runs/README.md` and `forge-init.md`'s directory-provisioning list have not yet been updated to propagate this subdirectory into newly adopting projects — a known, explicitly flagged follow-up from M4, not yet scheduled as its own task.
+
 ---
 
 ## Testing strategy
@@ -56,7 +60,7 @@ ForgeKit/
 No automated test runner exists or is warranted — there is no compiler, no unit test framework, and "correctness" means "an AI agent, following this text, produces the specified behavior," which only an actual walkthrough can verify. Three tiers, confirmed as an intentional convention (not just an observed pattern) during this init:
 
 1. **Structural/static checks** — `/review-forgekit-pr`'s existing rules (role-attribution consistency, cross-command reference existence, frontmatter schema completeness, `PIPELINE.md`/`forge-init.md`/`project.yml.template` version and content sync). Cheap, deterministic, intended to run before any merge to this repo.
-2. **Scenario-based fixture testing** — for any new or modified command, walk its actual text against disposable git fixture repos (in a scratchpad directory, never this repo), asserting on real resulting files, frontmatter, and git state (commit SHAs, `ls` on directories, regex checks against the exact patterns a command specifies) — not prose-only reasoning about what the text "should" do. This is the primary source of real bug-finding (ordering invariants, missing confirmation steps, multi-task finding-tracking slips) — Tier 1 cannot catch any of it, since it requires simulating multi-step behavior, not just reading structure. The one place mocking is legitimate: an external system this repo never owns (an ADO/Confluence connector).
+2. **Scenario-based fixture testing** — for any new or modified command, walk its actual text against disposable git fixture repos (in a scratchpad directory, never this repo), asserting on real resulting files, frontmatter, and git state (commit SHAs, `ls` on directories, regex checks against the exact patterns a command specifies) — not prose-only reasoning about what the text "should" do. This is the primary source of real bug-finding (ordering invariants, missing confirmation steps, multi-task finding-tracking slips) — Tier 1 cannot catch any of it, since it requires simulating multi-step behavior, not just reading structure. The one place mocking is legitimate: an external system this repo never owns (an ADO/Confluence connector). **Operator-specific scenario classes** (added: 2026-10-07, DESIGN-0001; `/operate` implemented 2026-10-08, PLAN-0001 M4) join this tier: interrupted/resumed sessions (does a fresh invocation correctly resume rather than duplicate an `OPRUN-NNNN`?), fail-closed Autonomy Policy defaults (does an unconfigured or malformed `project.yml` correctly refuse autonomous action?), bounded review-loop convergence (does a recurring finding correctly stop at `operator.max_review_rounds` rather than looping indefinitely?), and cross-repo dependency deadlocks (does Operator detect a cycle rather than spinning or arbitrarily breaking it?).
 3. **Periodic full-pipeline drift audits** — a deliberate, scheduled cross-cutting review across every command file for a specific concern (e.g., solo/team push consistency, single-repo vs. multi-repo correctness), not a per-change gate. Expensive since it reads broadly; catches systemic drift that accumulates across many individually-reasonable small changes.
 
 **No-mock rule:** never mock this repo's own command text or behavior to make a scenario "pass" — the fixture's state must be real, produced by actually following the command.
@@ -74,11 +78,12 @@ No automated test runner exists or is warranted — there is no compiler, no uni
 
 ## Architectural decisions and constraints
 
-- **Role-driven, not tool-driven** — every command declares a `primary_role`; the AI adopts that role's mental model for the command's duration. A handful of commands (`/status`, `/promote-to-thread`, `/promote-to-environment`, `/create-investigation`, `/create-adr`) legitimately declare `primary_role: any` — no single role owns them.
+- **Role-driven, not tool-driven** — every command declares a `primary_role`; the AI adopts that role's mental model for the command's duration. A handful of commands (`/status`, `/promote-to-thread`, `/promote-to-environment`, `/create-investigation`, `/create-adr`, `/operate` (added: 2026-10-07, DESIGN-0001)) legitimately declare `primary_role: any` — no single role owns them.
 - **One source of truth, no silent drift** — ACs live only in the SPEC; OBS/SEC tasks reference source IDs instead of copying descriptions; test cases reference AC IDs instead of restating AC text.
 - **The git log is the audit trail** — each phase accumulates in the working tree until a single `approve-*` command commits it as one record (all review rounds, address summaries, and the approval itself).
 - **Two independent axes every command must compose correctly across:** `repo_role` (`code` vs. `coordination`) and team size (solo/no-push vs. team/push). A coordination repo commits straight to `main`, never a thread branch — it has no code for `main` to be "waiting on," unlike `repo_role: code`'s `thread/NNNN-slug` convention, which exists specifically to keep planning artifacts off `main` until real code justifies them.
 - **Back-cycles are first-class** — `/reopen-spec`, `/reopen-design`, `/reopen-plan` capture a structured discovery record and assess blast radius before touching any file; a controlled back-cycle is correct behavior, not a failure state.
+- **Content-check classification, not just Handoff-text classification** (added: 2026-10-07, DESIGN-0001 v6) — when a command's single Handoff pause can cover both a routine action and a formal-gate-worthy one (e.g. `security-review.md`'s draft committing both routine findings and, sometimes, a new `accepted_risk` disposition), the correct classification signal is the draft's own structured content (its `findings_status` map), not an attempt to add a second Handoff step for every such command. Established while resolving a security-review finding (SEC-0001 `[SEC-2]`) against the Operator feature; worth checking for before assuming any other command with a similar shape needs new Handoff text.
 
 ---
 

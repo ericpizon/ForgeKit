@@ -4,9 +4,10 @@ type: command
 name: /triage-bug
 description: Lead Developer command to accept or reject a filed bug — confirm it is a real defect, classify severity and priority, assign to a fix milestone, or close with a documented rejection reason
 status: active
-version: 2
+version: 3
 primary_role: lead-developer
 changelog:
+  - v3 — reconciled against create-bug.md's newly canonical status vocabulary (no drift found; this command's existing accepted/rejected/needs_info values already matched). Built for the ForgeKit Operator feature (PLAN-0001 T16).
   - v2 — Handoff now asks solo-vs-team before pushing, like every other commit-producing command in the pipeline. Found during a full-pipeline drift audit: the entire Bug/Incident/Postmortem family committed locally but never pushed regardless of team context — in a team setting, these records were never reaching the shared remote via the documented flow.
 ---
 
@@ -73,7 +74,7 @@ Prompt the user to confirm:
    - **New PLAN-NNNN** — the fix is substantial enough to warrant its own plan
    - **Fast-track** — Critical or P0 severity; use `/release-hotfix` pattern
 
-Update BUG-NNNN frontmatter:
+Update BUG-NNNN frontmatter (`status` values here — `accepted`/`rejected`/`needs_info` — are exactly `create-bug.md`'s canonical vocabulary; reconciled, no drift found):
 ```yaml
 status: accepted
 priority: [P0 | P1 | P2 | P3]

@@ -4,10 +4,11 @@ type: command
 name: /review-test-plan
 description: Quality Engineer command to run all Stage 5b test plan perspectives in one pass — Security, SRE, Lead Developer
 status: active
-version: 3
+version: 4
 primary_role: quality-engineer
 output_artifact_type: test-plan (reviewed)
 changelog:
+  - v4 — added a structured `latest_round` frontmatter field (round/blocking/non_blocking/verdict), written alongside the existing `**Status:**` prose line every round. Built for the ForgeKit Operator feature (PLAN-0001 T3).
   - v2 — added Lead Developer perspective (Step 3): validates test case implementability with the stack, happy path trace alignment, and deferral criteria; output format and quality gate updated
   - v3 — Lead Developer perspective: added ADR/invariant test coverage and alternate path trace alignment checks; required-sections check extended to ADR/Invariant Test Cases and Alternate Path Coverage
 links:
@@ -133,6 +134,8 @@ After completing all applicable perspectives:
 ## Output
 
 Append a `## Test Plan Review — Round N` section to TEST-NNNN. Then update `current_review_round` in TEST-NNNN frontmatter to the round number just appended.
+
+Also set a `latest_round: {round: N, blocking: N, non_blocking: N, verdict: ready | needs_revision}` frontmatter field matching the round section's own `**Status:**` line (`verdict: ready` when blocking is 0, `needs_revision` otherwise) — the structured counterpart to that prose line, written every round alongside it.
 
 **Null suppression:** Omit any `### [Perspective] Findings` section that has no findings — do not emit the section header or a "None." line. List clean perspectives in a single `**Clean perspectives:** [list]` line before `### Contradictions Requiring Arbitration`.
 

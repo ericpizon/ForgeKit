@@ -4,11 +4,12 @@ type: command
 name: /approve-implementation
 description: Lead Developer command to close the implementation phase for a milestone — zero blocking findings gate, updates SEC findings status, OBS instrumentation log, setup documentation, and ARCH.md structural drift; commits all milestone artifacts together
 status: active
-version: 3
+version: 4
 primary_role: lead-developer
 changelog:
   - v2 — added the thread-participant path for Steps 4/5/8 — SEC-NNNN and OBS-NNNN live in the coordination repo (sdlc/THREAD-NNNN/SEC.md, OBS.md) for a thread, not this repo's own sdlc/security/, sdlc/observability/; updates to those shared files are applied directly if reachable this session, otherwise handed off, and always committed separately from this repo's own milestone commit.
   - v3 — Step 6 now also syncs ARCH.md's Module layout/Testing strategy/Observability sections against what the milestone actually built — no command in the pipeline previously wrote this back (implement-plan only reads ARCH.md), which let these sections drift from reality over a project's life. Scoped to the current milestone's own changes; `/update-arch` remains the tool for a full re-scan or catching up pre-existing drift.
+  - v4 — Step 9 now branches on `pipeline.test_gate`. Under `post_merge`, the Handoff offers to merge MN directly instead of pointing to `/execute-tests` — solo fast-forward or a retry-safe team PR-create-then-merge, with the merge independently verified (never trusted from `gh pr merge`'s exit code alone) before `**Implementation status:**` advances to `pr_merged`. A blocked merge leaves the PR open and writes a sanitized `post_merge_merge_attempt` category, never `gh`'s raw CLI output (ARCH.md's Failure-diagnostic sanitization convention). `/create-pr`/`/close-milestone` are never reached under this mode. Built for the Configurable Post-Merge Test Gate feature (PLAN-0002 T3/T4, ADR-0004, OBS-0002).
 ---
 
 # /approve-implementation
@@ -195,10 +196,84 @@ git commit -m "feat(MN): [milestone name] — [brief summary] ([AC list])"
 git push -u origin feature/PLAN-NNNN-MN
 ```
 
-### 9. Implementation phase complete
+### 9. Testing phase handoff — branches on `pipeline.test_gate`
+
+**`pipeline.test_gate: pre_merge`** (absent, malformed, or explicitly `pre_merge` — fail-closed to this path, today's only behavior):
 
 > **Implementation phase complete — MN is committed and the branch is updated.**
 >
 > **Testing phase:** When QE is ready, run `/execute-tests PLAN-NNNN MN TEST-NNNN` to execute automated tests and record results.
 >
 > Note: the next milestone cannot start until MN reaches `pr_merged`. `approved` does not unlock dependencies — tests must pass and the PR must be merged.
+
+**`pipeline.test_gate: post_merge`:**
+
+> **Implementation phase complete — MN is committed and the branch is updated.**
+>
+> Under `post_merge`, testing happens *after* this milestone merges to `main`, not before — `/create-pr` is never used in this mode. Merge MN directly to `main` now?
+
+**If declined:** stop here. `**Implementation status:**` stays `approved` — the same recoverable state as before the offer. This same offer is made again the next time this Handoff is reached.
+
+**If confirmed:**
+
+**Solo path:** direct fast-forward merge — identical mechanics to `create-pr.md`'s own local-only path:
+```bash
+git checkout main
+git merge --ff-only feature/PLAN-NNNN-MN
+```
+If this isn't a clean fast-forward, stop and surface it rather than forcing a merge commit — `**Implementation status:**` stays `approved`; ask the user how they want to reconcile it, same as `create-pr.md`'s own handling. A synchronous failure here *is* the verification — there is no separate async check needed on this path.
+
+**Team path, retry-safe:** before creating anything, check whether a PR already exists for this branch (a retry after a prior blocked attempt):
+```bash
+gh pr list --head feature/PLAN-NNNN-MN --state open
+```
+**If this command itself fails to complete** (auth expired, network error, rate limit — not a real "zero results" answer): stop and surface it to the user directly as an infrastructure problem. Do **not** treat a failed lookup as "no open PR exists" — proceeding to `gh pr create` on that assumption could create a genuine duplicate PR if one already exists but simply couldn't be seen, exactly what this retry-safe check exists to prevent. Re-running the Handoff retries the lookup; it does not require any state change.
+
+- **An open PR already exists:** reuse it — skip straight to the merge attempt below. Never call `gh pr create` again for a branch that already has an open PR.
+- **No open PR exists (confirmed by a successful lookup returning zero results):** create one (same generated title/description shape `create-pr.md` uses for its own real-PR path), then attempt to merge it immediately, in the same step:
+```bash
+gh pr create --title "feat(MN): [milestone name] — PLAN-NNNN" --body "[generated description]" --base main --head feature/PLAN-NNNN-MN
+gh pr merge --merge
+```
+
+**Verify the merge actually completed — never trust `gh pr merge`'s exit code alone:**
+```bash
+gh pr view feature/PLAN-NNNN-MN --json state
+```
+
+**If this command itself fails to complete** (same infra causes as above — not a real state value coming back): stop and surface it to the user directly as an infrastructure problem. Do **not** write a `post_merge_merge_attempt.blocked_reason` for this case — a failed verification check is not evidence of a real branch-protection block, and recording it as one would misinform whoever reads this entry later. Re-running the Handoff retries verification against the same PR.
+
+- **`state: MERGED`:** confirmed. Proceed to "Once the merge is confirmed" below.
+- **Anything else — a real state value was returned, just not `MERGED`** (a required status check or additional approval blocked it — a real possibility under genuine branch protection, exactly the scenario this mode exists to accommodate): the PR is left open, `**Implementation status:**` stays `approved` (never prematurely advanced). Write to MN's entry in PLAN-NNNN:
+  ```yaml
+  post_merge_merge_attempt:
+    blocked: true
+    blocked_reason: required_status_check_pending   # or required_review_missing | branch_protection_rule — a sanitized
+                                                       # category derived from gh's output, never gh's raw CLI text
+                                                       # verbatim, per ARCH.md's Failure-diagnostic sanitization convention
+    attempted_at: "[now]"
+  ```
+  Tell the human which category applies and that re-running this Handoff will find the existing open PR and retry — never duplicate it. Stop here.
+
+**Once the merge is confirmed (either path):** update MN's entry in PLAN-NNNN in the same step:
+```
+**Implementation status:** pr_merged
+```
+```yaml
+post_merge_test:
+  status: pending
+  updated_at: "[now]"
+```
+(Any `post_merge_merge_attempt` entry from an earlier blocked retry is implicitly superseded by this write — no separate cleanup step.)
+
+Commit this directly on `main` — the milestone branch no longer has independent history once merged, mirroring `create-pr.md`'s own local-only-path commit:
+```bash
+git add sdlc/plans/PLAN-NNNN-[slug].md
+git commit -m "chore(MN): mark pr_merged — post_merge test gate, merge confirmed"
+```
+
+`/create-pr` and `/close-milestone` are never invoked for this milestone — this step is its entire closure.
+
+> **MN is merged into `main`.** Testing now happens against the merged state.
+>
+> Run `/execute-tests PLAN-NNNN MN TEST-NNNN` to validate it.
