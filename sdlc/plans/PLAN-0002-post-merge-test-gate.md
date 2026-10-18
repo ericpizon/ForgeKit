@@ -87,7 +87,8 @@ Add the post-merge validation branch (DESIGN-0002 §3.4/§3.5/§3.6):
 
 ### M1 — Configurable Post-Merge Test Gate
 **Tasks:** T1, T2, T3, T4, T5
-**Implementation status:** pending
+**Implementation status:** approved
+**implementation_execution:** {state: completed, attempt: 1, started_at: "2026-10-18", completed_at: "2026-10-18"}
 **AC Coverage:** AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07 (no task — see Definition of Done), AC-08
 **Depends on:** —
 **Rollback:** Safe — every task's change is additive and conditional on `pipeline.test_gate: post_merge`; the `pre_merge` path (today's only behavior, and the default) is never touched by any task's own bullets, confirmed individually in T1/T3/T5's text. Rolling back means simply not shipping/enabling the `post_merge` branch, with zero effect on any project that hasn't opted in.

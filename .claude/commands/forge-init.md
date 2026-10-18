@@ -661,6 +661,23 @@ Same approval flow as greenfield/brownfield: `status: draft` until the user expl
 
 ---
 
+## Phase 4C — Test gate configuration (`repo_role: code` only — a coordination repo has no stack or milestone implementation flow of its own, so this question never applies to it)
+
+After ARCH.md is approved (either path above), ask:
+
+> **When should milestone code merge to `main`: before or after tests confirm it's good?**
+>
+> - **Before merging** *(default)* — today's only behavior. `/execute-tests` must pass against the feature branch before `/create-pr` can merge it to `main`. Nothing lands on `main` untested.
+> - **After merging** — `/approve-implementation` merges a reviewed milestone to `main` immediately; `/execute-tests` then validates the merged (or deployed) state afterward. Choose this only if your real QA process can only ever test what's actually deployed from `main` — for example, a shared QA environment that continuously deploys from `main`. **Trade-off:** for some window between merge and `/execute-tests` reporting a result, `main` (and whatever QA deploys from it) can be carrying code that hasn't yet been confirmed to pass. If you're unsure, pick "Before merging" — it's the safer default.
+
+If **"After merging"** is selected, ask one follow-up — this is what lets `/execute-tests` actually validate the deployed state instead of assuming a specific target:
+
+> **What command validates your deployed/merged state for a milestone, once it's live?** (e.g. a script that checks a QA environment's health, re-runs your e2e suite against a deployed URL, or "none" to run `stack.test.unit`/`stack.test.e2e` locally against `main`'s current state instead)
+
+Record the answers as `pipeline.test_gate` (`pre_merge` | `post_merge`) and `stack.qa_trigger_command` (only meaningful under `post_merge`; `"none"` otherwise, and skip asking the follow-up entirely if "Before merging" was chosen).
+
+---
+
 ## Phase 5 — Generate outputs
 
 After ARCH.md is approved, generate all outputs in this order:
@@ -713,6 +730,7 @@ stack:
     migration_command: "{{stack.deploy.migration_command}}"
   ci: {{stack.ci}}
   ci_trigger_command: "{{stack.ci_trigger_command}}"   # or "none" — see /execute-tests
+  qa_trigger_command: "{{stack.qa_trigger_command}}"   # only meaningful if pipeline.test_gate: post_merge — see Phase 4C
   observability: {{stack.observability}}
   auth: {{stack.auth}}
   llm_agent_framework: {{stack.llm_agent_framework}}   # or "none"
@@ -729,6 +747,7 @@ pipeline:
   observability: true
   postmortem: SEV-2              # SEV-1 | SEV-2 | SEV-3 | SEV-4 | always | never
   evidence_mode: repo_only       # repo_only | hybrid
+  test_gate: {{pipeline.test_gate}}   # pre_merge | post_merge — see Phase 4C
 ```
 
 ### 2. Write or inject CLAUDE.md

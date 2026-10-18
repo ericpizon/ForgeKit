@@ -4,9 +4,10 @@ type: command
 name: /execute-tests
 description: QE command to run automated tests for a milestone's test cases — CI-first with local fallback; records results in PLAN-NNNN; QE classifies failures and routes to QE fix path (test code) or developer path (production code)
 status: active
-version: 5
+version: 6
 primary_role: quality-engineer
 changelog:
+  - v6 — added the Post-Merge Validation Path (`pipeline.test_gate: post_merge`): a milestone reached via `/approve-implementation`'s own merge step (already `pr_merged`, `post_merge_test: pending`) validates the merged/deployed state instead of a feature branch — `stack.qa_trigger_command` if configured, otherwise a path-aware local sync (`git pull` only on the team path, never solo) and local test run. Writes `post_merge_test.status` (P0-only trigger for `failed`, never overwritten once set) and routes a P0 failure to `/create-bug`/`/escalate-to-incident` instead of `test_failed`, since there is no feature branch left to fix and re-test. Built for the Configurable Post-Merge Test Gate feature (PLAN-0002 T5, OBS-0002).
   - v5 — the test-execution table gained a standing `Classification` column (always present, not an ad-hoc Notes addition on failure) using the exact literal values QE's own classification prompt produces (`production_bug`/`test_bug`) — resolves a gap where this decision was readable only as free-text prose. Built for the ForgeKit Operator feature (PLAN-0001 T17).
   - v4 — Test Case Identification now also pulls in TC-OBS-*/TC-SEC-*/TC-ADR-* cases by cross-referencing MN's observability/security tasks against the signal/finding ID each test case names, since these carry no AC at all and filtering only by the AC Coverage Map silently never executed them at any milestone; and now also pulls in Edge/Alternate-path cases that cite an in-scope AC only in prose, with no row in the formal table. Caught running `/execute-tests PLAN-0001 M2 TEST-0001` — M2 has OBS/SEC tasks (T13-T15, T17-T18a) and TEST-0001 has a `TC-EDGE-1` citing AC2 only in prose, both of which the old table-only filter would have skipped entirely at every milestone.
   - v2 — failure routing redesigned: QE classifies each failure as production code bug (test_failed → developer) or test code bug (QE fixes and reruns, no review cycle); mixed failures handled as a batch
@@ -36,8 +37,10 @@ Run all automated test cases for a milestone's ACs and record the results. When 
 
 Read PLAN-NNNN milestone MN's `**Implementation status:**`.
 
-- `approved` → proceed
-- `test_failed` → also proceed (this is a re-run after fixes)
+- `approved` → proceed via the ordinary (`pre_merge`) path below
+- `test_failed` → also proceed via the ordinary path (this is a re-run after fixes)
+- `pr_merged` **with a `post_merge_test` entry present on MN** → this is `pipeline.test_gate: post_merge`'s own route into this command, reached directly from `/approve-implementation`'s merge step, never from an `approved` status. Proceed via the **Post-Merge Validation Path** section below instead of the ordinary path.
+  - If `post_merge_test.status` is already `passed` or `failed` (not `pending`): stop — "MN's post-merge test outcome is already recorded (`[status]`). A post-merge regression is addressed as a new milestone or hotfix, never by re-running this command against the same milestone."
 - Anything else → stop: "MN must be `approved` before test execution. Run `/approve-implementation PLAN-NNNN MN` first."
 
 ## Test Case Identification
@@ -54,7 +57,67 @@ Separate the combined set into two buckets:
 
 **Manual** (`execution: manual`) — do not run; list as `deferred-to-release` in the results table with the reason from their `Reason:` block.
 
+## Post-Merge Validation Path (`pipeline.test_gate: post_merge`)
+
+*(Applies only when the Pre-flight Check above routed here — a milestone already `pr_merged` with `post_merge_test: pending`. Skip this entire section for the ordinary path; continue at CI Detection below instead.)*
+
+There is no feature branch left to test against — MN already merged to `main` via `/approve-implementation`'s own merge step. Everything here validates the already-merged/deployed state instead.
+
+### Validation Target
+
+Read `project.yml`'s `stack.qa_trigger_command`.
+
+**Configured (not `none`):** run it directly — this is the project's own QA-environment health/deployment check. It is never conflated with `stack.ci_trigger_command`, which stays branch-scoped and is only ever used by the ordinary `pre_merge` path below. Parse its output for pass/fail per test case the same way the CI Path parses CI output.
+
+**Not configured (`none`):** fall back to local validation against `main` itself. First sync the local checkout — this differs by which merge path `/approve-implementation` actually took for MN:
+- **Team path** (MN merged via a real PR, `gh pr merge`): `git checkout main && git pull` — the merge happened on GitHub; the local checkout is stale and genuinely needs fetching.
+- **Solo path** (MN merged via a direct local fast-forward): `git checkout main` only, no pull — local `main` is already current from that fast-forward moments earlier, and a bare `git pull` would error on a repo with no remote configured.
+
+**If either sync command fails** (`git checkout` blocked by uncommitted local changes, `git pull` failing on a network error or a genuine conflict) — stop and surface it to the user directly as an infrastructure/environment problem. Do **not** proceed to run tests anyway: per `DESIGN-0002` §3.4, `post_merge_test.status` is never overwritten once written, so a result computed against an unexpectedly half-synced checkout would become a permanent, uncorrectable record for this milestone. Resolve the sync problem first, then re-run this command — it does not require re-merging MN.
+
+Then run:
+```bash
+{{stack.test.unit}} 2>&1 | tee .test-output-unit.txt
+```
+If `stack.test.e2e` is not `none`:
+```bash
+{{stack.test.e2e}} 2>&1 | tee .test-output-e2e.txt
+```
+
+**Infra-failure distinction:** if `stack.qa_trigger_command` itself fails to run at all (a network/auth error, not a test result), surface this directly to the user as an infrastructure problem and stop — never write anything to `post_merge_test.status`, which must mean "tests ran and found a real problem," not "the trigger mechanism was broken." Re-running this command retries the trigger; it does not require re-merging MN.
+
+### Results Recording (post-merge)
+
+Append the same `### Test Execution — Round N` table format as Results Recording below, with `Mode: post_merge-qa_trigger | post_merge-local`.
+
+### Writing `post_merge_test`
+
+Update MN's entry in PLAN-NNNN:
+```yaml
+post_merge_test:
+  status: passed | failed
+  updated_at: "[now]"
+```
+**Only a P0 failure sets `status: failed`** — exactly the same P0-only trigger `test_failed` already uses under `pre_merge`. If every P0 case passes, set `status: passed` — any P1+ failures are still recorded in the table but never flip this field away from `passed`. This write happens exactly once per milestone; the Pre-flight Check above already refuses to re-enter this command once `post_merge_test.status` is no longer `pending`.
+
+### Routing a P0 Failure (post-merge)
+
+Adopt the Quality Engineer role. Unlike the ordinary path, there is no feature branch left to fix and re-test, so `test_failed` and `/address-test-failures` never apply here:
+
+- **Environment is not shared/blocking:** run `/create-bug`, naming MN and the failing test case(s).
+- **Environment is shared/blocking** (other work depends on it being healthy): run `/escalate-to-incident` instead.
+
+`**Implementation status:**` stays `pr_merged` throughout — it was already terminal before this command ran, and neither a passing nor a failing post-merge outcome changes it. Commit the results and the `post_merge_test` write together:
+```bash
+git add sdlc/plans/PLAN-NNNN-[slug].md
+git commit -m "test(MN): post-merge validation — post_merge_test.status [passed|failed]"
+```
+
+---
+
 ## CI Detection
+
+*(Ordinary `pre_merge` path, continued from the Pre-flight Check above.)*
 
 Read `project.yml`'s `stack.ci_trigger_command`. This is a plain runnable command, not an assumption about which CI system produced it — do not detect CI by checking for `.github/workflows/` specifically, since that only ever matches GitHub Actions and silently falls through to the Local Path for any other CI system (Jenkins, CircleCI, GitLab CI, etc.), running tests locally instead of actually triggering that repo's real pipeline.
 

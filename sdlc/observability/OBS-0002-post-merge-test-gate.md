@@ -14,6 +14,12 @@ generation:
 
 # OBS-0002 — Configurable Post-Merge Test Gate
 
+## Instrumentation Implementation Log
+
+| Task | Milestone | Status | Date |
+|---|---|---|---|
+| IT-1 — `post_merge_merge_attempt` field, written at `approve-implementation.md`'s merge-verification step | M1 | implemented | 2026-10-18 |
+
 ## Operationally Critical Paths
 
 No running service exists here (per ARCH.md's "What this repo actually is") — every path below is a markdown-instruction sequence an AI agent executes, not production traffic. "Operationally critical" means: the step whose silent failure would be hardest for a human to notice, because `post_merge` mode specifically trades away the one checkpoint (`pre_merge`'s own gate) that would normally have caught it.
