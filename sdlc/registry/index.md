@@ -24,6 +24,7 @@
 | ANALYSIS-0002 | analysis | completed | Configurable Post-Merge Test Gate — Spec Analysis |
 | DESIGN-0002 | design | approved | Configurable Post-Merge Test Gate — Technical Design |
 | ADR-0004 | adr | accepted | Post-Merge Immediate-Merge Mechanism |
+| OBS-0002 | observability-plan | not_yet_validated | Configurable Post-Merge Test Gate |
 
 ## Investigation Artifacts
 
