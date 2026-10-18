@@ -31,7 +31,7 @@ pipeline_status:
   obs: OBS-0002 approved
   sec: not triggered
   plan: approved
-  test: pending
+  test: approved
 approval:
   mode: repo_only
   approved_by: "Eric Pizon"

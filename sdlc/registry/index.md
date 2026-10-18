@@ -26,6 +26,7 @@
 | ADR-0004 | adr | accepted | Post-Merge Immediate-Merge Mechanism |
 | OBS-0002 | observability-plan | not_yet_validated | Configurable Post-Merge Test Gate |
 | PLAN-0002 | plan | approved | Configurable Post-Merge Test Gate — Implementation Plan (1 milestone) |
+| TEST-0002 | test-plan | approved | Configurable Post-Merge Test Gate — Test Plan |
 
 ## Investigation Artifacts
 
