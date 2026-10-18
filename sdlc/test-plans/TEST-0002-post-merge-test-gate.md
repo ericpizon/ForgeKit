@@ -3,12 +3,12 @@ id: TEST-0002
 type: test-plan
 schema_version: 1
 title: "Configurable Post-Merge Test Gate — Test Plan"
-status: approved
+status: passed
 version: 2
 updated: 2026-10-18
 target_plan_version: 3
-execution_date: null
-execution_summary: null
+execution_date: "2026-10-18"
+execution_summary: "All P0 automated tests passed across M1 (PLAN-0002's only milestone). One P1 manual case (TC-FUNC-10) deferred to release phase."
 current_review_round: 2
 latest_round:
   round: 2
