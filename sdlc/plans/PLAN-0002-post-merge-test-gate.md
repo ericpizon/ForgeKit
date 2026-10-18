@@ -87,7 +87,7 @@ Add the post-merge validation branch (DESIGN-0002 §3.4/§3.5/§3.6):
 
 ### M1 — Configurable Post-Merge Test Gate
 **Tasks:** T1, T2, T3, T4, T5
-**Implementation status:** tests_passed
+**Implementation status:** pr_open
 **implementation_execution:** {state: completed, attempt: 1, started_at: "2026-10-18", completed_at: "2026-10-18"}
 **AC Coverage:** AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07 (no task — see Definition of Done), AC-08
 **Depends on:** —
